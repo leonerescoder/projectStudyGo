@@ -1,0 +1,141 @@
+.navbar-wrapper {
+  background-color: transparent; /* Allows the body gradient to show around it */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+#main-navbar.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background-color: #f5f7f9; /* White/light gray pill background */
+  border-radius: 1px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+#main-navbar .navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+#main-navbar .logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #1e3a8a; /* Dark blue */
+  text-decoration: none;
+}
+
+#main-navbar .logo-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  letter-spacing: -0.5px;
+}
+
+#main-navbar .logo-icon {
+  color: #2563eb;
+}
+
+#main-navbar .icon-btn {
+  color: #1e3a8a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+  background: transparent;
+}
+
+#main-navbar .icon-btn:hover {
+  background-color: rgba(30, 58, 138, 0.1);
+}
+
+/* Search Bar */
+#main-navbar .navbar-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 0 2rem;
+}
+
+#main-navbar .search-bar {
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+  border: 1px solid #bfdbfe; /* Light blue outline */
+  border-radius: 30px;
+  padding: 0.5rem 1rem;
+  width: 100%;
+  max-width: 500px;
+  transition: border-color 0.2s ease;
+}
+
+#main-navbar .search-bar:focus-within {
+  border-color: #3b82f6;
+  background-color: #ffffff;
+}
+
+#main-navbar .search-icon {
+  color: #3b82f6;
+  margin-right: 0.5rem;
+}
+
+#main-navbar .search-input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 0.9rem;
+  color: #1e293b;
+  outline: none;
+}
+
+#main-navbar .search-input::placeholder {
+  color: #64748b;
+}
+
+/* Links */
+#main-navbar .navbar-right {
+  display: flex;
+  align-items: center;
+}
+
+#main-navbar .nav-links {
+  display: flex;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#main-navbar .nav-links a {
+  color: #1e3a8a;
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+#main-navbar .nav-links a:hover {
+  color: #3b82f6;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  #main-navbar .navbar-center {
+    display: none; /* Hide search on smaller screens or adjust as needed */
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-wrapper {
+    padding: 1rem;
+  }
+  #main-navbar .nav-links {
+    display: none;
+  }
+}

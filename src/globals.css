@@ -1,0 +1,46 @@
+:root {
+  --color-primary: #0b1426;
+  --color-secondary: #0c1c38;
+  --color-accent: #2c6cfb;
+  --color-accent-hover: #1e52c8;
+  --color-text-main: #ffffff;
+  --color-text-muted: #a0aec0;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-card-bg: rgba(255, 255, 255, 0.03);
+  --color-card-hover: rgba(255, 255, 255, 0.08);
+  --color-badge: rgba(255, 255, 255, 1);
+  --color-badge-text: #000;
+  --color-warning: #f59e0b;
+  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #060b14 100%);
+  color: var(--color-text-main);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
