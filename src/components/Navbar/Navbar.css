@@ -1,8 +1,9 @@
 .navbar-wrapper {
-  background-color: transparent; /* Allows the body gradient to show around it */
+  background-color: transparent;
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1000;
+  width: 100%;
 }
 
 #main-navbar.navbar {
@@ -10,9 +11,11 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1.5rem;
-  background-color: #f5f7f9; /* White/light gray pill background */
-  border-radius: 1px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  background-color: rgba(11, 17, 32, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  position: relative;
 }
 
 #main-navbar .navbar-left {
@@ -25,23 +28,23 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #1e3a8a; /* Dark blue */
+  color: #ffffff;
   text-decoration: none;
 }
 
 #main-navbar .logo-text {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1e3a8a;
+  color: #ffffff;
   letter-spacing: -0.5px;
 }
 
 #main-navbar .logo-icon {
-  color: #2563eb;
+  color: #3b82f6;
 }
 
 #main-navbar .icon-btn {
-  color: #1e3a8a;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -49,10 +52,11 @@
   border-radius: 50%;
   transition: background-color 0.2s ease;
   background: transparent;
+  cursor: pointer;
 }
 
 #main-navbar .icon-btn:hover {
-  background-color: rgba(30, 58, 138, 0.1);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Search Bar */
@@ -66,18 +70,19 @@
 #main-navbar .search-bar {
   display: flex;
   align-items: center;
-  background-color: transparent;
-  border: 1px solid #bfdbfe; /* Light blue outline */
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 30px;
   padding: 0.5rem 1rem;
   width: 100%;
   max-width: 500px;
-  transition: border-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 #main-navbar .search-bar:focus-within {
   border-color: #3b82f6;
-  background-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
 }
 
 #main-navbar .search-icon {
@@ -90,12 +95,12 @@
   background: transparent;
   width: 100%;
   font-size: 0.9rem;
-  color: #1e293b;
+  color: #ffffff;
   outline: none;
 }
 
 #main-navbar .search-input::placeholder {
-  color: #64748b;
+  color: #94a3b8;
 }
 
 /* Links */
@@ -106,36 +111,201 @@
 
 #main-navbar .nav-links {
   display: flex;
+  align-items: center;
   gap: 1.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-#main-navbar .nav-links a {
-  color: #1e3a8a;
+#main-navbar .nav-links a,
+#main-navbar .nav-btn-link {
+  color: #cbd5e1;
   font-weight: 500;
   font-size: 0.95rem;
   text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
   transition: color 0.2s ease;
 }
 
-#main-navbar .nav-links a:hover {
-  color: #3b82f6;
+#main-navbar .nav-links a:hover,
+#main-navbar .nav-btn-link:hover,
+#main-navbar .nav-btn-link.active {
+  color: #ffffff;
+}
+
+/* Category Transparent Overlay for closing */
+.category-overlay-transparent {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 990;
+  background-color: transparent;
+}
+
+/* Category Modal Dropdown */
+.category-modal {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 1.5rem;
+  width: 350px;
+  background-color: #0b1120;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+}
+
+.category-modal::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: 30px;
+  width: 40px;
+  height: 2px;
+  background: #3b82f6;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #3b82f6;
+}
+
+.category-header {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding: 0 0.5rem;
+  position: relative;
+}
+
+.category-header-text h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.2rem;
+}
+
+.category-header-text p {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  position: absolute;
+  right: 0.5rem;
+  top: 0;
+  display: flex;
+  align-items: center;
+}
+
+.close-btn:hover {
+  color: #fff;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.category-item-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.category-btn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background-color: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #fff;
+}
+
+.category-btn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.category-btn.active {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.category-btn-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.category-btn-icon svg {
+  width: 16px;
+  height: 16px;
+  color: #ffffff;
+}
+
+.category-btn-name {
+  font-size: 0.95rem;
+  font-weight: 500;
+  flex-grow: 1;
+  text-align: left;
+  color: #f1f5f9;
+}
+
+.category-btn-arrow {
+  display: flex;
+  align-items: center;
+  color: #94a3b8;
+}
+
+.category-courses {
+  padding: 0.5rem 1rem 0.5rem 3.5rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 0 0 8px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.category-courses a {
+  color: #94a3b8;
+  font-size: 0.88rem;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.category-courses a:hover {
+  color: #ffffff;
 }
 
 /* Responsive */
 @media (max-width: 1024px) {
   #main-navbar .navbar-center {
-    display: none; /* Hide search on smaller screens or adjust as needed */
+    padding: 0 1rem;
   }
 }
 
 @media (max-width: 768px) {
-  .navbar-wrapper {
-    padding: 1rem;
-  }
   #main-navbar .nav-links {
     display: none;
   }
 }
+

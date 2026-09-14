@@ -1,6 +1,6 @@
-<<<<<<< Updated upstream
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar';
+import Home from './pages/Home';
 import Course from './pages/Course/Course';
 
 function App() {
@@ -8,7 +8,7 @@ function App() {
     <>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Navigate to="/course/1" replace />} />
+        <Route path="/" element={<Home />} />
         <Route path="/course/:id" element={<Course />} />
       </Routes>
     </>
@@ -16,19 +16,5 @@ function App() {
 }
 
 export default App;
-=======
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Home from './pages/Home'
 
-function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-      </Routes>
-    </BrowserRouter>
-  )
-}
 
-export default App
->>>>>>> Stashed changes
