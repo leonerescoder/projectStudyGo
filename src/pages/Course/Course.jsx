@@ -66,24 +66,10 @@ function Course() {
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon"><BarChart size={24} /></div>
-          <div className="stat-info">
-            <span className="stat-label">Nível</span>
-            <span className="stat-value">Iniciante</span>
-          </div>
-        </div>
-        <div className="stat-card">
           <div className="stat-icon"><Calendar size={24} /></div>
           <div className="stat-info">
             <span className="stat-label">Duração</span>
             <span className="stat-value">3 meses</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon"><Award size={24} /></div>
-          <div className="stat-info">
-            <span className="stat-label">Certificado</span>
-            <span className="stat-value">Sim</span>
           </div>
         </div>
       </div>
