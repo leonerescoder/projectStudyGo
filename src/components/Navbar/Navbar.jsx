@@ -96,7 +96,7 @@ function Navbar() {
           <ul className="nav-links">
             <li><Link to="/">Início</Link></li>
             <li><Link to="/escolas">Escolas</Link></li>
-            <li><Link to="/course/1">Cursos</Link></li>
+            <li><Link to="/cursos">Cursos</Link></li>
             <li className="nav-item-categorias" style={{ position: 'relative' }}>
               <button
                 className={`nav-btn-link ${isCategoryMenuOpen ? 'active' : ''}`}
