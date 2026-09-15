@@ -1,0 +1,27 @@
+.star-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.star {
+  font-size: 1.2rem;
+  color: #475569; /* Slate 600 - empty star color */
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.star.filled {
+  color: var(--color-warning); /* Yellow/Gold from globals */
+  text-shadow: 0 0 5px rgba(245, 158, 11, 0.4);
+}
+
+.star-rating:hover .star.filled {
+  transform: scale(1.1);
+}
+
+.rating-text {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-left: 0.5rem;
+  font-weight: 500;
+}
