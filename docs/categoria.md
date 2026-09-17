@@ -11,15 +11,12 @@
 
 ## Categorias disponíveis
 
-- Tecnologia
+- Administração
+- Jogos
 - Mecânica
-- Gastronomia
-- Idiomas
-- Saúde
-- Moda
-- Artes
-- Música
-- Educação
+- Tecnologiaaaa
+- ti
+- tecnologia
 
 # Selecionar uma categoria
 

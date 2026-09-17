@@ -221,6 +221,11 @@
 .category-item-container {
   display: flex;
   flex-direction: column;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.5); /* #3b82f6 com transparência para não ficar tão agressivo visualmente, mas mantendo a cor azul */
+}
+
+.category-item-container:last-child {
+  border-bottom: none;
 }
 
 .category-btn {
