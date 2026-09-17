@@ -55,5 +55,30 @@ const SchoolCard = ({ school }) => {
   );
 };
 
+export const SchoolCardSkeleton = () => {
+  return (
+    <div className="school-card skeleton-card">
+      <div className="school-card-header">
+        <div className="school-header-left">
+          <div className="school-avatar skeleton-avatar"></div>
+          <div className="skeleton-line skeleton-name"></div>
+        </div>
+        <div className="skeleton-line skeleton-badge"></div>
+      </div>
+      
+      <div className="school-card-body">
+        <div className="skeleton-line skeleton-location"></div>
+        <div className="school-rating-container">
+          <div className="skeleton-line skeleton-stars"></div>
+        </div>
+      </div>
+      
+      <div className="school-card-footer">
+        <div className="skeleton-btn"></div>
+      </div>
+    </div>
+  );
+};
+
 export default SchoolCard;
 

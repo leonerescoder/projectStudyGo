@@ -1,65 +1,68 @@
-import React, { useState } from 'react';
-import SchoolCard from '../../components/SchoolCard/SchoolCard';
+import React, { useState, useEffect } from 'react';
+import SchoolCard, { SchoolCardSkeleton } from '../../components/SchoolCard/SchoolCard';
 import './Escolas.css';
 
-// Mock Data
-const MOCK_SCHOOLS = [
-  {
-    id: 1,
-    name: 'Tech Academy Brasil',
-    places: 'São Paulo, SP',
-    rating: 4.8,
-    rankingPosition: 1,
-    createdAt: '2023-01-15'
-  },
-  {
-    id: 2,
-    name: 'Instituto de Inovação Digital',
-    places: 'Rio de Janeiro, RJ',
-    rating: 4.5,
-    rankingPosition: 2,
-    createdAt: '2023-03-20'
-  },
-  {
-    id: 3,
-    name: 'Code & Learn',
-    places: 'Belo Horizonte, MG',
-    rating: 4.2,
-    rankingPosition: 3,
-    createdAt: '2023-06-10'
-  },
-  {
-    id: 4,
-    name: 'Escola do Futuro',
-    places: 'Curitiba, PR',
-    rating: 5.0,
-    rankingPosition: 4,
-    createdAt: '2023-08-05'
-  },
-  {
-    id: 5,
-    name: 'Centro de Tecnologia Avançada',
-    places: 'Recife, PE',
-    rating: 3.9,
-    rankingPosition: 5,
-    createdAt: '2022-11-30'
-  },
-  {
-    id: 6,
-    name: 'Dev Start',
-    places: 'Remoto',
-    rating: 4.7,
-    rankingPosition: 6,
-    createdAt: '2023-09-01'
-  }
-];
-
 function Escolas() {
+  const [escolas, setEscolas] = useState([]);
   const [activeFilter, setActiveFilter] = useState('todas');
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState(null);
+
+  // Fetch companies (escolas) from backend
+  useEffect(() => {
+    async function fetchEscolas() {
+      setLoading(true);
+      setErro(null);
+      try {
+        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEwLCJ0eXBlIjoiRElSRUNUT1IiLCJlbWFpbCI6ImdhYmlAdGVzdC5jb20iLCJuYW1lIjoiR2FiaSAiLCJpYXQiOjE3ODkxNjQ4OTcsImV4cCI6MTc4OTI1MTI5N30.5URmYjIa0iPscnTYo5OK0M07HTQFaJ57pp8Pw-CvZXw"
+        
+        const response = await fetch("http://10.60.44.43:3000/companie", {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+        
+        const data = await response.json();
+        
+        // Ordena por ranking (do maior pro menor)
+        const sortedData = [...data].sort((a, b) => (b.ranking || 0) - (a.ranking || 0));
+        
+        // Calcula o maior ranking da lista
+        const maxRanking = sortedData.length > 0 ? (sortedData[0].ranking || 0) : 0;
+        
+        // Map backend data to frontend card format if needed
+        const mappedData = sortedData.map((companie, index) => {
+          const ranking = companie.ranking || 0;
+          let rating = 0;
+          if (maxRanking > 0) {
+            rating = Math.round((ranking / maxRanking) * 5);
+          }
+
+          return {
+            id: companie.id,
+            name: companie.name,
+            places: companie.places || "Não informado",
+            rating: rating,
+            rankingPosition: index + 1,
+            createdAt: companie.foundation || new Date().toISOString()
+          };
+        });
+
+        setEscolas(mappedData);
+      } catch (error) {
+        console.error("Erro ao buscar empresas:", error);
+        setErro("Não foi possível carregar as escolas no momento. Tente novamente mais tarde.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchEscolas();
+  }, []);
 
   // Filter and Sort logic
-  const filteredSchools = MOCK_SCHOOLS.filter(school => 
+  const filteredSchools = escolas.filter(school => 
     school.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     school.places.toLowerCase().includes(searchQuery.toLowerCase())
   ).sort((a, b) => {
@@ -93,6 +96,14 @@ function Escolas() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+              {searchQuery && (
+                <button className="clear-search-btn" onClick={() => setSearchQuery('')}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
         </header>
@@ -118,20 +129,33 @@ function Escolas() {
           </button>
         </div>
 
-        <div className="escolas-grid">
-          {filteredSchools.length > 0 ? (
-            filteredSchools.map(school => (
-              <SchoolCard key={school.id} school={school} />
-            ))
-          ) : (
-            <div className="no-results">
-              <p>Nenhuma escola encontrada para a pesquisa "{searchQuery}".</p>
-            </div>
-          )}
-        </div>
+        {loading ? (
+          <div className="escolas-grid">
+            {[...Array(6)].map((_, index) => (
+              <SchoolCardSkeleton key={index} />
+            ))}
+          </div>
+        ) : erro ? (
+          <div className="no-results">
+            <p>{erro}</p>
+          </div>
+        ) : (
+          <div className="escolas-grid">
+            {filteredSchools.length > 0 ? (
+              filteredSchools.map(school => (
+                <SchoolCard key={school.id} school={school} />
+              ))
+            ) : (
+              <div className="no-results">
+                <p>Nenhuma escola encontrada para a pesquisa "{searchQuery}".</p>
+              </div>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );
 }
 
 export default Escolas;
+
