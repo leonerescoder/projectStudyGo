@@ -1,99 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Clock, Calendar, BarChart, MapPin, ChevronRight, ChevronDown, Flame, Sparkles } from 'lucide-react';
+import { Search, Clock, Calendar, BarChart, MapPin, ChevronRight, ChevronDown, Flame, Sparkles, Building } from 'lucide-react';
+import { buscaTodos } from '../../ApiCourses/ApiCourse';
 import './CoursesCatalog.css';
-
-const ALL_COURSES = [
-  {
-    id: 1,
-    title: 'Python: Fundamento I',
-    school: 'Senac',
-    category: 'Tecnologia da Informação',
-    hours: 100,
-    duration: '3 meses',
-    level: 'Iniciante',
-    mode: 'Online',
-    initials: 'SC',
-    color: '#c2410c',
-    tag: 'Mais procurado',
-  },
-  {
-    id: 2,
-    title: 'Lógica de Programação',
-    school: 'Alura',
-    category: 'Tecnologia da Informação',
-    hours: 80,
-    duration: '2 meses',
-    level: 'Iniciante',
-    mode: 'Online',
-    initials: 'AL',
-    color: '#16a34a',
-    tag: null,
-  },
-  {
-    id: 3,
-    title: 'Desenvolvimento Web Completo',
-    school: 'Senai',
-    category: 'Tecnologia da Informação',
-    hours: 160,
-    duration: '5 meses',
-    level: 'Iniciante',
-    mode: 'Presencial',
-    initials: 'SI',
-    color: '#2563eb',
-    tag: null,
-  },
-  {
-    id: 4,
-    title: 'Java do Zero ao Avançado',
-    school: 'Alura',
-    category: 'Tecnologia da Informação',
-    hours: 120,
-    duration: '4 meses',
-    level: 'Intermediário',
-    mode: 'Online',
-    initials: 'AL',
-    color: '#16a34a',
-    tag: null,
-  },
-  {
-    id: 5,
-    title: 'Técnico em Inteligência Artificial',
-    school: 'Senac',
-    category: 'Tecnologia da Informação',
-    hours: 240,
-    duration: '8 meses',
-    level: 'Intermediário',
-    mode: 'Presencial',
-    initials: 'SC',
-    color: '#c2410c',
-    tag: 'Novo',
-  },
-  {
-    id: 6,
-    title: 'Técnico em Segurança Cibernética',
-    school: 'Senai',
-    category: 'Tecnologia da Informação',
-    hours: 200,
-    duration: '6 meses',
-    level: 'Avançado',
-    mode: 'Presencial',
-    initials: 'SI',
-    color: '#2563eb',
-    tag: null,
-  },
-];
 
 function CoursesCatalog() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('popular');
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const filteredCourses = ALL_COURSES.filter(course =>
-    course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.school.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.category.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    async function loadCourses() {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await buscaTodos();
+        setCourses(data);
+      } catch (err) {
+        console.error('Erro ao carregar cursos:', err);
+        setError('Não foi possível carregar os cursos. Tente novamente mais tarde.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadCourses();
+  }, []);
+
+  const filteredCourses = courses.filter(course =>
+    (course.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (course.fieldOfStudy || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (course.company?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const cardColors = ['#c2410c', '#16a34a', '#2563eb', '#9333ea', '#0891b2', '#dc2626'];
+
+  function getInitials(name) {
+    if (!name) return '??';
+    return name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+  }
+
+  if (loading) {
+    return (
+      <div id="courses-catalog-page">
+        <div className="catalog-header">
+          <h1>Catálogo de cursos</h1>
+          <p>Carregando cursos...</p>
+        </div>
+        <div className="catalog-loading">
+          <div className="loading-spinner"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div id="courses-catalog-page">
+        <div className="catalog-header">
+          <h1>Catálogo de cursos</h1>
+          <p className="catalog-error">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div id="courses-catalog-page">
@@ -125,46 +97,47 @@ function CoursesCatalog() {
       <span className="catalog-count">{filteredCourses.length} cursos</span>
 
       <div className="catalog-list">
-        {filteredCourses.map(course => (
-          <div
-            key={course.id}
-            className="catalog-card"
-            onClick={() => navigate(`/course/${course.id}`)}
-          >
-            <div className="catalog-card-logo" style={{ backgroundColor: course.color }}>
-              {course.initials}
-            </div>
+        {filteredCourses.map((course, index) => {
+          const color = cardColors[index % cardColors.length];
+          const companyName = course.company?.name || 'Escola';
+          const initials = getInitials(companyName);
+          const categories = course.categories?.map(c => c.name).join(', ') || course.fieldOfStudy || 'Geral';
 
-            <div className="catalog-card-info">
-              <div className="catalog-card-title-row">
-                <h3>{course.title}</h3>
-                {course.tag === 'Mais procurado' && (
-                  <span className="tag tag-popular">
-                    <Flame size={12} /> Mais procurado
-                  </span>
-                )}
-                {course.tag === 'Novo' && (
-                  <span className="tag tag-new">
-                    <Sparkles size={12} /> Novo
-                  </span>
-                )}
+          return (
+            <div
+              key={course.id}
+              className="catalog-card"
+              onClick={() => navigate(`/course/${course.id}`)}
+            >
+              <div className="catalog-card-logo" style={{ backgroundColor: color }}>
+                {initials}
               </div>
-              <p className="catalog-card-school">
-                {course.school} · {course.category}
-              </p>
-              <div className="catalog-card-meta">
-                <span><Clock size={14} /> {course.hours} horas</span>
-                <span><Calendar size={14} /> {course.duration}</span>
-                <span><BarChart size={14} /> {course.level}</span>
-                <span><MapPin size={14} /> {course.mode}</span>
-              </div>
-            </div>
 
-            <div className="catalog-card-arrow">
-              <ChevronRight size={22} />
+              <div className="catalog-card-info">
+                <div className="catalog-card-title-row">
+                  <h3>{course.name}</h3>
+                  {course.ranking && course.ranking <= 3 && (
+                    <span className="tag tag-popular">
+                      <Flame size={12} /> Mais procurado
+                    </span>
+                  )}
+                </div>
+                <p className="catalog-card-school">
+                  {categories}
+                </p>
+                <div className="catalog-card-meta">
+                  <span><Building size={14} /> {companyName}</span>
+                  <span><Clock size={14} /> {course.workload || 0} horas</span>
+                  <span><BarChart size={14} /> {course.fieldOfStudy || 'N/A'}</span>
+                </div>
+              </div>
+
+              <div className="catalog-card-arrow">
+                <ChevronRight size={22} />
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
