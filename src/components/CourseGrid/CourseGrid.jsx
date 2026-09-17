@@ -20,7 +20,7 @@ export function CourseGrid({
             <h2 className="section-main-title">Cursos em destaque</h2>
           </div>
 
-          <Link to="/course/1" className="see-all-pill-btn">
+          <Link to="/cursos" className="see-all-pill-btn">
             <span>Ver todos</span>
             <ArrowRight size={15} />
           </Link>

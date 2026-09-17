@@ -43,6 +43,24 @@ export function CourseCard({ course }) {
   };
 
   const renderVisual = () => {
+    if (course.urlImg) {
+      return (
+        <div className="card-visual-frame visual-image" style={{ padding: 0, overflow: 'hidden' }}>
+          <img 
+            src={course.urlImg} 
+            alt={course.title} 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+            onError={(e) => {
+              // Fallback para não mostrar imagem quebrada
+              e.target.style.display = 'none';
+              e.target.parentNode.style.padding = '1.5rem';
+              e.target.parentNode.innerHTML = '<span class="default-icon">📚</span>';
+            }}
+          />
+        </div>
+      );
+    }
+
     switch (course.visualType) {
       case 'code-editor':
         return (

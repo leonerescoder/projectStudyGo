@@ -1,18 +1,64 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Hero } from './components/Hero/Hero';
 import { Features } from './components/Features/Features';
 import { CourseGrid } from './components/CourseGrid/CourseGrid';
 import { Footer } from './components/Footer/Footer';
-import { COURSES_DATA } from './data/mockData';
+import { buscaTodos } from './ApiCourses/ApiCourse';
 
 import './tela_inicial.css';
+
+const mockSchools = {
+  1: 'Escola de Administração',
+  2: 'Escola de Tecnologia',
+  3: 'Escola de Negócios',
+  4: 'Escola de Design'
+};
+
+const getSchoolName = (id) => mockSchools[id] || `Escola (ID: ${id})`;
+
+const getVisualType = (name = '') => {
+  const n = name.toLowerCase();
+  if (n.includes('java')) return 'java-cup';
+  if (n.includes('web') || n.includes('front') || n.includes('html')) return 'web-stack';
+  if (n.includes('cloud') || n.includes('nuvem')) return 'cloud-net';
+  if (n.includes('data') || n.includes('sql') || n.includes('banco')) return 'database-cylinder';
+  if (n.includes('design') || n.includes('figma') || n.includes('ui')) return 'ui-design';
+  return 'code-editor';
+};
 
 export function TelaInicial() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('Todos');
+  const [courses, setCourses] = useState([]);
+
+  useEffect(() => {
+    async function loadCourses() {
+      try {
+        const response = await buscaTodos();
+        // Check if response is an array or wrapped in a property like .value or .data
+        const data = Array.isArray(response) ? response : (response.value || response.data || []);
+        
+        const mappedCourses = data.map(c => ({
+          id: c.id,
+          title: c.name || 'Curso sem nome',
+          category: c.fieldOfStudy || 'Geral',
+          description: c.description || '',
+          school: getSchoolName(c.companyId),
+          workload: `${c.workload || 0} horas`,
+          urlImg: c.urlImg,
+          visualType: getVisualType(c.name),
+          badge: c.ranking && c.ranking <= 3 ? { type: 'popular', text: 'Mais procurado' } : null
+        }));
+        setCourses(mappedCourses);
+      } catch (err) {
+        console.error("Erro ao buscar cursos na tela inicial:", err);
+      }
+    }
+    loadCourses();
+  }, []);
 
   const filteredCourses = useMemo(() => {
-    return COURSES_DATA.filter((course) => {
+    return courses.filter((course) => {
       // Filtro por categoria
       const matchesCategory =
         activeCategory === 'Todos' ||
@@ -29,7 +75,7 @@ export function TelaInicial() {
 
       return matchesCategory && matchesSearch;
     });
-  }, [searchTerm, activeCategory]);
+  }, [searchTerm, activeCategory, courses]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
