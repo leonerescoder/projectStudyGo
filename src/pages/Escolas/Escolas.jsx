@@ -15,18 +15,25 @@ function Escolas() {
       setLoading(true);
       setErro(null);
       try {
-        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEwLCJ0eXBlIjoiRElSRUNUT1IiLCJlbWFpbCI6ImdhYmlAdGVzdC5jb20iLCJuYW1lIjoiR2FiaSAiLCJpYXQiOjE3ODkxNjQ4OTcsImV4cCI6MTc4OTI1MTI5N30.5URmYjIa0iPscnTYo5OK0M07HTQFaJ57pp8Pw-CvZXw"
+        const token = localStorage.getItem('studygo_token') || localStorage.getItem('token') || '';
+        const headers = {};
+        if (token) {
+          headers['Authorization'] = 'Bearer ' + token;
+        }
         
-        const response = await fetch("http://10.60.44.43:3000/companie", {
-          headers: {
-            'Authorization': 'Bearer ' + token
-          }
+        const response = await fetch("https://uc13-projeto.onrender.com/companie", {
+          headers
         });
         
+        if (!response.ok) {
+          throw new Error(`Erro na API (${response.status})`);
+        }
+
         const data = await response.json();
+        const arrayData = Array.isArray(data) ? data : [];
         
         // Ordena por ranking (do maior pro menor)
-        const sortedData = [...data].sort((a, b) => (b.ranking || 0) - (a.ranking || 0));
+        const sortedData = [...arrayData].sort((a, b) => (b.ranking || 0) - (a.ranking || 0));
         
         // Calcula o maior ranking da lista
         const maxRanking = sortedData.length > 0 ? (sortedData[0].ranking || 0) : 0;

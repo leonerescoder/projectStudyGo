@@ -26,32 +26,43 @@ export function LoginModal() {
 
   if (!isAuthModalOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
     setLoading(true);
 
-    const res = login(email, password);
-    setLoading(false);
-
-    if (!res.success) {
-      setErrorMessage(res.error);
-    } else {
-      setEmail('');
-      setPassword('');
-      closeAuthModal();
+    try {
+      const res = await login(email, password);
+      if (!res.success) {
+        setErrorMessage(res.error);
+      } else {
+        setEmail('');
+        setPassword('');
+        closeAuthModal();
+      }
+    } catch (err) {
+      setErrorMessage('Erro ao tentar autenticar. Tente novamente.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleQuickLogin = (userEmail, userPass = '123') => {
+  const handleQuickLogin = async (userEmail, userPass = '123') => {
     setEmail(userEmail);
     setPassword(userPass);
     setErrorMessage('');
-    const res = login(userEmail, userPass);
-    if (!res.success) {
-      setErrorMessage(res.error);
-    } else {
-      closeAuthModal();
+    setLoading(true);
+    try {
+      const res = await login(userEmail, userPass);
+      if (!res.success) {
+        setErrorMessage(res.error);
+      } else {
+        closeAuthModal();
+      }
+    } catch (err) {
+      setErrorMessage('Erro ao tentar autenticar. Tente novamente.');
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -1,85 +1,81 @@
 import { useEffect, useState } from "react";
-
+import { BASE_URL, getStoredToken } from "./apiClient";
 
 function App() {
-
-  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEwLCJ0eXBlIjoiRElSRUNUT1IiLCJlbWFpbCI6ImdhYmlAdGVzdC5jb20iLCJuYW1lIjoiR2FiaSAiLCJpYXQiOjE3ODkxNjQ4OTcsImV4cCI6MTc4OTI1MTI5N30.5URmYjIa0iPscnTYo5OK0M07HTQFaJ57pp8Pw-CvZXw"
-
   const [curso, setCursos] = useState([]);
-
   const [pesquisa, setPesquisa] = useState(0);
-
-  
 
   const [nome, setNome] = useState("")
   const [descricao, setDescricao] = useState("")
   const [workload, setWorkload] = useState(0)
   const [urlimg, setUrlImg] = useState("")
   const [fieldofstudy, setFieldOfStudy] = useState('')
- 
 
+  async function Inserir() {
+    try {
+      const token = getStoredToken();
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+      }
 
-   async function Inserir (){
-        try {
-          const request = await fetch('http://10.60.44.43:3000/categorie', {
-            method: 'POST',
-            headers: { 
-              'Authorization': 'Bearer '+token
-            },
-            body: JSON.stringify({
-              name: nome,
-              description: descricao,
-              workload: workload,
-              urlImg: urlimg,
-              fieldOfStudy: fieldofstudy,
-              companyId: 1,
-              categoryIds: [1, 2]
-              })
-          })
- 
-          buscaTodos()
- 
-          } catch (e) {
-        console.log(e)
-        }
+      const request = await fetch(`${BASE_URL}/categorie`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          name: nome,
+          description: descricao,
+          workload: workload,
+          urlImg: urlimg,
+          fieldOfStudy: fieldofstudy,
+          companyId: 1,
+          categoryIds: [1, 2]
+        })
+      });
+
+      buscaTodos();
+    } catch (e) {
+      console.log(e);
+    }
   }
-    
-   
+
   async function buscaTodos() {
     try {
+      const token = getStoredToken();
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+      }
 
-
-      const request = await fetch("http://10.60.44.43:3000/categorie")
-
-      const data = await request.json()
-      
-      setCursos(data)
+      const request = await fetch(`${BASE_URL}/categorie`, { headers });
+      const data = await request.json();
+      setCursos(Array.isArray(data) ? data : []);
     } catch (e) {
-      console.log("")
+      console.log(e);
     }
-
   }
 
   async function buscaID(id) {
     try {
+      const token = getStoredToken();
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+      }
 
-
-      const request = await fetch("http://10.60.44.43:3000/categorie/"+ id)
-
-      const data = await request.json()
-      console.log(data)
-      setCursos([data])
+      const request = await fetch(`${BASE_URL}/categorie/` + id, { headers });
+      const data = await request.json();
+      setCursos(data ? [data] : []);
     } catch (e) {
-      console.log("")
+      console.log(e);
     }
-
   }
 
-
-
   useEffect(() => {
-    buscaTodos()
-  }, [])
+    buscaTodos();
+  }, []);
 
   return (
     <div>

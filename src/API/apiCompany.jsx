@@ -1,11 +1,8 @@
 import { useEffect, useState } from "react";
+import { BASE_URL, getStoredToken } from "./apiClient";
 
 function App() {
-
-  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEwLCJ0eXBlIjoiRElSRUNUT1IiLCJlbWFpbCI6ImdhYmlAdGVzdC5jb20iLCJuYW1lIjoiR2FiaSAiLCJpYXQiOjE3ODkxNjQ4OTcsImV4cCI6MTc4OTI1MTI5N30.5URmYjIa0iPscnTYo5OK0M07HTQFaJ57pp8Pw-CvZXw"
-
   const [companie, setCompanie] = useState([]);
-
   const [pesquisa, setPesquisa] = useState(0);
   
   const [nome, setNome] = useState("")
@@ -15,71 +12,79 @@ function App() {
   const [fundamentals, setFundamentals] = useState("")
   const [methods, setMethods] = useState("")
   const [ranking, setRanking] = useState(0)
- 
-   async function Inserir (){
-        try {
-          const request = await fetch('http://10.60.44.43:3000/companie', {
-            method: 'POST',
-            headers: { 
-              'Authorization': 'Bearer '+token,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              name: nome,
-              cnpj: cnpj,
-              foundation: foundation,
-              places: places,
-              fundamentals: fundamentals,
-              methods: methods,
-              ranking: Number(ranking),
-              userId: 1
-              })
-          })
- 
-          buscaTodos()
- 
-          } catch (e) {
-        console.log(e)
-        }
+
+  async function Inserir() {
+    try {
+      const token = getStoredToken();
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+      }
+
+      const request = await fetch(`${BASE_URL}/companie`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          name: nome,
+          cnpj: cnpj,
+          foundation: foundation,
+          places: places,
+          fundamentals: fundamentals,
+          methods: methods,
+          ranking: Number(ranking),
+          userId: 1
+        })
+      });
+
+      buscaTodos();
+    } catch (e) {
+      console.log(e);
+    }
   }
-    
+
   async function buscaTodos() {
     try {
-      const request = await fetch("http://10.60.44.43:3000/companie", {
-        headers: {
-          'Authorization': 'Bearer '+token
-        }
-      })
+      const token = getStoredToken();
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+      }
 
-      const data = await request.json()
-      
-      setCompanie(data)
+      const request = await fetch(`${BASE_URL}/companie`, {
+        headers
+      });
+
+      const data = await request.json();
+      setCompanie(Array.isArray(data) ? data : []);
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
-
   }
 
   async function buscaID(id) {
     try {
-      const request = await fetch("http://10.60.44.43:3000/companie/"+ id, {
-        headers: {
-          'Authorization': 'Bearer '+token
-        }
-      })
+      const token = getStoredToken();
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+      }
 
-      const data = await request.json()
-      console.log(data)
-      setCompanie([data])
+      const request = await fetch(`${BASE_URL}/companie/` + id, {
+        headers
+      });
+
+      const data = await request.json();
+      setCompanie(data ? [data] : []);
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
-
   }
 
   useEffect(() => {
-    buscaTodos()
-  }, [])
+    buscaTodos();
+  }, []);
 
   return (
     <div>

@@ -1,30 +1,37 @@
 import { useEffect, useState } from "react";
+import { BASE_URL, getStoredToken } from "../API/apiClient";
 
-export const BASE_URL = "http://10.60.44.43:3000";
+export { BASE_URL };
 
 export async function buscaTodos() {
-  const request = await fetch(`${BASE_URL}/course`);
+  const token = getStoredToken();
+  const headers = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const request = await fetch(`${BASE_URL}/course`, { headers });
   if (!request.ok) throw new Error("Erro ao buscar cursos");
   const data = await request.json();
   return data;
 }
 
 export async function buscaID(id) {
-  const request = await fetch(`${BASE_URL}/course/${id}`);
+  const token = getStoredToken();
+  const headers = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const request = await fetch(`${BASE_URL}/course/${id}`, { headers });
   if (!request.ok) throw new Error("Erro ao buscar curso específico");
   const data = await request.json();
   return data;
 }
 
 function App() {
-
-  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEwLCJ0eXBlIjoiRElSRUNUT1IiLCJlbWFpbCI6ImdhYmlAdGVzdC5jb20iLCJuYW1lIjoiR2FiaSAiLCJpYXQiOjE3ODkxNjQ4OTcsImV4cCI6MTc4OTI1MTI5N30.5URmYjIa0iPscnTYo5OK0M07HTQFaJ57pp8Pw-CvZXw"
-
   const [curso, setCursos] = useState([]);
-
   const [pesquisa, setPesquisa] = useState(0);
-
-
 
   const [nome, setNome] = useState("")
   const [descricao, setDescricao] = useState("")
@@ -33,15 +40,19 @@ function App() {
   const [fieldofstudy, setFieldOfStudy] = useState('')
   const [companyId, setCompanyId] = useState(1)
 
-
   async function Inserir() {
     try {
+      const token = getStoredToken();
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+      }
+
       const request = await fetch(`${BASE_URL}/course`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        },
+        headers,
         body: JSON.stringify({
           name: nome,
           description: descricao,

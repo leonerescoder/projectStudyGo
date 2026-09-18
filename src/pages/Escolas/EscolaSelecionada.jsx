@@ -20,13 +20,19 @@ function EscolaSelecionada() {
   useEffect(() => {
     async function fetchSchool() {
       try {
-        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEwLCJ0eXBlIjoiRElSRUNUT1IiLCJlbWFpbCI6ImdhYmlAdGVzdC5jb20iLCJuYW1lIjoiR2FiaSAiLCJpYXQiOjE3ODkxNjQ4OTcsImV4cCI6MTc4OTI1MTI5N30.5URmYjIa0iPscnTYo5OK0M07HTQFaJ57pp8Pw-CvZXw";
+        const token = localStorage.getItem('studygo_token') || localStorage.getItem('token') || '';
+        const headers = {};
+        if (token) {
+          headers['Authorization'] = 'Bearer ' + token;
+        }
 
-        const response = await fetch("http://10.60.44.43:3000/companie/" + id, {
-          headers: {
-            'Authorization': 'Bearer ' + token
-          }
+        const response = await fetch("https://uc13-projeto.onrender.com/companie/" + id, {
+          headers
         });
+
+        if (!response.ok) {
+          throw new Error(`Erro na API (${response.status})`);
+        }
 
         const data = await response.json();
 

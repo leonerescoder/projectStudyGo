@@ -29,9 +29,15 @@ function Navbar() {
   const userMenuRef = useRef(null);
 
   useEffect(() => {
-    fetch('http://10.60.44.43:3000/categorie')
+    const token = localStorage.getItem('studygo_token') || localStorage.getItem('token');
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    fetch('https://uc13-projeto.onrender.com/categorie', { headers })
       .then(res => res.json())
-      .then(data => setCategories(data))
+      .then(data => setCategories(Array.isArray(data) ? data : []))
       .catch(err => console.error("Erro ao buscar categorias:", err));
   }, []);
 
