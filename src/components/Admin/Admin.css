@@ -111,6 +111,220 @@
   color: #94a3b8;
   font-size: 0.95rem;
   line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+/* Active Session Pill in Banner */
+#admin-page .admin-active-session-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: rgba(11, 20, 42, 0.7);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 50px;
+  padding: 0.35rem 0.5rem 0.35rem 0.45rem;
+  font-size: 0.84rem;
+  color: #e2e8f0;
+  max-width: 100%;
+}
+
+#admin-page .session-user-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#admin-page .session-user-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 0.25rem;
+}
+
+#admin-page .session-user-text strong {
+  color: #38bdf8;
+}
+
+#admin-page .btn-session-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 50px;
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+#admin-page .btn-session-logout:hover {
+  background: rgba(239, 68, 68, 0.3);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   AUTH GUARD CARD (WHEN LOGGED OUT)
+   ========================================================================== */
+#admin-page .admin-auth-guard-card {
+  background: radial-gradient(circle at 50% 0%, #172a54 0%, #0c172e 100%);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 24px;
+  max-width: 620px;
+  margin: 3rem auto;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 40px rgba(56, 189, 248, 0.12);
+  animation: fadeIn 0.3s ease;
+}
+
+#admin-page .auth-guard-icon-wrapper {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.25rem;
+}
+
+#admin-page .admin-auth-guard-card h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+#admin-page .admin-auth-guard-card p {
+  color: #94a3b8;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  max-width: 480px;
+}
+
+#admin-page .btn-guard-login {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  padding: 0.85rem 1.8rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#admin-page .btn-guard-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.55);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+#admin-page .guard-quick-login-section {
+  width: 100%;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 1.25rem;
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  text-align: left;
+}
+
+#admin-page .guard-quick-title {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+#admin-page .guard-users-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+#admin-page .guard-user-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#admin-page .guard-user-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(56, 189, 248, 0.35);
+  transform: translateX(4px);
+}
+
+#admin-page .guard-user-btn.admin .guard-avatar {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+#admin-page .guard-user-btn.director .guard-avatar {
+  background: rgba(2, 132, 199, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(2, 132, 199, 0.3);
+}
+
+#admin-page .guard-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#admin-page .guard-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+#admin-page .guard-info strong {
+  font-size: 0.88rem;
+  color: #ffffff;
+}
+
+#admin-page .guard-role {
+  font-size: 0.76rem;
+  color: #38bdf8;
+}
+
+#admin-page .guard-email {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-family: monospace;
 }
 
 #admin-page .role-switcher-card {
@@ -183,7 +397,7 @@
    ========================================================================== */
 #admin-page .integration-cards-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.25rem;
 }
 
@@ -213,6 +427,11 @@
   background: linear-gradient(135deg, rgba(16, 85, 75, 0.4) 0%, rgba(15, 29, 62, 0.7) 100%);
 }
 
+#admin-page .integration-card.database-hostinger {
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.4) 0%, rgba(15, 29, 62, 0.7) 100%);
+}
+
 #admin-page .card-number-badge {
   width: 42px;
   height: 42px;
@@ -228,19 +447,70 @@
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.5);
 }
 
+#admin-page .card-number-badge.purple {
+  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+  box-shadow: 0 4px 14px rgba(147, 51, 234, 0.5);
+}
+
 #admin-page .integration-card.secondary-cyan .card-number-badge {
   background: #059669;
   box-shadow: 0 4px 14px rgba(5, 150, 105, 0.5);
+}
+
+#admin-page .card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+#admin-page .db-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+#admin-page .db-phpmyadmin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: #d8b4fe;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+#admin-page .db-phpmyadmin-btn:hover {
+  background: rgba(168, 85, 247, 0.35);
+  color: #ffffff;
 }
 
 #admin-page .card-info h3 {
   font-size: 1.05rem;
   font-weight: 700;
   color: #ffffff;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.1rem;
 }
 
 #admin-page .card-info p {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+#admin-page .card-info code {
+  font-family: monospace;
+  color: #38bdf8;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
   font-size: 0.85rem;
   color: #94a3b8;
 }

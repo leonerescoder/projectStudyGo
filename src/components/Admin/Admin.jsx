@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, 
   GraduationCap, 
@@ -15,7 +14,12 @@ import {
   Database, 
   SlidersHorizontal, 
   X,
-  ExternalLink 
+  LogOut,
+  LogIn,
+  Lock,
+  Crown,
+  ExternalLink,
+  Server
 } from 'lucide-react';
 import { 
   INITIAL_COURSES, 
@@ -23,13 +27,24 @@ import {
   INITIAL_CATEGORIES, 
   INITIAL_USERS 
 } from './adminData';
+import { DB_CONFIG } from '../../data/databaseConfig';
+import { useAuth } from '../../context/AuthContext';
 import './Admin.css';
 
 export function Admin() {
+  const { user, logout, openAuthModal, availableUsers, login } = useAuth();
+
   // Role Simulation State: 'ADMIN' or 'DIRECTOR'
-  const [userRole, setUserRole] = useState('ADMIN'); // 'ADMIN' | 'DIRECTOR'
+  const [userRole, setUserRole] = useState(user?.type || 'ADMIN');
   const [activeTab, setActiveTab] = useState('courses'); // 'courses' | 'companies' | 'categories' | 'users'
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Sync role if authenticated user changes
+  useEffect(() => {
+    if (user?.type) {
+      setUserRole(user.type);
+    }
+  }, [user]);
   
   // Data State (Buscar Dados)
   const [courses, setCourses] = useState(INITIAL_COURSES);
@@ -269,6 +284,58 @@ export function Admin() {
     setIsModalOpen(true);
   };
 
+  // If user is logged out, show access restricted guard
+  if (!user) {
+    return (
+      <div id="admin-page">
+        <main className="admin-container">
+          <div className="admin-auth-guard-card">
+            <div className="auth-guard-icon-wrapper">
+              <Lock size={44} className="auth-guard-lock-icon" />
+            </div>
+            <h2>Acesso Restrito ao Painel Administrativo</h2>
+            <p>
+              Esta área é exclusiva para Administradores e Diretores de Instituições de Ensino.
+              Faça login com seu e-mail e senha cadastrados no banco de dados para gerenciar o sistema.
+            </p>
+
+            <button 
+              type="button" 
+              className="btn-guard-login"
+              onClick={openAuthModal}
+            >
+              <LogIn size={18} />
+              <span>Entrar com E-mail e Senha</span>
+            </button>
+
+            <div className="guard-quick-login-section">
+              <span className="guard-quick-title">Acesso rápido aos usuários cadastrados no banco:</span>
+              <div className="guard-users-grid">
+                {availableUsers.filter(u => u.status === 'ATIVO').map((u) => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    className={`guard-user-btn ${u.type.toLowerCase()}`}
+                    onClick={() => login(u.email, u.password || '123')}
+                  >
+                    <div className="guard-avatar">
+                      {u.type === 'ADMIN' ? <Crown size={18} /> : <GraduationCap size={18} />}
+                    </div>
+                    <div className="guard-info">
+                      <strong>{u.name}</strong>
+                      <span className="guard-role">{u.type === 'ADMIN' ? '👑 Administrador Global' : `🎓 Diretor (${u.company_name})`}</span>
+                      <span className="guard-email">{u.email}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div id="admin-page">
       {/* Toast Notification */}
@@ -291,6 +358,25 @@ export function Admin() {
             <p className="banner-subtitle">
               Gestão integrada com a base de dados (MySQL/API): Consulta e Inserção de Cursos, Instituições, Categorias e Perfis de Acesso.
             </p>
+
+            {/* Active User Session Bar */}
+            <div className="admin-active-session-pill">
+              <div className="session-user-avatar">
+                {user.type === 'ADMIN' ? <Crown size={15} /> : <GraduationCap size={15} />}
+              </div>
+              <div className="session-user-text">
+                <span>Conectado como: <strong>{user.name}</strong> ({user.company_name})</span>
+              </div>
+              <button 
+                type="button" 
+                className="btn-session-logout"
+                onClick={logout}
+                title="Deslogar do sistema"
+              >
+                <LogOut size={14} />
+                <span>Deslogar</span>
+              </button>
+            </div>
           </div>
 
           {/* Role Switcher */}
@@ -318,36 +404,12 @@ export function Admin() {
             <span className="role-desc">
               {userRole === 'ADMIN' 
                 ? 'Visualizando todos os registros e permissão de gestão global da plataforma.' 
-                : 'Modo Diretor: visualizando e gerindo apenas os cursos e dados da sua instituição.'}
+                : `Modo Diretor: gerenciando os cursos e dados vinculados a ${user?.company_name || 'Senac São Carlos'}.`}
             </span>
-            {userRole === 'DIRECTOR' && (
-              <Link 
-                to="/diretor" 
-                className="btn-open-director-portal"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.4rem',
-                  padding: '0.55rem 0.85rem',
-                  background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-                  color: '#ffffff',
-                  borderRadius: '8px',
-                  fontSize: '0.8rem',
-                  fontWeight: '700',
-                  marginTop: '0.35rem',
-                  textDecoration: 'none',
-                  boxShadow: '0 2px 8px rgba(2, 132, 199, 0.4)'
-                }}
-              >
-                <span>Acessar Painel Dedicado do Diretor</span>
-                <ExternalLink size={14} />
-              </Link>
-            )}
           </div>
         </section>
 
-        {/* Integration Pillars Notice (Atividade Individual) */}
+        {/* Integration Pillars & MySQL Hostinger Status */}
         <section className="integration-cards-grid">
           <div className="integration-card primary-blue">
             <div className="card-number-badge">1</div>
@@ -362,9 +424,31 @@ export function Admin() {
             <div className="card-number-badge">2</div>
             <div className="card-info">
               <h3>Inserir dados no banco</h3>
-              <p>Cadastre novos registros na base MySQL com validações e feedback instantâneo.</p>
+              <p>Cadastre novos registros na base PostgreSQL com validações e feedback instantâneo.</p>
             </div>
             <Plus className="card-bg-icon" size={48} />
+          </div>
+
+          <div className="integration-card database-hostinger">
+            <div className="card-number-badge purple">
+              <Server size={20} />
+            </div>
+            <div className="card-info">
+              <div className="db-title-row">
+                <h3>PostgreSQL (Neon)</h3>
+                <a 
+                  href={DB_CONFIG.consoleUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="db-phpmyadmin-btn"
+                >
+                  <span>Console Neon</span>
+                  <ExternalLink size={13} />
+                </a>
+              </div>
+              <p>Host: <code>{DB_CONFIG.server.substring(0, 22)}...</code> | DB: <code>{DB_CONFIG.database}</code></p>
+            </div>
+            <Server className="card-bg-icon" size={48} />
           </div>
         </section>
 

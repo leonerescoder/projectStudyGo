@@ -1,20 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import { Menu, Search, GraduationCap, X, ChevronRight, ChevronDown } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Menu, 
+  Search, 
+  GraduationCap, 
+  X, 
+  ChevronRight, 
+  ChevronDown,
+  ShieldCheck,
+  User,
+  LogOut,
+  Crown,
+  LayoutDashboard,
+  LogIn
+} from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
 
 const defaultIcon = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>;
 
 function Navbar() {
+  const { user, logout, openAuthModal } = useAuth();
+  const navigate = useNavigate();
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [categories, setCategories] = useState([]);
+  const userMenuRef = useRef(null);
 
   useEffect(() => {
     fetch('http://10.60.44.43:3000/categorie')
       .then(res => res.json())
       .then(data => setCategories(data))
       .catch(err => console.error("Erro ao buscar categorias:", err));
+  }, []);
+
+  // Close user dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const toggleCategoryMenu = () => {
@@ -28,6 +57,11 @@ function Navbar() {
     } else {
       setSelectedCategory(category.id);
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIsUserMenuOpen(false);
   };
 
   return (
@@ -68,6 +102,76 @@ function Navbar() {
               </button>
             </li>
           </ul>
+
+          {/* User Profile / Login Icon in top right */}
+          <div className="navbar-auth-container" ref={userMenuRef}>
+            {user ? (
+              <div className="user-profile-menu-wrap">
+                <button 
+                  className={`user-profile-btn ${user.type.toLowerCase()} ${isUserMenuOpen ? 'active' : ''}`}
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  title={`Conectado como ${user.name} (${user.type})`}
+                >
+                  <div className="user-avatar-icon">
+                    {user.type === 'ADMIN' ? <Crown size={16} /> : <GraduationCap size={16} />}
+                  </div>
+                  <span className="user-short-name">
+                    {user.name.split(' ')[0]}
+                  </span>
+                  <ChevronDown size={14} className={`chevron-indicator ${isUserMenuOpen ? 'rotated' : ''}`} />
+                </button>
+
+                {isUserMenuOpen && (
+                  <div className="user-dropdown-popover">
+                    <div className="user-dropdown-header">
+                      <div className="dropdown-user-avatar">
+                        {user.type === 'ADMIN' ? <Crown size={20} /> : <GraduationCap size={20} />}
+                      </div>
+                      <div className="dropdown-user-details">
+                        <strong className="dropdown-user-name">{user.name}</strong>
+                        <span className="dropdown-user-email">{user.email}</span>
+                        <div className="dropdown-badges-row">
+                          <span className={`dropdown-role-pill ${user.type.toLowerCase()}`}>
+                            {user.type === 'ADMIN' ? '👑 ADMIN' : '🎓 DIRETOR'}
+                          </span>
+                          <span className="dropdown-company-name">{user.company_name}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="user-dropdown-actions">
+                      <Link 
+                        to="/admin" 
+                        className="dropdown-action-btn admin-link"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <LayoutDashboard size={16} />
+                        <span>Painel Administrativo</span>
+                      </Link>
+
+                      <button 
+                        type="button" 
+                        className="dropdown-action-btn logout-btn"
+                        onClick={handleLogout}
+                      >
+                        <LogOut size={16} />
+                        <span>Deslogar / Sair</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button 
+                className="navbar-login-btn"
+                onClick={openAuthModal}
+                title="Fazer Login de Admin ou Diretor"
+              >
+                <ShieldCheck size={18} className="login-icon" />
+                <span>Entrar</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {isCategoryMenuOpen && (

@@ -124,9 +124,10 @@ export const INITIAL_CATEGORIES = [
 export const INITIAL_USERS = [
   {
     id: 1,
-    name: 'Vanessa Silva (Você)',
+    name: 'Vanessa Silva (Admin)',
     cpf: '123.456.789-00',
     email: 'vanessa.silva@studygo.com',
+    password: '123',
     type: 'ADMIN',
     status: 'ATIVO',
     birth_date: '1998-05-20',
@@ -134,9 +135,10 @@ export const INITIAL_USERS = [
   },
   {
     id: 2,
-    name: 'Carlos Mendes',
+    name: 'Carlos Mendes (Diretor)',
     cpf: '987.654.321-11',
     email: 'carlos.mendes@senac.br',
+    password: '123',
     type: 'DIRECTOR',
     status: 'ATIVO',
     birth_date: '1982-11-14',
@@ -144,9 +146,10 @@ export const INITIAL_USERS = [
   },
   {
     id: 3,
-    name: 'Juliana Costa',
+    name: 'Juliana Costa (Diretora)',
     cpf: '456.789.123-33',
     email: 'juliana.costa@unopar.br',
+    password: '123',
     type: 'DIRECTOR',
     status: 'ATIVO',
     birth_date: '1989-08-30',
@@ -157,6 +160,7 @@ export const INITIAL_USERS = [
     name: 'Eduardo Martins',
     cpf: '333.222.111-99',
     email: 'eduardo.m@devmaster.com',
+    password: '123',
     type: 'DIRECTOR',
     status: 'INATIVO',
     birth_date: '1992-04-12',

@@ -1,10 +1,13 @@
-// Configuração do Banco de Dados Remoto (MySQL - Hostinger)
+// Configuração do Banco de Dados Remoto (PostgreSQL - Neon Serverless)
 export const DB_CONFIG = {
-  server: "srv793.hstgr.io",
-  user: "u647084545_ti44_studygo",
-  password: "E7:fqPh#?v",
-  database: "u647084545_ti44_studygo",
-  port: "3306",
-  phpMyAdminUrl: "https://auth-db793.hstgr.io/index.php?route=/&db=u647084545_ti44_studygo",
-  connectionString: "Server=srv793.hstgr.io;User ID=u647084545_ti44_studygo;Password=E7:fqPh#?v;Database=u647084545_ti44_studygo;Port=3306"
+  type: "postgresql",
+  server: "ep-restless-surf-ac2iaj96.sa-east-1.aws.neon.tech",
+  user: "neondb_owner",
+  password: "npg_yV8pkhqRndQ5",
+  database: "neondb",
+  port: "5432",
+  sslmode: "require",
+  channelBinding: "require",
+  connectionString: "postgresql://neondb_owner:npg_yV8pkhqRndQ5@ep-restless-surf-ac2iaj96.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+  consoleUrl: "https://console.neon.tech"
 };
