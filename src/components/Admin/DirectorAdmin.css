@@ -1,0 +1,957 @@
+/* ==========================================================================
+   PAINEL DE ADMINISTRAÇÃO DO DIRETOR (DIRECTOR) - StudyGo / EducaFind
+   Scoped to #director-admin-page
+   ========================================================================== */
+
+#director-admin-page {
+  min-height: calc(100vh - 70px);
+  background: radial-gradient(circle at 50% 0%, #0d2345 0%, #060e1d 100%);
+  color: #f1f5f9;
+  padding: 2.5rem 2rem 4rem 2rem;
+  font-family: var(--font-main, 'Inter', system-ui, sans-serif);
+}
+
+#director-admin-page * {
+  box-sizing: border-box;
+}
+
+#director-admin-page .director-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+/* ==========================================================================
+   TOAST
+   ========================================================================== */
+#director-admin-page .director-toast {
+  position: fixed;
+  top: 85px;
+  right: 25px;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #ffffff;
+  padding: 0.9rem 1.4rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2);
+  z-index: 9999;
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ==========================================================================
+   BANNER & IDENTITY CARD
+   ========================================================================== */
+#director-admin-page .director-banner {
+  background: linear-gradient(135deg, rgba(16, 42, 85, 0.75) 0%, rgba(9, 23, 48, 0.9) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 20px;
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 2rem;
+  align-items: center;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+}
+
+#director-admin-page .badge-director-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 0.35rem 0.85rem;
+  border-radius: 50px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+#director-admin-page .banner-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+#director-admin-page .banner-subtitle {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+#director-admin-page .highlight-school {
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+#director-admin-page .director-id-card {
+  background: rgba(7, 16, 35, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  position: relative;
+}
+
+#director-admin-page .id-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+}
+
+#director-admin-page .id-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+#director-admin-page .id-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+#director-admin-page .id-meta {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+#director-admin-page .pill-type {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+}
+
+#director-admin-page .pill-status {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+}
+
+#director-admin-page .id-school-label {
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+#director-admin-page .btn-new-director {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#director-admin-page .btn-new-director:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   PERMISSIONS NOTICE CARD
+   ========================================================================== */
+#director-admin-page .permissions-notice-card {
+  background: rgba(14, 30, 60, 0.6);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+#director-admin-page .notice-icon {
+  color: #fbbf24;
+  margin-top: 0.1rem;
+  flex-shrink: 0;
+}
+
+#director-admin-page .notice-content h4 {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #fbbf24;
+  margin-bottom: 0.25rem;
+}
+
+#director-admin-page .notice-content p {
+  font-size: 0.82rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+
+/* ==========================================================================
+   WORKSPACE TABS & CARDS
+   ========================================================================== */
+#director-admin-page .director-workspace {
+  background: rgba(12, 25, 52, 0.75);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.75rem;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
+}
+
+#director-admin-page .workspace-tabs-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+#director-admin-page .tabs-list {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+#director-admin-page .tab-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.2rem;
+  border-radius: 10px;
+  color: #94a3b8;
+  font-size: 0.88rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+#director-admin-page .tab-item:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+#director-admin-page .tab-item.active {
+  color: #ffffff;
+  background: #0284c7;
+  border-color: #38bdf8;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+}
+
+#director-admin-page .btn-add-course,
+#director-admin-page .btn-edit-school {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.3rem;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+#director-admin-page .btn-edit-school {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+#director-admin-page .btn-add-course:hover,
+#director-admin-page .btn-edit-school:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+/* ==========================================================================
+   TABLE: COURSES
+   ========================================================================== */
+#director-admin-page .courses-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+#director-admin-page .search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 400px;
+}
+
+#director-admin-page .search-icon {
+  position: absolute;
+  left: 1rem;
+  color: #64748b;
+  pointer-events: none;
+}
+
+#director-admin-page .search-input-wrapper input {
+  width: 100%;
+  background: rgba(7, 16, 35, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 0.65rem 2.2rem 0.65rem 2.5rem;
+  color: #ffffff;
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+#director-admin-page .search-input-wrapper input:focus {
+  border-color: #38bdf8;
+}
+
+#director-admin-page .clear-btn {
+  position: absolute;
+  right: 0.75rem;
+  color: #94a3b8;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+#director-admin-page .counter-badge {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+}
+
+#director-admin-page .counter-badge strong {
+  color: #38bdf8;
+}
+
+#director-admin-page .table-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(7, 16, 35, 0.5);
+}
+
+#director-admin-page .director-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+#director-admin-page .director-table thead tr {
+  background: rgba(16, 42, 85, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#director-admin-page .director-table th {
+  padding: 0.9rem 1.1rem;
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+#director-admin-page .director-table .th-actions {
+  text-align: center;
+  width: 80px;
+}
+
+#director-admin-page .director-table tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+#director-admin-page .director-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+#director-admin-page .director-table td {
+  padding: 1rem 1.1rem;
+  color: #cbd5e1;
+  vertical-align: middle;
+}
+
+#director-admin-page .cell-id {
+  font-family: monospace;
+  color: #64748b;
+  font-weight: 600;
+}
+
+#director-admin-page .course-title {
+  display: block;
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 0.92rem;
+}
+
+#director-admin-page .course-desc {
+  display: block;
+  font-size: 0.78rem;
+  color: #64748b;
+  max-width: 360px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#director-admin-page .category-tag {
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+#director-admin-page .workload-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+#director-admin-page .ranking-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+#director-admin-page .status-badge.ativo {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 0.25rem 0.6rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+#director-admin-page .action-btn-del {
+  padding: 0.45rem;
+  border-radius: 8px;
+  color: #94a3b8;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#director-admin-page .action-btn-del:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+#director-admin-page .empty-state {
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  color: #64748b;
+}
+
+#director-admin-page .empty-state svg {
+  margin-bottom: 0.75rem;
+  opacity: 0.4;
+}
+
+#director-admin-page .btn-add-first-course {
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  background: #0284c7;
+  color: #ffffff;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   PANEL: MINHA ESCOLA
+   ========================================================================== */
+#director-admin-page .school-details-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+#director-admin-page .school-header-card {
+  background: rgba(7, 16, 35, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.75rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+#director-admin-page .school-icon-box {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#director-admin-page .school-titles h2 {
+  font-size: 1.6rem;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+#director-admin-page .school-meta-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+#director-admin-page .meta-tag {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.3rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: #cbd5e1;
+}
+
+#director-admin-page .meta-tag.ranking {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+#director-admin-page .school-grid-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+#director-admin-page .info-card {
+  background: rgba(7, 16, 35, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1.4rem;
+}
+
+#director-admin-page .info-card.full-width {
+  grid-column: 1 / -1;
+}
+
+#director-admin-page .info-card h3 {
+  font-size: 0.95rem;
+  color: #38bdf8;
+  margin-bottom: 0.6rem;
+  font-weight: 600;
+}
+
+#director-admin-page .info-card p {
+  font-size: 0.88rem;
+  color: #cbd5e1;
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   PANEL: MEU PERFIL (COM BLOQUEIOS DE SEGURANÇA)
+   ========================================================================== */
+#director-admin-page .profile-settings-panel {
+  max-width: 800px;
+}
+
+#director-admin-page .profile-header-info {
+  margin-bottom: 1.5rem;
+}
+
+#director-admin-page .profile-header-info h3 {
+  font-size: 1.2rem;
+  color: #ffffff;
+  margin-bottom: 0.25rem;
+}
+
+#director-admin-page .profile-header-info p {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+#director-admin-page .profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+#director-admin-page .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+#director-admin-page .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+#director-admin-page .form-group label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+#director-admin-page .form-group input,
+#director-admin-page .form-group select,
+#director-admin-page .form-group textarea {
+  background: rgba(7, 16, 35, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 0.65rem 0.9rem;
+  color: #ffffff;
+  font-size: 0.88rem;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+#director-admin-page .form-group input:focus,
+#director-admin-page .form-group select:focus,
+#director-admin-page .form-group textarea:focus {
+  border-color: #38bdf8;
+}
+
+#director-admin-page .input-disabled {
+  background: rgba(0, 0, 0, 0.3) !important;
+  color: #64748b !important;
+  cursor: not-allowed;
+}
+
+/* Locked security section */
+#director-admin-page .locked-fields-box {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px dashed rgba(239, 68, 68, 0.3);
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin: 0.5rem 0;
+}
+
+#director-admin-page .locked-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #f87171;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+#director-admin-page .badge-locked {
+  margin-left: 0.5rem;
+  color: #f87171;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+#director-admin-page .input-locked {
+  background: rgba(15, 23, 42, 0.9) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  color: #f87171 !important;
+  font-weight: 700 !important;
+  cursor: not-allowed !important;
+}
+
+#director-admin-page .lock-explain {
+  display: block;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-top: 0.3rem;
+  font-style: italic;
+}
+
+#director-admin-page .form-actions-right {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+
+#director-admin-page .btn-save-profile {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.6rem;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#director-admin-page .btn-save-profile:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+/* ==========================================================================
+   DB STATUS FOOTER
+   ========================================================================== */
+#director-admin-page .db-status-bar {
+  background: rgba(7, 16, 35, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+}
+
+#director-admin-page .db-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #94a3b8;
+}
+
+#director-admin-page .db-icon {
+  color: #38bdf8;
+}
+
+#director-admin-page .db-info strong {
+  color: #ffffff;
+}
+
+#director-admin-page .db-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #38bdf8;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+#director-admin-page .db-link:hover {
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   MODALS
+   ========================================================================== */
+#director-admin-page .director-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(4, 9, 20, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  padding: 1.5rem;
+}
+
+#director-admin-page .director-modal-card {
+  background: #0d1e3d;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 600px;
+  padding: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+#director-admin-page .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+#director-admin-page .modal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+#director-admin-page .modal-title-icon {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  padding: 0.35rem;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+}
+
+#director-admin-page .modal-header h3 {
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+
+#director-admin-page .modal-header p {
+  font-size: 0.82rem;
+  color: #94a3b8;
+}
+
+#director-admin-page .modal-close {
+  color: #94a3b8;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+#director-admin-page .modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+#director-admin-page .auto-assigned-notice {
+  display: flex;
+  gap: 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+#director-admin-page .auto-pill {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+#director-admin-page .auto-pill strong {
+  color: #38bdf8;
+  font-size: 0.85rem;
+}
+
+#director-admin-page .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 1.25rem;
+}
+
+#director-admin-page .btn-cancel {
+  padding: 0.65rem 1.2rem;
+  border-radius: 10px;
+  color: #94a3b8;
+  font-size: 0.88rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  cursor: pointer;
+}
+
+#director-admin-page .btn-save {
+  padding: 0.65rem 1.4rem;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   RESPONSIVENESS
+   ========================================================================== */
+@media (max-width: 900px) {
+  #director-admin-page .director-banner {
+    grid-template-columns: 1fr;
+  }
+
+  #director-admin-page .school-grid-info {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  #director-admin-page {
+    padding: 1.5rem 1rem 3rem 1rem;
+  }
+
+  #director-admin-page .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  #director-admin-page .workspace-tabs-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
