@@ -104,7 +104,7 @@ function Navbar() {
                       <div className="category-courses">
                         {cat.courses && cat.courses.length > 0 ? (
                           cat.courses.map(course => (
-                            <Link key={course.id} to={`/curso/${course.id}`} onClick={toggleCategoryMenu} style={{ padding: '8px 16px', display: 'block', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '14px' }}>
+                            <Link key={course.id} to={`/course/${course.id}`} onClick={toggleCategoryMenu} style={{ padding: '8px 16px', display: 'block', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '14px' }}>
                               {course.name}
                             </Link>
                           ))
