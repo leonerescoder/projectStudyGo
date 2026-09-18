@@ -39,7 +39,7 @@ function Navbar() {
           </button>
           <Link to="/" className="logo-container">
             <GraduationCap size={28} className="logo-icon" />
-            <span className="logo-text">EducaFind</span>
+            <span className="logo-text">StudyGo</span>
           </Link>
         </div>
 

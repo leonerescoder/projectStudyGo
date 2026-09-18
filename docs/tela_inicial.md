@@ -1,6 +1,6 @@
 # Especificação Detalhada - Tela Inicial (`tela_inicial.png`)
 
-Este documento descreve detalhadamente todos os elementos, componentes visuais, hierarquia de conteúdo e interações da **Tela Inicial (Home)** da plataforma **EducaFind**.
+Este documento descreve detalhadamente todos os elementos, componentes visuais, hierarquia de conteúdo e interações da **Tela Inicial (Home)** da plataforma **StudyGo**.
 
 ---
 
@@ -17,7 +17,7 @@ Este documento descreve detalhadamente todos os elementos, componentes visuais, 
 ### 2.1. Barra de Navegação Superior (Header / Navbar)
 Localizada no topo da página de ponta a ponta com fundo azul marinho escuro translúcido:
 - **Lado Esquerdo:**
-  - **Logo:** Ícone de capelo / chapéu de formatura estilizado acompanhado da tipografia **EducaFind**.
+  - **Logo:** Ícone de capelo / chapéu de formatura estilizado acompanhado da tipografia **StudyGo**.
 - **Centro:**
   - **Barra de Pesquisa no Header:** Campo de busca em formato pílula com ícone de lupa e o placeholder: `"Pesquisar cursos, escolas ou áreas..."`.
 - **Lado Direito:**
