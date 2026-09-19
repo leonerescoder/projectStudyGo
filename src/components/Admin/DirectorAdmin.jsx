@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Building2, 
   GraduationCap, 
@@ -19,76 +19,85 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { DB_CONFIG } from '../../data/databaseConfig';
+import { apiFetch } from '../../API/apiClient';
 import './DirectorAdmin.css';
 
 // Initial Director Profile
 const INITIAL_DIRECTOR_USER = {
-  id: 2,
-  name: 'Carlos Mendes',
-  cpf: '987.654.321-11',
-  email: 'carlos.mendes@senac.br',
-  type: 'DIRECTOR', // FIXO: Não pode mudar para ADMIN
-  status: 'ATIVO',   // FIXO: Começa como ATIVO e não pode mudar para INATIVO
-  birth_date: '1982-11-14',
-  password: 'senhaSegura123',
+  id: 0,
+  name: 'Carregando...',
+  cpf: '',
+  email: '',
+  type: 'DIRECTOR',
+  status: 'ATIVO',
+  birth_date: '',
+  password: '',
   company_id: 1,
   company_name: 'Senac São Carlos'
 };
 
 // Initial School data for this Director
 const INITIAL_DIRECTOR_COMPANY = {
-  id: 1,
-  name: 'Senac São Carlos',
-  cnpj: '03.709.814/0001-98',
-  foundation: '1946-01-10',
-  places: 'São Paulo, SP - São Carlos (Presencial e Semipresencial)',
-  fundaments: 'Compromisso com a educação profissional transformadora e conectada com as exigências reais do mercado.',
-  methods: 'Metodologia ativa, laboratórios equipados, aulas práticas e projetos integradores.',
+  id: 0,
+  name: 'Carregando...',
+  cnpj: '',
+  foundation: '',
+  places: '',
+  fundaments: '',
+  methods: '',
   ranking: 1
 };
-
-// Initial Courses for this Director's school only
-const INITIAL_DIRECTOR_COURSES = [
-  {
-    id: 1,
-    name: 'Lógica de Programação',
-    description: 'Aprenda lógica estruturada, algoritmos e resolva desafios práticos com Javascript.',
-    workload: 80,
-    ranking: 1,
-    Field_of_study: 'Tecnologia',
-    company_id: 1,
-    company_name: 'Senac São Carlos',
-    status: 'ATIVO'
-  },
-  {
-    id: 5,
-    name: 'Gastronomia Internacional e Práticas Culinárias',
-    description: 'Técnicas culinárias contemporâneas, confeitaria e manipulação profissional de alimentos.',
-    workload: 90,
-    ranking: 5,
-    Field_of_study: 'Gastronomia',
-    company_id: 1,
-    company_name: 'Senac São Carlos',
-    status: 'ATIVO'
-  },
-  {
-    id: 7,
-    name: 'Gestão de Redes e Infraestrutura',
-    description: 'Configuração de switches, roteadores e infraestrutura corporativa segura.',
-    workload: 100,
-    ranking: 8,
-    Field_of_study: 'Tecnologia',
-    company_id: 1,
-    company_name: 'Senac São Carlos',
-    status: 'ATIVO'
-  }
-];
 
 export function DirectorAdmin() {
   // Director state (Start as ATIVO and type DIRECTOR)
   const [directorUser, setDirectorUser] = useState(INITIAL_DIRECTOR_USER);
   const [school, setSchool] = useState(INITIAL_DIRECTOR_COMPANY);
-  const [courses, setCourses] = useState(INITIAL_DIRECTOR_COURSES);
+  const [courses, setCourses] = useState([]);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [courseRes, compRes, userRes] = await Promise.all([
+          apiFetch('/course'),
+          apiFetch('/companie'),
+          apiFetch('/user')
+        ]);
+        
+        let fetchedSchool = null;
+        if (compRes.ok) {
+          const data = await compRes.json();
+          fetchedSchool = Array.isArray(data) ? data.find(c => c.id === 1) : null;
+          if (fetchedSchool) setSchool(fetchedSchool);
+        }
+
+        if (courseRes.ok) {
+          const data = await courseRes.json();
+          const targetId = fetchedSchool ? fetchedSchool.id : 1;
+          setCourses(Array.isArray(data) ? data.filter(c => c.company_id === targetId || c.companyId === targetId) : []);
+        }
+
+        if (userRes.ok) {
+          const data = await userRes.json();
+          const director = Array.isArray(data) ? data.find(u => u.type === 'DIRECTOR') : null;
+          if (director) {
+            setDirectorUser(director);
+            setProfileForm({
+              name: director.name,
+              cpf: director.cpf,
+              email: director.email,
+              birth_date: director.birth_date,
+              password: director.password || '',
+              type: 'DIRECTOR',
+              status: 'ATIVO'
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados", error);
+      }
+    }
+    loadData();
+  }, []);
 
   // Active Tab: 'school' | 'courses' | 'profile'
   const [activeTab, setActiveTab] = useState('courses');
@@ -104,6 +113,7 @@ export function DirectorAdmin() {
   const [courseForm, setCourseForm] = useState({
     name: '',
     description: '',
+    url_img: '',
     workload: '',
     Field_of_study: 'Tecnologia',
     ranking: '1',
@@ -144,9 +154,9 @@ export function DirectorAdmin() {
 
   // Filtered Courses (Only belonging to this director's school)
   const filteredCourses = courses.filter(c => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.Field_of_study.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.description.toLowerCase().includes(searchTerm.toLowerCase())
+    (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.Field_of_study || c.fieldOfStudy || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.description || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Handle Profile Update (Cannot change status or type!)
@@ -179,43 +189,63 @@ export function DirectorAdmin() {
   };
 
   // Handle Course Creation (Attached only to this director's school)
-  const handleCreateCourse = (e) => {
+  const handleCreateCourse = async (e) => {
     e.preventDefault();
     if (!courseForm.name || !courseForm.workload) {
       alert('Por favor, preencha o nome do curso e a carga horária.');
       return;
     }
 
-    const newCourse = {
-      id: courses.length > 0 ? Math.max(...courses.map(c => c.id)) + 1 : 1,
-      name: courseForm.name,
-      description: courseForm.description || 'Sem descrição informada.',
-      workload: Number(courseForm.workload),
-      ranking: Number(courseForm.ranking) || 1,
-      Field_of_study: courseForm.Field_of_study,
-      company_id: school.id,
-      company_name: school.name,
-      status: courseForm.status
-    };
+    try {
+      const categoryMap = { 'Tecnologia': 1, 'Mecânica': 2, 'Gastronomia': 3, 'Idiomas': 4, 'Saúde': 5, 'Moda': 6, 'Artes': 7, 'Música': 8, 'Educação': 9 };
+      const categoryId = categoryMap[courseForm.Field_of_study] || 1;
 
-    setCourses([newCourse, ...courses]);
-    setIsNewCourseModalOpen(false);
-    setCourseForm({
-      name: '',
-      description: '',
-      workload: '',
-      Field_of_study: 'Tecnologia',
-      ranking: '1',
-      status: 'ATIVO'
-    });
-    showToast(`✓ Novo curso "${newCourse.name}" adicionado à ${school.name}!`);
+      const payload = {
+        name: courseForm.name,
+        description: courseForm.description || 'Sem descrição informada.',
+        urlImg: courseForm.url_img || '',
+        workload: Number(courseForm.workload),
+        ranking: Number(courseForm.ranking) || 1,
+        fieldOfStudy: courseForm.Field_of_study,
+        companyId: school?.id || 1,
+        categoryIds: [categoryId],
+        userId: directorUser?.id || 1,
+        status: courseForm.status
+      };
+      
+      const response = await apiFetch('/course', { method: 'POST', body: JSON.stringify(payload) });
+      if (response.ok) {
+        const newCourse = await response.json();
+        setCourses([newCourse, ...courses]);
+        setIsNewCourseModalOpen(false);
+        setCourseForm({
+          name: '', description: '', url_img: '', workload: '', Field_of_study: 'Tecnologia', ranking: '1', status: 'ATIVO'
+        });
+        showToast(`✓ Novo curso "${newCourse.name}" adicionado à ${school.name}!`);
+      } else {
+        alert('Erro ao criar curso na API.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro de conexão ao criar curso.');
+    }
   };
 
   // Handle Course Deletion
-  const handleDeleteCourse = (id) => {
+  const handleDeleteCourse = async (id) => {
     if (window.confirm('Deseja realmente remover este curso da sua escola?')) {
-      setCourses(courses.filter(c => c.id !== id));
-      showToast('Curso removido da instituição com sucesso.');
+      try {
+        const response = await apiFetch(`/course/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          setCourses(courses.filter(c => c.id !== id));
+          showToast('Curso removido da instituição com sucesso.');
+        } else {
+          alert('Erro ao excluir curso na API.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Erro de conexão ao excluir curso.');
+      }
     }
   };
 
@@ -703,6 +733,16 @@ export function DirectorAdmin() {
                   value={courseForm.name}
                   onChange={(e) => setCourseForm({...courseForm, name: e.target.value})}
                   required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>URL da Imagem</label>
+                <input 
+                  type="url" 
+                  placeholder="https://exemplo.com/imagem.png"
+                  value={courseForm.url_img}
+                  onChange={(e) => setCourseForm({...courseForm, url_img: e.target.value})}
                 />
               </div>
 

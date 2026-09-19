@@ -21,12 +21,7 @@ import {
   ExternalLink,
   Server
 } from 'lucide-react';
-import { 
-  INITIAL_COURSES, 
-  INITIAL_COMPANIES, 
-  INITIAL_CATEGORIES, 
-  INITIAL_USERS 
-} from './adminData';
+import { apiFetch } from '../../API/apiClient';
 import { DB_CONFIG } from '../../data/databaseConfig';
 import { useAuth } from '../../context/AuthContext';
 import './Admin.css';
@@ -47,10 +42,43 @@ export function Admin() {
   }, [user]);
   
   // Data State (Buscar Dados)
-  const [courses, setCourses] = useState(INITIAL_COURSES);
-  const [companies, setCompanies] = useState(INITIAL_COMPANIES);
-  const [categories, setCategories] = useState(INITIAL_CATEGORIES);
-  const [users, setUsers] = useState(INITIAL_USERS);
+  const [courses, setCourses] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [courseRes, compRes, catRes, userRes] = await Promise.all([
+          apiFetch('/course'),
+          apiFetch('/companie'),
+          apiFetch('/categorie'),
+          apiFetch('/user')
+        ]);
+        
+        if (courseRes.ok) {
+          const courseData = await courseRes.json();
+          setCourses(Array.isArray(courseData) ? courseData : []);
+        }
+        if (compRes.ok) {
+          const compData = await compRes.json();
+          setCompanies(Array.isArray(compData) ? compData : []);
+        }
+        if (catRes.ok) {
+          const catData = await catRes.json();
+          setCategories(Array.isArray(catData) ? catData : []);
+        }
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          setUsers(Array.isArray(userData) ? userData : []);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados do banco", error);
+      }
+    }
+    loadData();
+  }, []);
 
   // Modal State (Inserir Dados)
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -61,6 +89,7 @@ export function Admin() {
   const [courseForm, setCourseForm] = useState({
     name: '',
     description: '',
+    url_img: '',
     workload: '',
     Field_of_study: 'Tecnologia',
     company_name: 'Senac São Carlos',
@@ -108,71 +137,99 @@ export function Admin() {
 
   // Filtered Lists based on Role & Search
   const filteredCourses = courses.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          item.Field_of_study.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          item.company_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (item.Field_of_study || item.fieldOfStudy || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (item.company_name || item.companyName || '').toLowerCase().includes(searchTerm.toLowerCase());
     if (userRole === 'DIRECTOR') {
-      return matchesSearch && item.company_name.includes('Senac');
+      return matchesSearch && (item.company_name || item.companyName || '').includes('Senac');
     }
     return matchesSearch;
   });
 
   const filteredCompanies = companies.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          item.places.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          item.cnpj.includes(searchTerm);
+    const matchesSearch = (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (item.places || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (item.cnpj || '').includes(searchTerm);
     if (userRole === 'DIRECTOR') {
-      return matchesSearch && item.name.includes('Senac');
+      return matchesSearch && (item.name || '').includes('Senac');
     }
     return matchesSearch;
   });
 
   const filteredCategories = categories.filter(item => 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.description.toLowerCase().includes(searchTerm.toLowerCase())
+    (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.description || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredUsers = users.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          item.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          item.type.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (item.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (item.type || '').toLowerCase().includes(searchTerm.toLowerCase());
     if (userRole === 'DIRECTOR') {
-      return matchesSearch && item.company_name.includes('Senac');
+      return matchesSearch && (item.company_name || item.companyName || '').includes('Senac');
     }
     return matchesSearch;
   });
 
   // Handle deletion
-  const handleDeleteCourse = (id) => {
+  const handleDeleteCourse = async (id) => {
     if (window.confirm('Deseja realmente excluir este curso do banco de dados?')) {
-      setCourses(courses.filter(c => c.id !== id));
-      showToast('Registro de Curso excluído do banco com sucesso!');
+      try {
+        const response = await apiFetch(`/course/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          setCourses(courses.filter(c => c.id !== id));
+          showToast('Registro de Curso excluído do banco com sucesso!');
+        } else {
+          alert('Erro ao excluir curso.');
+        }
+      } catch (err) { console.error(err); }
     }
   };
 
-  const handleDeleteCompany = (id) => {
+  const handleDeleteCompany = async (id) => {
     if (window.confirm('Deseja realmente excluir esta instituição do banco de dados?')) {
-      setCompanies(companies.filter(c => c.id !== id));
-      showToast('Registro de Empresa/Escola excluído do banco!');
+      try {
+        const response = await apiFetch(`/companie/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          setCompanies(companies.filter(c => c.id !== id));
+          showToast('Registro de Empresa/Escola excluído do banco!');
+        } else {
+          alert('Erro ao excluir instituição.');
+        }
+      } catch (err) { console.error(err); }
     }
   };
 
-  const handleDeleteCategory = (id) => {
+  const handleDeleteCategory = async (id) => {
     if (window.confirm('Deseja excluir esta categoria do banco de dados?')) {
-      setCategories(categories.filter(c => c.id !== id));
-      showToast('Categoria removida com sucesso!');
+      try {
+        const response = await apiFetch(`/categorie/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          setCategories(categories.filter(c => c.id !== id));
+          showToast('Categoria removida com sucesso!');
+        } else {
+          alert('Erro ao excluir categoria.');
+        }
+      } catch (err) { console.error(err); }
     }
   };
 
-  const handleDeleteUser = (id) => {
+  const handleDeleteUser = async (id) => {
     if (window.confirm('Deseja excluir este usuário do banco de dados?')) {
-      setUsers(users.filter(u => u.id !== id));
-      showToast('Usuário removido do sistema!');
+      try {
+        const response = await apiFetch(`/user/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          setUsers(users.filter(u => u.id !== id));
+          showToast('Usuário removido do sistema!');
+        } else {
+          alert('Erro ao excluir usuário.');
+        }
+      } catch (err) { console.error(err); }
     }
   };
 
   // Handle Form Submit (Inserir dados no banco)
-  const handleCreateSubmit = (e) => {
+  const handleCreateSubmit = async (e) => {
     e.preventDefault();
 
     if (modalEntityType === 'course') {
@@ -180,100 +237,103 @@ export function Admin() {
         alert('Por favor, preencha o nome e a carga horária do curso.');
         return;
       }
-      const newCourse = {
-        id: courses.length > 0 ? Math.max(...courses.map(c => c.id)) + 1 : 1,
-        name: courseForm.name,
-        description: courseForm.description || 'Sem descrição informada.',
-        workload: Number(courseForm.workload),
-        ranking: Number(courseForm.ranking) || 1,
-        Field_of_study: courseForm.Field_of_study,
-        company_name: userRole === 'DIRECTOR' ? 'Senac São Carlos' : courseForm.company_name,
-        company_id: 1,
-        status: courseForm.status,
-        createdAt: new Date().toISOString().split('T')[0]
-      };
-      setCourses([newCourse, ...courses]);
-      showToast(`✓ Curso "${newCourse.name}" inserido no banco com sucesso!`);
-      setCourseForm({
-        name: '',
-        description: '',
-        workload: '',
-        Field_of_study: 'Tecnologia',
-        company_name: 'Senac São Carlos',
-        ranking: '1',
-        status: 'ATIVO'
-      });
+      try {
+        const selectedCompany = companies.find(c => c.name === courseForm.company_name);
+        const companyId = selectedCompany ? selectedCompany.id : 1;
+        const selectedCategory = categories.find(c => c.name === courseForm.Field_of_study);
+        const categoryIds = selectedCategory ? [selectedCategory.id] : [1];
+
+        const payload = {
+          name: courseForm.name,
+          description: courseForm.description || 'Sem descrição informada.',
+          urlImg: courseForm.url_img || '',
+          workload: Number(courseForm.workload),
+          ranking: Number(courseForm.ranking) || 1,
+          fieldOfStudy: courseForm.Field_of_study,
+          companyId: companyId,
+          categoryIds: categoryIds,
+          userId: user?.id || 1,
+          status: courseForm.status
+        };
+        const response = await apiFetch('/course', { method: 'POST', body: JSON.stringify(payload) });
+        if (response.ok) {
+          const newCourse = await response.json();
+          setCourses([newCourse, ...courses]);
+          showToast(`✓ Curso "${newCourse.name}" inserido no banco com sucesso!`);
+          setCourseForm({ name: '', description: '', url_img: '', workload: '', Field_of_study: 'Tecnologia', company_name: 'Senac São Carlos', ranking: '1', status: 'ATIVO' });
+        } else { alert('Erro ao inserir curso no banco.'); }
+      } catch (err) { console.error(err); alert('Erro de conexão.'); }
     } 
     else if (modalEntityType === 'company') {
       if (!companyForm.name || !companyForm.cnpj) {
         alert('Por favor, informe ao menos a Razão Social e o CNPJ.');
         return;
       }
-      const newCompany = {
-        id: companies.length > 0 ? Math.max(...companies.map(c => c.id)) + 1 : 1,
-        name: companyForm.name,
-        cnpj: companyForm.cnpj,
-        foundation: companyForm.foundation || '2026-01-01',
-        places: companyForm.places || 'Não informado',
-        fundaments: companyForm.fundaments || 'Formação e qualificação educacional.',
-        methods: companyForm.methods || 'Presencial e EAD',
-        ranking: Number(companyForm.ranking) || 1,
-        owner_name: companyForm.owner_name || 'Diretoria'
-      };
-      setCompanies([newCompany, ...companies]);
-      showToast(`✓ Instituição "${newCompany.name}" cadastrada no banco!`);
-      setCompanyForm({
-        name: '',
-        cnpj: '',
-        foundation: '',
-        places: '',
-        fundaments: '',
-        methods: '',
-        ranking: '1',
-        owner_name: ''
-      });
+      try {
+        const payload = {
+          name: companyForm.name,
+          cnpj: companyForm.cnpj,
+          foundation: companyForm.foundation || '2026-01-01',
+          places: companyForm.places || 'Não informado',
+          fundamentals: companyForm.fundaments || 'Formação e qualificação educacional.',
+          methods: companyForm.methods || 'Presencial e EAD',
+          ranking: Number(companyForm.ranking) || 1,
+          userId: user?.id || 1
+        };
+        const response = await apiFetch('/companie', { method: 'POST', body: JSON.stringify(payload) });
+        if (response.ok) {
+          const newCompany = await response.json();
+          setCompanies([newCompany, ...companies]);
+          showToast(`✓ Instituição "${newCompany.name}" cadastrada no banco!`);
+          setCompanyForm({ name: '', cnpj: '', foundation: '', places: '', fundaments: '', methods: '', ranking: '1', owner_name: '' });
+        } else { alert('Erro ao inserir instituição no banco.'); }
+      } catch (err) { console.error(err); alert('Erro de conexão.'); }
     }
     else if (modalEntityType === 'category') {
       if (!categoryForm.name) {
         alert('Por favor, informe o nome da categoria.');
         return;
       }
-      const newCat = {
-        id: categories.length > 0 ? Math.max(...categories.map(c => c.id)) + 1 : 1,
-        name: categoryForm.name,
-        description: categoryForm.description || 'Categoria de estudos'
-      };
-      setCategories([...categories, newCat]);
-      showToast(`✓ Categoria "${newCat.name}" cadastrada no banco!`);
-      setCategoryForm({ name: '', description: '' });
+      try {
+        const payload = {
+          name: categoryForm.name,
+          description: categoryForm.description || 'Categoria de estudos',
+          companyId: 1, // Defaulting to 1
+          userId: user?.id || 1
+        };
+        const response = await apiFetch('/categorie', { method: 'POST', body: JSON.stringify(payload) });
+        if (response.ok) {
+          const newCat = await response.json();
+          setCategories([...categories, newCat]);
+          showToast(`✓ Categoria "${newCat.name}" cadastrada no banco!`);
+          setCategoryForm({ name: '', description: '' });
+        } else { alert('Erro ao inserir categoria no banco.'); }
+      } catch (err) { console.error(err); alert('Erro de conexão.'); }
     }
     else if (modalEntityType === 'user') {
       if (!userForm.name || !userForm.email || !userForm.cpf) {
         alert('Por favor, preencha Nome, CPF e E-mail.');
         return;
       }
-      const newUser = {
-        id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
-        name: userForm.name,
-        cpf: userForm.cpf,
-        email: userForm.email,
-        type: userForm.type,
-        status: userForm.status,
-        birth_date: userForm.birth_date || '2000-01-01',
-        company_name: userForm.company_name
-      };
-      setUsers([newUser, ...users]);
-      showToast(`✓ Usuário "${newUser.name}" registrado no banco!`);
-      setUserForm({
-        name: '',
-        cpf: '',
-        email: '',
-        type: 'DIRECTOR',
-        status: 'ATIVO',
-        birth_date: '',
-        password: '123',
-        company_name: 'Senac São Carlos'
-      });
+      try {
+        const payload = {
+          name: userForm.name,
+          cpf: userForm.cpf,
+          email: userForm.email,
+          type: userForm.type,
+          status: userForm.status,
+          birthDate: userForm.birth_date || '2000-01-01',
+          password: userForm.password || '123',
+          companyId: 1 // Defaulting to 1
+        };
+        const response = await apiFetch('/user', { method: 'POST', body: JSON.stringify(payload) });
+        if (response.ok) {
+          const newUser = await response.json();
+          setUsers([newUser, ...users]);
+          showToast(`✓ Usuário "${newUser.name}" registrado no banco!`);
+          setUserForm({ name: '', cpf: '', email: '', type: 'DIRECTOR', status: 'ATIVO', birth_date: '', password: '123', company_name: 'Senac São Carlos' });
+        } else { alert('Erro ao inserir usuário no banco.'); }
+      } catch (err) { console.error(err); alert('Erro de conexão.'); }
     }
 
     setIsModalOpen(false);
@@ -315,7 +375,7 @@ export function Admin() {
                   <button
                     key={u.id}
                     type="button"
-                    className={`guard-user-btn ${u.type.toLowerCase()}`}
+                    className={`guard-user-btn ${(u.type || '').toLowerCase()}`}
                     onClick={() => login(u.email, u.password || '123')}
                   >
                     <div className="guard-avatar">
@@ -632,7 +692,7 @@ export function Admin() {
                           </div>
                         </td>
                         <td>
-                          <span className={`status-pill ${c.status.toLowerCase()}`}>
+                          <span className={`status-pill ${(c.status || '').toLowerCase()}`}>
                             {c.status}
                           </span>
                         </td>
@@ -807,7 +867,7 @@ export function Admin() {
                         </td>
                         <td>{u.company_name}</td>
                         <td>
-                          <span className={`status-pill ${u.status.toLowerCase()}`}>
+                          <span className={`status-pill ${(u.status || '').toLowerCase()}`}>
                             {u.status}
                           </span>
                         </td>
@@ -910,6 +970,16 @@ export function Admin() {
                     value={courseForm.name}
                     onChange={(e) => setCourseForm({...courseForm, name: e.target.value})}
                     required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>URL da Imagem</label>
+                  <input 
+                    type="url" 
+                    placeholder="https://exemplo.com/imagem.png" 
+                    value={courseForm.url_img}
+                    onChange={(e) => setCourseForm({...courseForm, url_img: e.target.value})}
                   />
                 </div>
 

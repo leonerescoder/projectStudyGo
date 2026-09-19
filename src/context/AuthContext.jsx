@@ -66,35 +66,82 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      // 1. Tenta consultar a rota de usuários na API remota
+      // 1. Tenta autenticar via endpoint real do backend para obter JWT válido
+      let backendToken = null;
       let apiUser = null;
+
+      try {
+        const loginResponse = await fetch(`${BASE_URL}/user/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: cleanEmail, password: cleanPass })
+        });
+
+        if (loginResponse.ok) {
+          const loginData = await loginResponse.json();
+          // O backend pode retornar o token em diferentes formatos
+          backendToken = loginData.token || loginData.accessToken || loginData.jwt || null;
+          apiUser = loginData.user || loginData;
+        } else {
+          console.warn('Login no backend retornou status:', loginResponse.status);
+        }
+      } catch (err) {
+        console.warn('Falha na autenticação com o backend:', err);
+      }
+
+      // 2. Se o login real funcionou, usa o token do backend
+      if (backendToken && apiUser) {
+        setStoredToken(backendToken);
+        setTokenState(backendToken);
+
+        const targetUser = {
+          id: apiUser.id,
+          name: apiUser.name,
+          email: apiUser.email,
+          type: apiUser.type || 'ADMIN',
+          status: apiUser.status || 'ATIVO',
+          company_name: apiUser.company_name || apiUser.companyName || 'StudyGo Central',
+          password: cleanPass
+        };
+
+        if (targetUser.status === 'INATIVO') {
+          return { success: false, error: 'Este usuário está com status INATIVO no banco.' };
+        }
+
+        setUser(targetUser);
+        setIsAuthModalOpen(false);
+        return { success: true, user: targetUser, token: backendToken };
+      }
+
+      // 3. Fallback: busca usuário na API e gera token local (pode não funcionar para POST/DELETE)
+      let fetchedUser = null;
       try {
         const response = await fetch(`${BASE_URL}/user?email=${encodeURIComponent(cleanEmail)}`);
         if (response.ok) {
           const data = await response.json();
           if (Array.isArray(data) && data.length > 0) {
-            apiUser = data[0];
+            fetchedUser = data[0];
           } else if (data && data.id) {
-            apiUser = data;
+            fetchedUser = data;
           }
         }
       } catch (err) {
-        console.warn('Falha na comunicação direta com a API, utilizando base local de fallback:', err);
+        console.warn('Falha ao buscar usuário na API:', err);
       }
 
-      // 2. Busca na base de usuários inicial / cadastrada
+      // 4. Busca na base local como último recurso
       const localUser = INITIAL_USERS.find(
         u => u.email.toLowerCase() === cleanEmail
       );
 
-      const targetUser = apiUser ? {
-        id: apiUser.id,
-        name: apiUser.name,
-        email: apiUser.email,
-        type: apiUser.type || 'ADMIN',
-        status: apiUser.status || 'ATIVO',
+      const targetUser = fetchedUser ? {
+        id: fetchedUser.id,
+        name: fetchedUser.name,
+        email: fetchedUser.email,
+        type: fetchedUser.type || 'ADMIN',
+        status: fetchedUser.status || 'ATIVO',
         company_name: localUser?.company_name || 'StudyGo Central',
-        password: localUser?.password || '123'
+        password: localUser?.password || cleanPass
       } : localUser;
 
       if (!targetUser) {
@@ -110,7 +157,7 @@ export function AuthProvider({ children }) {
         return { success: false, error: 'Este usuário está com status INATIVO no banco.' };
       }
 
-      // 3. Emite e grava o Bearer Token no storage
+      // 5. Gera token local como fallback
       const bearerToken = generateClientToken(targetUser);
       setStoredToken(bearerToken);
       setTokenState(bearerToken);
