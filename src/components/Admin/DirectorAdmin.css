@@ -929,6 +929,133 @@
 }
 
 /* ==========================================================================
+   DIRECTOR COURSE IMAGE STYLES
+   ========================================================================== */
+#director-admin-page .course-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+#director-admin-page .director-table-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#director-admin-page .director-table-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#director-admin-page .thumb-fallback {
+  font-size: 1.25rem;
+}
+
+#director-admin-page .director-name-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+#director-admin-page .director-image-section {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px dashed rgba(56, 189, 248, 0.35);
+  border-radius: 12px;
+  padding: 0.9rem;
+  gap: 0.65rem;
+}
+
+#director-admin-page .director-image-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+#director-admin-page .label-flex {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+#director-admin-page .label-help {
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+#director-admin-page .director-image-inputs {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+#director-admin-page .director-image-inputs input {
+  flex: 1;
+}
+
+#director-admin-page .btn-upload-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#director-admin-page .btn-upload-file:hover {
+  background: rgba(56, 189, 248, 0.25);
+  color: #ffffff;
+}
+
+#director-admin-page .director-img-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: rgba(11, 20, 42, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+}
+
+#director-admin-page .director-img-preview img {
+  width: 80px;
+  height: 52px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+#director-admin-page .btn-del-img {
+  font-size: 0.75rem;
+  color: #f87171;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+#director-admin-page .btn-del-img:hover {
+  color: #ef4444;
+}
+
+/* ==========================================================================
    RESPONSIVENESS
    ========================================================================== */
 @media (max-width: 900px) {
@@ -953,5 +1080,14 @@
   #director-admin-page .workspace-tabs-bar {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  #director-admin-page .director-image-inputs {
+    flex-direction: column;
+  }
+
+  #director-admin-page .btn-upload-file {
+    width: 100%;
+    justify-content: center;
   }
 }

@@ -4,6 +4,7 @@ export const INITIAL_COURSES = [
     id: 1,
     name: 'Lógica de Programação',
     description: 'Aprenda lógica estruturada, algoritmos e resolva desafios práticos.',
+    urlImg: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=600&q=80',
     workload: 80,
     ranking: 1,
     Field_of_study: 'Tecnologia',
@@ -16,6 +17,7 @@ export const INITIAL_COURSES = [
     id: 2,
     name: 'Java do Zero ao Avançado',
     description: 'Orientação a objetos, arquitetura em camadas e desenvolvimento corporativo.',
+    urlImg: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=600&q=80',
     workload: 120,
     ranking: 2,
     Field_of_study: 'Tecnologia',
@@ -28,6 +30,7 @@ export const INITIAL_COURSES = [
     id: 3,
     name: 'Desenvolvimento Web Completo',
     description: 'HTML5, CSS3, React, Node.js e integração com banco de dados MySQL.',
+    urlImg: 'https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&w=600&q=80',
     workload: 180,
     ranking: 3,
     Field_of_study: 'Tecnologia',
@@ -40,6 +43,7 @@ export const INITIAL_COURSES = [
     id: 4,
     name: 'Computação em Nuvem AWS & Azure',
     description: 'Infraestrutura cloud, containers Docker, deploy contínuo e escalabilidade.',
+    urlImg: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80',
     workload: 100,
     ranking: 4,
     Field_of_study: 'Tecnologia',
@@ -52,6 +56,7 @@ export const INITIAL_COURSES = [
     id: 5,
     name: 'Gastronomia Internacional',
     description: 'Técnicas culinárias contemporâneas, confeitaria e cozinha internacional.',
+    urlImg: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
     workload: 90,
     ranking: 5,
     Field_of_study: 'Gastronomia',
@@ -59,6 +64,19 @@ export const INITIAL_COURSES = [
     company_id: 1,
     status: 'ATIVO',
     createdAt: '2026-04-18'
+  },
+  {
+    id: 6,
+    name: 'Inteligência Artificial & Machine Learning Aplicada',
+    description: 'Formação completa com Redes Neurais, Deep Learning, Processamento de Linguagem Natural (NLP), Visão Computacional, PyTorch, TensorFlow e deploy de modelos em nuvem.',
+    urlImg: 'https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=800&q=80',
+    workload: 240,
+    ranking: 1,
+    Field_of_study: 'Tecnologia',
+    company_name: 'Senac São Carlos',
+    company_id: 1,
+    status: 'ATIVO',
+    createdAt: '2026-05-10'
   }
 ];
 

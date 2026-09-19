@@ -1,30 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ShieldCheck, 
-  GraduationCap, 
-  Building2, 
-  Layers, 
-  Users, 
-  Plus, 
-  Search, 
-  Trash2, 
-  CheckCircle2, 
-  Clock, 
-  Star, 
-  Database, 
-  SlidersHorizontal, 
+import {
+  ShieldCheck,
+  GraduationCap,
+  Building2,
+  Layers,
+  Users,
+  Plus,
+  Search,
+  Trash2,
+  CheckCircle2,
+  Clock,
+  Star,
+  Database,
+  SlidersHorizontal,
   X,
   LogOut,
   LogIn,
   Lock,
   Crown,
   ExternalLink,
-  Server
+  Server,
+  Image as ImageIcon,
+  Upload,
+  Sparkles
 } from 'lucide-react';
 import { apiFetch } from '../../API/apiClient';
 import { DB_CONFIG } from '../../data/databaseConfig';
 import { useAuth } from '../../context/AuthContext';
 import './Admin.css';
+
+const QUICK_IMAGE_PRESETS = [
+  { label: '💻 Tecnologia', url: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=600&q=80' },
+  { label: '🤖 Inteligência Artificial', url: 'https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=600&q=80' },
+  { label: '🍳 Gastronomia', url: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80' },
+  { label: '⚙️ Mecânica', url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80' },
+  { label: '🌍 Idiomas', url: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&w=600&q=80' },
+  { label: '🎨 Design & Artes', url: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=600&q=80' }
+];
 
 export function Admin() {
   const { user, logout, openAuthModal, availableUsers, login } = useAuth();
@@ -40,7 +52,7 @@ export function Admin() {
       setUserRole(user.type);
     }
   }, [user]);
-  
+
   // Data State (Buscar Dados)
   const [courses, setCourses] = useState([]);
   const [companies, setCompanies] = useState([]);
@@ -56,7 +68,7 @@ export function Admin() {
           apiFetch('/categorie'),
           apiFetch('/user')
         ]);
-        
+
         if (courseRes.ok) {
           const courseData = await courseRes.json();
           setCourses(Array.isArray(courseData) ? courseData : []);
@@ -89,7 +101,7 @@ export function Admin() {
   const [courseForm, setCourseForm] = useState({
     name: '',
     description: '',
-    url_img: '',
+    urlImg: '',
     workload: '',
     Field_of_study: 'Tecnologia',
     company_name: 'Senac São Carlos',
@@ -135,6 +147,22 @@ export function Admin() {
     }, 4000);
   };
 
+  // Handle local file upload for course image
+  const handleCourseImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 3 * 1024 * 1024) {
+        alert('A imagem selecionada é muito grande. Escolha uma imagem de até 3MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCourseForm(prev => ({ ...prev, urlImg: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Filtered Lists based on Role & Search
   const filteredCourses = courses.filter(item => {
     const matchesSearch = (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -156,7 +184,7 @@ export function Admin() {
     return matchesSearch;
   });
 
-  const filteredCategories = categories.filter(item => 
+  const filteredCategories = categories.filter(item =>
     (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (item.description || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -246,24 +274,24 @@ export function Admin() {
         const payload = {
           name: courseForm.name,
           description: courseForm.description || 'Sem descrição informada.',
-          urlImg: courseForm.url_img || '',
+          urlImg: courseForm.urlImg || '',
           workload: Number(courseForm.workload),
           ranking: Number(courseForm.ranking) || 1,
           fieldOfStudy: courseForm.Field_of_study,
           companyId: companyId,
           categoryIds: categoryIds,
           userId: user?.id || 1,
-          status: courseForm.status
+          status: courseForm.status || 'ATIVO'
         };
         const response = await apiFetch('/course', { method: 'POST', body: JSON.stringify(payload) });
         if (response.ok) {
           const newCourse = await response.json();
           setCourses([newCourse, ...courses]);
           showToast(`✓ Curso "${newCourse.name}" inserido no banco com sucesso!`);
-          setCourseForm({ name: '', description: '', url_img: '', workload: '', Field_of_study: 'Tecnologia', company_name: 'Senac São Carlos', ranking: '1', status: 'ATIVO' });
+          setCourseForm({ name: '', description: '', urlImg: '', workload: '', Field_of_study: 'Tecnologia', company_name: 'Senac São Carlos', ranking: '1', status: 'ATIVO' });
         } else { alert('Erro ao inserir curso no banco.'); }
       } catch (err) { console.error(err); alert('Erro de conexão.'); }
-    } 
+    }
     else if (modalEntityType === 'company') {
       if (!companyForm.name || !companyForm.cnpj) {
         alert('Por favor, informe ao menos a Razão Social e o CNPJ.');
@@ -359,8 +387,8 @@ export function Admin() {
               Faça login com seu e-mail e senha cadastrados no banco de dados para gerenciar o sistema.
             </p>
 
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="btn-guard-login"
               onClick={openAuthModal}
             >
@@ -427,8 +455,8 @@ export function Admin() {
               <div className="session-user-text">
                 <span>Conectado como: <strong>{user.name}</strong> ({user.company_name})</span>
               </div>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="btn-session-logout"
                 onClick={logout}
                 title="Deslogar do sistema"
@@ -446,14 +474,14 @@ export function Admin() {
               <span className="role-label">Simulador de Perfil de Acesso:</span>
             </div>
             <div className="role-buttons">
-              <button 
+              <button
                 type="button"
                 className={`role-btn ${userRole === 'ADMIN' ? 'active admin' : ''}`}
                 onClick={() => setUserRole('ADMIN')}
               >
                 👑 Administrador (ADMIN)
               </button>
-              <button 
+              <button
                 type="button"
                 className={`role-btn ${userRole === 'DIRECTOR' ? 'active director' : ''}`}
                 onClick={() => setUserRole('DIRECTOR')}
@@ -462,8 +490,8 @@ export function Admin() {
               </button>
             </div>
             <span className="role-desc">
-              {userRole === 'ADMIN' 
-                ? 'Visualizando todos os registros e permissão de gestão global da plataforma.' 
+              {userRole === 'ADMIN'
+                ? 'Visualizando todos os registros e permissão de gestão global da plataforma.'
                 : `Modo Diretor: gerenciando os cursos e dados vinculados a ${user?.company_name || 'Senac São Carlos'}.`}
             </span>
           </div>
@@ -496,9 +524,9 @@ export function Admin() {
             <div className="card-info">
               <div className="db-title-row">
                 <h3>PostgreSQL (Neon)</h3>
-                <a 
-                  href={DB_CONFIG.consoleUrl} 
-                  target="_blank" 
+                <a
+                  href={DB_CONFIG.consoleUrl}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="db-phpmyadmin-btn"
                 >
@@ -560,7 +588,7 @@ export function Admin() {
           {/* Top Bar: Tabs & Inserir Button */}
           <div className="tabs-header-bar">
             <div className="nav-tabs">
-              <button 
+              <button
                 className={`tab-btn ${activeTab === 'courses' ? 'active' : ''}`}
                 onClick={() => setActiveTab('courses')}
               >
@@ -568,7 +596,7 @@ export function Admin() {
                 <span>Cursos ({filteredCourses.length})</span>
               </button>
 
-              <button 
+              <button
                 className={`tab-btn ${activeTab === 'companies' ? 'active' : ''}`}
                 onClick={() => setActiveTab('companies')}
               >
@@ -578,7 +606,7 @@ export function Admin() {
 
               {userRole === 'ADMIN' && (
                 <>
-                  <button 
+                  <button
                     className={`tab-btn ${activeTab === 'categories' ? 'active' : ''}`}
                     onClick={() => setActiveTab('categories')}
                   >
@@ -586,7 +614,7 @@ export function Admin() {
                     <span>Categorias ({filteredCategories.length})</span>
                   </button>
 
-                  <button 
+                  <button
                     className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
                     onClick={() => setActiveTab('users')}
                   >
@@ -598,7 +626,7 @@ export function Admin() {
             </div>
 
             <div className="actions-cluster">
-              <button 
+              <button
                 className="btn-insert-database"
                 onClick={() => {
                   if (activeTab === 'courses') openModal('course');
@@ -617,7 +645,7 @@ export function Admin() {
           <div className="table-toolbar">
             <div className="search-box">
               <Search size={18} className="search-icon" />
-              <input 
+              <input
                 type="text"
                 placeholder={`Pesquisar em ${
                   activeTab === 'courses' ? 'Cursos' :
@@ -670,9 +698,18 @@ export function Admin() {
                       <tr key={c.id}>
                         <td className="cell-id">#{c.id}</td>
                         <td className="cell-main">
-                          <div className="name-wrapper">
-                            <span className="item-title">{c.name}</span>
-                            <span className="item-subtitle">{c.description}</span>
+                          <div className="course-name-row">
+                            <div className="course-table-thumb">
+                              {c.urlImg ? (
+                                <img src={c.urlImg} alt={c.name} onError={(e) => { e.target.style.display = 'none'; }} />
+                              ) : (
+                                <span className="thumb-fallback">📚</span>
+                              )}
+                            </div>
+                            <div className="name-wrapper">
+                              <span className="item-title">{c.name}</span>
+                              <span className="item-subtitle">{c.description}</span>
+                            </div>
                           </div>
                         </td>
                         <td>
@@ -697,8 +734,8 @@ export function Admin() {
                           </span>
                         </td>
                         <td className="cell-actions">
-                          <button 
-                            className="action-btn delete-btn" 
+                          <button
+                            className="action-btn delete-btn"
                             title="Remover do banco"
                             onClick={() => handleDeleteCourse(c.id)}
                           >
@@ -759,8 +796,8 @@ export function Admin() {
                         </td>
                         <td className="cell-actions">
                           {userRole === 'ADMIN' && (
-                            <button 
-                              className="action-btn delete-btn" 
+                            <button
+                              className="action-btn delete-btn"
                               title="Remover do banco"
                               onClick={() => handleDeleteCompany(comp.id)}
                             >
@@ -807,8 +844,8 @@ export function Admin() {
                         </td>
                         <td>{cat.description}</td>
                         <td className="cell-actions">
-                          <button 
-                            className="action-btn delete-btn" 
+                          <button
+                            className="action-btn delete-btn"
                             title="Remover categoria"
                             onClick={() => handleDeleteCategory(cat.id)}
                           >
@@ -872,8 +909,8 @@ export function Admin() {
                           </span>
                         </td>
                         <td className="cell-actions">
-                          <button 
-                            className="action-btn delete-btn" 
+                          <button
+                            className="action-btn delete-btn"
                             title="Excluir usuário"
                             onClick={() => handleDeleteUser(u.id)}
                           >
@@ -918,7 +955,7 @@ export function Admin() {
 
             {/* Entity Selector inside Modal */}
             <div className="modal-entity-selector">
-              <button 
+              <button
                 type="button"
                 className={`entity-tab ${modalEntityType === 'course' ? 'active' : ''}`}
                 onClick={() => setModalEntityType('course')}
@@ -927,7 +964,7 @@ export function Admin() {
                 <span>Curso</span>
               </button>
 
-              <button 
+              <button
                 type="button"
                 className={`entity-tab ${modalEntityType === 'company' ? 'active' : ''}`}
                 onClick={() => setModalEntityType('company')}
@@ -938,7 +975,7 @@ export function Admin() {
 
               {userRole === 'ADMIN' && (
                 <>
-                  <button 
+                  <button
                     type="button"
                     className={`entity-tab ${modalEntityType === 'category' ? 'active' : ''}`}
                     onClick={() => setModalEntityType('category')}
@@ -947,7 +984,7 @@ export function Admin() {
                     <span>Categoria</span>
                   </button>
 
-                  <button 
+                  <button
                     type="button"
                     className={`entity-tab ${modalEntityType === 'user' ? 'active' : ''}`}
                     onClick={() => setModalEntityType('user')}
@@ -964,29 +1001,95 @@ export function Admin() {
               <form onSubmit={handleCreateSubmit} className="admin-form">
                 <div className="form-group">
                   <label>Nome do Curso *</label>
-                  <input 
-                    type="text" 
-                    placeholder="Ex: Inteligência Artificial na Prática" 
+                  <input
+                    type="text"
+                    placeholder="Ex: Inteligência Artificial na Prática"
                     value={courseForm.name}
                     onChange={(e) => setCourseForm({...courseForm, name: e.target.value})}
                     required
                   />
                 </div>
 
-                <div className="form-group">
-                  <label>URL da Imagem</label>
-                  <input 
-                    type="url" 
-                    placeholder="https://exemplo.com/imagem.png" 
-                    value={courseForm.url_img}
-                    onChange={(e) => setCourseForm({...courseForm, url_img: e.target.value})}
-                  />
+                {/* CAMPO DE IMAGEM */}
+                <div className="form-group image-upload-section">
+                  <label className="image-field-label">
+                    <div className="label-with-icon">
+                      <ImageIcon size={15} />
+                      <span>Imagem de Capa do Curso</span>
+                    </div>
+                    <span className="label-tip">Cole o link da imagem ou selecione do computador</span>
+                  </label>
+
+                  <div className="image-input-controls">
+                    <input
+                      type="url"
+                      placeholder="https://exemplo.com/imagem-do-curso.jpg"
+                      value={courseForm.urlImg}
+                      onChange={(e) => setCourseForm({...courseForm, urlImg: e.target.value})}
+                      className="url-image-input"
+                    />
+
+                    <label className="btn-file-upload">
+                      <Upload size={15} />
+                      <span>Carregar Foto</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCourseImageUpload}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                  </div>
+
+                  {/* Preset Suggestions */}
+                  <div className="image-preset-bar">
+                    <span className="preset-title">
+                      <Sparkles size={13} /> Sugestões rápidas:
+                    </span>
+                    <div className="preset-buttons">
+                      {QUICK_IMAGE_PRESETS.map((preset, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          className="preset-btn"
+                          onClick={() => setCourseForm({ ...courseForm, urlImg: preset.url })}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Live Image Preview */}
+                  {courseForm.urlImg && (
+                    <div className="course-image-preview-card">
+                      <div className="preview-img-wrapper">
+                        <img
+                          src={courseForm.urlImg}
+                          alt="Prévia do Curso"
+                          onError={(e) => {
+                            e.target.src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80';
+                          }}
+                        />
+                      </div>
+                      <div className="preview-info">
+                        <span className="preview-status">✓ Imagem carregada</span>
+                        <button
+                          type="button"
+                          className="btn-remove-preview-img"
+                          onClick={() => setCourseForm({ ...courseForm, urlImg: '' })}
+                        >
+                          Remover imagem
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-row">
                   <div className="form-group">
                     <label>Área de Estudo / Categoria *</label>
-                    <select 
+                    <select
                       value={courseForm.Field_of_study}
                       onChange={(e) => setCourseForm({...courseForm, Field_of_study: e.target.value})}
                     >
@@ -998,9 +1101,9 @@ export function Admin() {
 
                   <div className="form-group">
                     <label>Carga Horária (Horas) *</label>
-                    <input 
-                      type="number" 
-                      placeholder="Ex: 80" 
+                    <input
+                      type="number"
+                      placeholder="Ex: 80"
                       value={courseForm.workload}
                       onChange={(e) => setCourseForm({...courseForm, workload: e.target.value})}
                       required
@@ -1011,7 +1114,7 @@ export function Admin() {
                 <div className="form-row">
                   <div className="form-group">
                     <label>Instituição Ofertante</label>
-                    <select 
+                    <select
                       value={courseForm.company_name}
                       onChange={(e) => setCourseForm({...courseForm, company_name: e.target.value})}
                       disabled={userRole === 'DIRECTOR'}
@@ -1024,10 +1127,10 @@ export function Admin() {
 
                   <div className="form-group">
                     <label>Posição Ranking</label>
-                    <input 
-                      type="number" 
+                    <input
+                      type="number"
                       min="1"
-                      placeholder="Ex: 1" 
+                      placeholder="Ex: 1"
                       value={courseForm.ranking}
                       onChange={(e) => setCourseForm({...courseForm, ranking: e.target.value})}
                     />
@@ -1035,8 +1138,19 @@ export function Admin() {
                 </div>
 
                 <div className="form-group">
+                  <label>Status do Curso no Sistema</label>
+                  <select
+                    value={courseForm.status}
+                    onChange={(e) => setCourseForm({...courseForm, status: e.target.value})}
+                  >
+                    <option value="ATIVO">🟢 ATIVO (Visível e disponível para matrículas)</option>
+                    <option value="INATIVO">🔴 INATIVO (Oculto no catálogo público)</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
                   <label>Descrição do Curso</label>
-                  <textarea 
+                  <textarea
                     rows="3"
                     placeholder="Conteúdo programático, objetivos e competências desenvolvidas..."
                     value={courseForm.description}
@@ -1061,9 +1175,9 @@ export function Admin() {
               <form onSubmit={handleCreateSubmit} className="admin-form">
                 <div className="form-group">
                   <label>Razão Social / Nome da Escola *</label>
-                  <input 
-                    type="text" 
-                    placeholder="Ex: Centro Universitário Tech" 
+                  <input
+                    type="text"
+                    placeholder="Ex: Centro Universitário Tech"
                     value={companyForm.name}
                     onChange={(e) => setCompanyForm({...companyForm, name: e.target.value})}
                     required
@@ -1073,9 +1187,9 @@ export function Admin() {
                 <div className="form-row">
                   <div className="form-group">
                     <label>CNPJ *</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ex: 12.345.678/0001-90" 
+                    <input
+                      type="text"
+                      placeholder="Ex: 12.345.678/0001-90"
                       value={companyForm.cnpj}
                       onChange={(e) => setCompanyForm({...companyForm, cnpj: e.target.value})}
                       required
@@ -1084,8 +1198,8 @@ export function Admin() {
 
                   <div className="form-group">
                     <label>Data de Fundação</label>
-                    <input 
-                      type="date" 
+                    <input
+                      type="date"
                       value={companyForm.foundation}
                       onChange={(e) => setCompanyForm({...companyForm, foundation: e.target.value})}
                     />
@@ -1094,9 +1208,9 @@ export function Admin() {
 
                 <div className="form-group">
                   <label>Locais de Atuação / Cidades</label>
-                  <input 
-                    type="text" 
-                    placeholder="Ex: São Paulo, SP - Campinas e EAD" 
+                  <input
+                    type="text"
+                    placeholder="Ex: São Paulo, SP - Campinas e EAD"
                     value={companyForm.places}
                     onChange={(e) => setCompanyForm({...companyForm, places: e.target.value})}
                   />
@@ -1104,7 +1218,7 @@ export function Admin() {
 
                 <div className="form-group">
                   <label>Fundamentos da Instituição</label>
-                  <textarea 
+                  <textarea
                     rows="2"
                     placeholder="Valores, missão institucional e diferenciais..."
                     value={companyForm.fundaments}
@@ -1129,9 +1243,9 @@ export function Admin() {
               <form onSubmit={handleCreateSubmit} className="admin-form">
                 <div className="form-group">
                   <label>Nome da Categoria *</label>
-                  <input 
-                    type="text" 
-                    placeholder="Ex: Inteligência Artificial" 
+                  <input
+                    type="text"
+                    placeholder="Ex: Inteligência Artificial"
                     value={categoryForm.name}
                     onChange={(e) => setCategoryForm({...categoryForm, name: e.target.value})}
                     required
@@ -1140,7 +1254,7 @@ export function Admin() {
 
                 <div className="form-group">
                   <label>Descrição da Categoria</label>
-                  <textarea 
+                  <textarea
                     rows="3"
                     placeholder="Descrição das áreas e tipos de cursos que engloba..."
                     value={categoryForm.description}
@@ -1165,9 +1279,9 @@ export function Admin() {
               <form onSubmit={handleCreateSubmit} className="admin-form">
                 <div className="form-group">
                   <label>Nome Completo *</label>
-                  <input 
-                    type="text" 
-                    placeholder="Ex: Lucas Ferreira" 
+                  <input
+                    type="text"
+                    placeholder="Ex: Lucas Ferreira"
                     value={userForm.name}
                     onChange={(e) => setUserForm({...userForm, name: e.target.value})}
                     required
@@ -1177,9 +1291,9 @@ export function Admin() {
                 <div className="form-row">
                   <div className="form-group">
                     <label>E-mail *</label>
-                    <input 
-                      type="email" 
-                      placeholder="lucas@escola.com" 
+                    <input
+                      type="email"
+                      placeholder="lucas@escola.com"
                       value={userForm.email}
                       onChange={(e) => setUserForm({...userForm, email: e.target.value})}
                       required
@@ -1188,9 +1302,9 @@ export function Admin() {
 
                   <div className="form-group">
                     <label>CPF *</label>
-                    <input 
-                      type="text" 
-                      placeholder="123.456.789-00" 
+                    <input
+                      type="text"
+                      placeholder="123.456.789-00"
                       value={userForm.cpf}
                       onChange={(e) => setUserForm({...userForm, cpf: e.target.value})}
                       required
@@ -1201,7 +1315,7 @@ export function Admin() {
                 <div className="form-row">
                   <div className="form-group">
                     <label>Tipo de Acesso</label>
-                    <select 
+                    <select
                       value={userForm.type}
                       onChange={(e) => setUserForm({...userForm, type: e.target.value})}
                     >
@@ -1212,7 +1326,7 @@ export function Admin() {
 
                   <div className="form-group">
                     <label>Instituição Vinculada</label>
-                    <select 
+                    <select
                       value={userForm.company_name}
                       onChange={(e) => setUserForm({...userForm, company_name: e.target.value})}
                     >

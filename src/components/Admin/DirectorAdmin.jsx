@@ -1,22 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Building2, 
-  GraduationCap, 
-  User, 
-  Lock, 
-  CheckCircle2, 
-  AlertCircle, 
-  Plus, 
-  Search, 
-  Trash2, 
-  Edit3, 
-  Clock, 
-  Star, 
-  Database, 
-  UserPlus, 
-  ShieldAlert, 
+import {
+  Building2,
+  GraduationCap,
+  User,
+  Lock,
+  CheckCircle2,
+  AlertCircle,
+  Plus,
+  Search,
+  Trash2,
+  Edit3,
+  Clock,
+  Star,
+  Database,
+  UserPlus,
+  ShieldAlert,
   X,
-  ExternalLink
+  ExternalLink,
+  Image as ImageIcon,
+  Upload,
+  Sparkles
 } from 'lucide-react';
 import { DB_CONFIG } from '../../data/databaseConfig';
 import { apiFetch } from '../../API/apiClient';
@@ -62,7 +65,7 @@ export function DirectorAdmin() {
           apiFetch('/companie'),
           apiFetch('/user')
         ]);
-        
+
         let fetchedSchool = null;
         if (compRes.ok) {
           const data = await compRes.json();
@@ -113,7 +116,7 @@ export function DirectorAdmin() {
   const [courseForm, setCourseForm] = useState({
     name: '',
     description: '',
-    url_img: '',
+    urlImg: '',
     workload: '',
     Field_of_study: 'Tecnologia',
     ranking: '1',
@@ -153,7 +156,7 @@ export function DirectorAdmin() {
   };
 
   // Filtered Courses (Only belonging to this director's school)
-  const filteredCourses = courses.filter(c => 
+  const filteredCourses = courses.filter(c =>
     (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (c.Field_of_study || c.fieldOfStudy || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (c.description || '').toLowerCase().includes(searchTerm.toLowerCase())
@@ -203,7 +206,7 @@ export function DirectorAdmin() {
       const payload = {
         name: courseForm.name,
         description: courseForm.description || 'Sem descrição informada.',
-        urlImg: courseForm.url_img || '',
+        urlImg: courseForm.urlImg || '',
         workload: Number(courseForm.workload),
         ranking: Number(courseForm.ranking) || 1,
         fieldOfStudy: courseForm.Field_of_study,
@@ -212,14 +215,14 @@ export function DirectorAdmin() {
         userId: directorUser?.id || 1,
         status: courseForm.status
       };
-      
+
       const response = await apiFetch('/course', { method: 'POST', body: JSON.stringify(payload) });
       if (response.ok) {
         const newCourse = await response.json();
         setCourses([newCourse, ...courses]);
         setIsNewCourseModalOpen(false);
         setCourseForm({
-          name: '', description: '', url_img: '', workload: '', Field_of_study: 'Tecnologia', ranking: '1', status: 'ATIVO'
+          name: '', description: '', urlImg: '', workload: '', Field_of_study: 'Tecnologia', ranking: '1', status: 'ATIVO'
         });
         showToast(`✓ Novo curso "${newCourse.name}" adicionado à ${school.name}!`);
       } else {
@@ -228,6 +231,21 @@ export function DirectorAdmin() {
     } catch (err) {
       console.error(err);
       alert('Erro de conexão ao criar curso.');
+    }
+  };
+
+  const handleDirectorImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 3 * 1024 * 1024) {
+        alert('A imagem é muito grande. Escolha uma foto de até 3MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCourseForm(prev => ({ ...prev, urlImg: reader.result }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -337,7 +355,7 @@ export function DirectorAdmin() {
               </div>
               <div className="id-school-label">Escola: {school.name}</div>
             </div>
-            <button 
+            <button
               className="btn-new-director"
               onClick={() => setIsRegisterDirectorModalOpen(true)}
               title="Cadastrar outro Diretor"
@@ -367,7 +385,7 @@ export function DirectorAdmin() {
           {/* Tabs Bar */}
           <div className="workspace-tabs-bar">
             <div className="tabs-list">
-              <button 
+              <button
                 className={`tab-item ${activeTab === 'courses' ? 'active' : ''}`}
                 onClick={() => setActiveTab('courses')}
               >
@@ -375,7 +393,7 @@ export function DirectorAdmin() {
                 <span>Cursos da Escola ({filteredCourses.length})</span>
               </button>
 
-              <button 
+              <button
                 className={`tab-item ${activeTab === 'school' ? 'active' : ''}`}
                 onClick={() => setActiveTab('school')}
               >
@@ -383,7 +401,7 @@ export function DirectorAdmin() {
                 <span>Minha Escola ({school.name})</span>
               </button>
 
-              <button 
+              <button
                 className={`tab-item ${activeTab === 'profile' ? 'active' : ''}`}
                 onClick={() => setActiveTab('profile')}
               >
@@ -393,7 +411,7 @@ export function DirectorAdmin() {
             </div>
 
             {activeTab === 'courses' && (
-              <button 
+              <button
                 className="btn-add-course"
                 onClick={() => setIsNewCourseModalOpen(true)}
               >
@@ -403,7 +421,7 @@ export function DirectorAdmin() {
             )}
 
             {activeTab === 'school' && (
-              <button 
+              <button
                 className="btn-edit-school"
                 onClick={() => {
                   setEditSchoolForm({ ...school });
@@ -424,8 +442,8 @@ export function DirectorAdmin() {
               <div className="courses-toolbar">
                 <div className="search-input-wrapper">
                   <Search size={18} className="search-icon" />
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder={`Pesquisar nos cursos de ${school.name}...`}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -460,8 +478,19 @@ export function DirectorAdmin() {
                         <tr key={c.id}>
                           <td className="cell-id">#{c.id}</td>
                           <td className="cell-main">
-                            <span className="course-title">{c.name}</span>
-                            <span className="course-desc">{c.description}</span>
+                            <div className="course-name-row">
+                              <div className="director-table-thumb">
+                                {c.urlImg ? (
+                                  <img src={c.urlImg} alt={c.name} onError={(e) => { e.target.style.display = 'none'; }} />
+                                ) : (
+                                  <span className="thumb-fallback">📚</span>
+                                )}
+                              </div>
+                              <div className="director-name-wrapper">
+                                <span className="course-title">{c.name}</span>
+                                <span className="course-desc">{c.description}</span>
+                              </div>
+                            </div>
                           </td>
                           <td>
                             <span className="category-tag">{c.Field_of_study}</span>
@@ -481,8 +510,8 @@ export function DirectorAdmin() {
                             <span className="status-badge ativo">{c.status}</span>
                           </td>
                           <td className="cell-actions">
-                            <button 
-                              className="action-btn-del" 
+                            <button
+                              className="action-btn-del"
                               title="Remover curso"
                               onClick={() => handleDeleteCourse(c.id)}
                             >
@@ -496,7 +525,7 @@ export function DirectorAdmin() {
                         <td colSpan="7" className="empty-state">
                           <Database size={36} />
                           <p>Nenhum curso cadastrado para {school.name}.</p>
-                          <button 
+                          <button
                             className="btn-add-first-course"
                             onClick={() => setIsNewCourseModalOpen(true)}
                           >
@@ -566,8 +595,8 @@ export function DirectorAdmin() {
                 <div className="form-row">
                   <div className="form-group">
                     <label>Nome Completo *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={profileForm.name}
                       onChange={(e) => setProfileForm({...profileForm, name: e.target.value})}
                       required
@@ -576,8 +605,8 @@ export function DirectorAdmin() {
 
                   <div className="form-group">
                     <label>E-mail Corporativo *</label>
-                    <input 
-                      type="email" 
+                    <input
+                      type="email"
                       value={profileForm.email}
                       onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
                       required
@@ -588,8 +617,8 @@ export function DirectorAdmin() {
                 <div className="form-row">
                   <div className="form-group">
                     <label>CPF *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={profileForm.cpf}
                       onChange={(e) => setProfileForm({...profileForm, cpf: e.target.value})}
                       required
@@ -598,8 +627,8 @@ export function DirectorAdmin() {
 
                   <div className="form-group">
                     <label>Data de Nascimento</label>
-                    <input 
-                      type="date" 
+                    <input
+                      type="date"
                       value={profileForm.birth_date}
                       onChange={(e) => setProfileForm({...profileForm, birth_date: e.target.value})}
                     />
@@ -609,8 +638,8 @@ export function DirectorAdmin() {
                 <div className="form-row">
                   <div className="form-group">
                     <label>Senha de Acesso</label>
-                    <input 
-                      type="password" 
+                    <input
+                      type="password"
                       value={profileForm.password}
                       onChange={(e) => setProfileForm({...profileForm, password: e.target.value})}
                     />
@@ -618,8 +647,8 @@ export function DirectorAdmin() {
 
                   <div className="form-group">
                     <label>Instituição Vinculada</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={school.name}
                       readOnly
                       disabled
@@ -638,15 +667,15 @@ export function DirectorAdmin() {
                   <div className="form-row">
                     <div className="form-group locked">
                       <label>
-                        Tipo de Usuário (Type) 
+                        Tipo de Usuário (Type)
                         <span className="badge-locked">🔒 Fixo: DIRECTOR</span>
                       </label>
                       <div className="locked-input-wrapper">
-                        <input 
-                          type="text" 
-                          value="DIRECTOR" 
-                          readOnly 
-                          disabled 
+                        <input
+                          type="text"
+                          value="DIRECTOR"
+                          readOnly
+                          disabled
                           className="input-locked"
                         />
                         <span className="lock-explain">
@@ -657,15 +686,15 @@ export function DirectorAdmin() {
 
                     <div className="form-group locked">
                       <label>
-                        Status da Conta (Status) 
+                        Status da Conta (Status)
                         <span className="badge-locked">🔒 Fixo: ATIVO</span>
                       </label>
                       <div className="locked-input-wrapper">
-                        <input 
-                          type="text" 
-                          value="ATIVO" 
-                          readOnly 
-                          disabled 
+                        <input
+                          type="text"
+                          value="ATIVO"
+                          readOnly
+                          disabled
                           className="input-locked"
                         />
                         <span className="lock-explain">
@@ -693,9 +722,9 @@ export function DirectorAdmin() {
             <Database size={16} className="db-icon" />
             <span>Banco de Dados: <strong>{DB_CONFIG.database}</strong> ({DB_CONFIG.server}:{DB_CONFIG.port})</span>
           </div>
-          <a 
-            href={DB_CONFIG.phpMyAdminUrl} 
-            target="_blank" 
+          <a
+            href={DB_CONFIG.phpMyAdminUrl}
+            target="_blank"
             rel="noopener noreferrer"
             className="db-link"
           >
@@ -727,8 +756,8 @@ export function DirectorAdmin() {
             <form onSubmit={handleCreateCourse} className="modal-form">
               <div className="form-group">
                 <label>Nome do Curso *</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   placeholder="Ex: Inteligência Artificial na Prática"
                   value={courseForm.name}
                   onChange={(e) => setCourseForm({...courseForm, name: e.target.value})}
@@ -736,20 +765,53 @@ export function DirectorAdmin() {
                 />
               </div>
 
-              <div className="form-group">
-                <label>URL da Imagem</label>
-                <input 
-                  type="url" 
-                  placeholder="https://exemplo.com/imagem.png"
-                  value={courseForm.url_img}
-                  onChange={(e) => setCourseForm({...courseForm, url_img: e.target.value})}
-                />
+              {/* IMAGEM DO CURSO */}
+              <div className="form-group director-image-section">
+                <label className="director-image-label">
+                  <div className="label-flex">
+                    <ImageIcon size={15} />
+                    <span>Imagem de Capa do Curso</span>
+                  </div>
+                  <span className="label-help">Link da web ou arquivo do dispositivo</span>
+                </label>
+
+                <div className="director-image-inputs">
+                  <input
+                    type="url"
+                    placeholder="https://exemplo.com/imagem-do-curso.jpg"
+                    value={courseForm.urlImg}
+                    onChange={(e) => setCourseForm({...courseForm, urlImg: e.target.value})}
+                  />
+                  <label className="btn-upload-file">
+                    <Upload size={14} />
+                    <span>Upload Foto</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleDirectorImageUpload}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                </div>
+
+                {courseForm.urlImg && (
+                  <div className="director-img-preview">
+                    <img src={courseForm.urlImg} alt="Preview" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80'; }} />
+                    <button
+                      type="button"
+                      className="btn-del-img"
+                      onClick={() => setCourseForm({ ...courseForm, urlImg: '' })}
+                    >
+                      Remover foto
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="form-row">
                 <div className="form-group">
                   <label>Área / Categoria *</label>
-                  <select 
+                  <select
                     value={courseForm.Field_of_study}
                     onChange={(e) => setCourseForm({...courseForm, Field_of_study: e.target.value})}
                   >
@@ -767,8 +829,8 @@ export function DirectorAdmin() {
 
                 <div className="form-group">
                   <label>Carga Horária (Horas) *</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     placeholder="Ex: 80"
                     value={courseForm.workload}
                     onChange={(e) => setCourseForm({...courseForm, workload: e.target.value})}
@@ -780,8 +842,8 @@ export function DirectorAdmin() {
               <div className="form-row">
                 <div className="form-group">
                   <label>Escola Ofertante (Automática)</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={school.name}
                     readOnly
                     disabled
@@ -791,8 +853,8 @@ export function DirectorAdmin() {
 
                 <div className="form-group">
                   <label>Posição Ranking</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     min="1"
                     placeholder="Ex: 1"
                     value={courseForm.ranking}
@@ -803,7 +865,7 @@ export function DirectorAdmin() {
 
               <div className="form-group">
                 <label>Descrição e Competências</label>
-                <textarea 
+                <textarea
                   rows="3"
                   placeholder="Objetivos do curso, metodologia e mercado de atuação..."
                   value={courseForm.description}
@@ -846,8 +908,8 @@ export function DirectorAdmin() {
             <form onSubmit={handleUpdateSchool} className="modal-form">
               <div className="form-group">
                 <label>Razão Social / Nome da Escola *</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={editSchoolForm.name}
                   onChange={(e) => setEditSchoolForm({...editSchoolForm, name: e.target.value})}
                   required
@@ -857,8 +919,8 @@ export function DirectorAdmin() {
               <div className="form-row">
                 <div className="form-group">
                   <label>CNPJ *</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={editSchoolForm.cnpj}
                     onChange={(e) => setEditSchoolForm({...editSchoolForm, cnpj: e.target.value})}
                     required
@@ -867,8 +929,8 @@ export function DirectorAdmin() {
 
                 <div className="form-group">
                   <label>Data de Fundação</label>
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     value={editSchoolForm.foundation}
                     onChange={(e) => setEditSchoolForm({...editSchoolForm, foundation: e.target.value})}
                   />
@@ -877,8 +939,8 @@ export function DirectorAdmin() {
 
               <div className="form-group">
                 <label>Locais de Atuação / Unidades</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={editSchoolForm.places}
                   onChange={(e) => setEditSchoolForm({...editSchoolForm, places: e.target.value})}
                 />
@@ -886,7 +948,7 @@ export function DirectorAdmin() {
 
               <div className="form-group">
                 <label>Fundamentos & Missão</label>
-                <textarea 
+                <textarea
                   rows="2"
                   value={editSchoolForm.fundaments}
                   onChange={(e) => setEditSchoolForm({...editSchoolForm, fundaments: e.target.value})}
@@ -895,7 +957,7 @@ export function DirectorAdmin() {
 
               <div className="form-group">
                 <label>Métodos e Infraestrutura</label>
-                <textarea 
+                <textarea
                   rows="2"
                   value={editSchoolForm.methods}
                   onChange={(e) => setEditSchoolForm({...editSchoolForm, methods: e.target.value})}
@@ -938,8 +1000,8 @@ export function DirectorAdmin() {
               <div className="form-row">
                 <div className="form-group">
                   <label>Nome Completo do Diretor *</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="Ex: Dra. Juliana Costa"
                     value={newDirectorForm.name}
                     onChange={(e) => setNewDirectorForm({...newDirectorForm, name: e.target.value})}
@@ -949,8 +1011,8 @@ export function DirectorAdmin() {
 
                 <div className="form-group">
                   <label>E-mail *</label>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     placeholder="diretoria@escola.com"
                     value={newDirectorForm.email}
                     onChange={(e) => setNewDirectorForm({...newDirectorForm, email: e.target.value})}
@@ -962,8 +1024,8 @@ export function DirectorAdmin() {
               <div className="form-row">
                 <div className="form-group">
                   <label>CPF *</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="000.000.000-00"
                     value={newDirectorForm.cpf}
                     onChange={(e) => setNewDirectorForm({...newDirectorForm, cpf: e.target.value})}
@@ -973,8 +1035,8 @@ export function DirectorAdmin() {
 
                 <div className="form-group">
                   <label>Senha Provisória</label>
-                  <input 
-                    type="password" 
+                  <input
+                    type="password"
                     placeholder="Senha de acesso"
                     value={newDirectorForm.password}
                     onChange={(e) => setNewDirectorForm({...newDirectorForm, password: e.target.value})}
@@ -984,8 +1046,8 @@ export function DirectorAdmin() {
 
               <div className="form-group">
                 <label>Nome da Escola / Instituição *</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   placeholder="Ex: Instituto Tecnológico Avançado"
                   value={newDirectorForm.school_name}
                   onChange={(e) => setNewDirectorForm({...newDirectorForm, school_name: e.target.value})}
@@ -996,8 +1058,8 @@ export function DirectorAdmin() {
               <div className="form-row">
                 <div className="form-group">
                   <label>CNPJ da Escola</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="00.000.000/0001-00"
                     value={newDirectorForm.school_cnpj}
                     onChange={(e) => setNewDirectorForm({...newDirectorForm, school_cnpj: e.target.value})}
@@ -1006,8 +1068,8 @@ export function DirectorAdmin() {
 
                 <div className="form-group">
                   <label>Cidade / Estado</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="São Paulo, SP"
                     value={newDirectorForm.places}
                     onChange={(e) => setNewDirectorForm({...newDirectorForm, places: e.target.value})}

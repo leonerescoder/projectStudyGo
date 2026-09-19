@@ -109,8 +109,12 @@ function CoursesCatalog() {
               className="catalog-card"
               onClick={() => navigate(`/course/${course.id}`)}
             >
-              <div className="catalog-card-logo" style={{ backgroundColor: color }}>
-                {initials}
+              <div className="catalog-card-logo" style={{ backgroundColor: course.urlImg ? 'transparent' : color, padding: 0, overflow: 'hidden' }}>
+                {course.urlImg ? (
+                  <img src={course.urlImg} alt={course.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.style.backgroundColor = color; e.target.parentNode.innerText = initials; }} />
+                ) : (
+                  initials
+                )}
               </div>
 
               <div className="catalog-card-info">
