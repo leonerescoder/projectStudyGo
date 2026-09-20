@@ -175,6 +175,7 @@ export function AuthProvider({ children }) {
     setUser(null);
     setTokenState('');
     removeStoredToken();
+    setIsAuthModalOpen(true);
   };
 
   const openAuthModal = () => setIsAuthModalOpen(true);

@@ -97,6 +97,11 @@ export function Admin() {
   const [modalEntityType, setModalEntityType] = useState('course'); // 'course' | 'company' | 'category' | 'user'
   const [toastMessage, setToastMessage] = useState(null);
 
+  // Derive the director's own company from the loaded companies list
+  const directorCompany = userRole === 'DIRECTOR'
+    ? companies.find(c => c.ownerId === user?.id) || null
+    : null;
+
   // Form Fields State for Course
   const [courseForm, setCourseForm] = useState({
     name: '',
@@ -104,10 +109,20 @@ export function Admin() {
     urlImg: '',
     workload: '',
     Field_of_study: 'Tecnologia',
-    company_name: 'Senac São Carlos',
+    company_name: '',
     ranking: '1',
     status: 'ATIVO'
   });
+
+  // Pre-fill company_name for director when companies load
+  useEffect(() => {
+    if (userRole === 'DIRECTOR' && companies.length > 0) {
+      const myComp = companies.find(c => c.ownerId === user?.id);
+      if (myComp) {
+        setCourseForm(prev => ({ ...prev, company_name: myComp.name }));
+      }
+    }
+  }, [companies, userRole, user?.id]);
 
   // Form Fields State for Company
   const [companyForm, setCompanyForm] = useState({
@@ -163,13 +178,26 @@ export function Admin() {
     }
   };
 
-  // Filtered Lists based on Role & Search
+  const getCompanyName = (item) => {
+    if (item.company_name) return item.company_name;
+    if (item.companyName) return item.companyName;
+    const comp = companies.find(c => c.id === item.companyId);
+    return comp ? comp.name : 'Indefinida';
+  };
+
   const filteredCourses = courses.filter(item => {
+    const compName = getCompanyName(item);
     const matchesSearch = (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (item.Field_of_study || item.fieldOfStudy || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (item.company_name || item.companyName || '').toLowerCase().includes(searchTerm.toLowerCase());
+                          (compName).toLowerCase().includes(searchTerm.toLowerCase());
     if (userRole === 'DIRECTOR') {
-      return matchesSearch && (item.company_name || item.companyName || '').includes('Senac');
+      const isOwner = item.ownerId === user.id;
+      const belongsToMyCompany = companies.some(c => c.id === item.companyId && c.ownerId === user.id);
+      const userComp = user?.company_name || user?.companyName || '';
+      const isLinkedByName = userComp && userComp !== 'StudyGo Central' && compName.toLowerCase().includes(userComp.toLowerCase());
+      
+      if (isOwner || belongsToMyCompany || isLinkedByName) return matchesSearch;
+      return false;
     }
     return matchesSearch;
   });
@@ -179,7 +207,12 @@ export function Admin() {
                           (item.places || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (item.cnpj || '').includes(searchTerm);
     if (userRole === 'DIRECTOR') {
-      return matchesSearch && (item.name || '').includes('Senac');
+      const isOwner = item.ownerId === user.id;
+      const userComp = user?.company_name || user?.companyName || '';
+      const isLinkedByName = userComp && userComp !== 'StudyGo Central' && (item.name || '').toLowerCase().includes(userComp.toLowerCase());
+      
+      if (isOwner || isLinkedByName) return matchesSearch;
+      return false;
     }
     return matchesSearch;
   });
@@ -190,11 +223,17 @@ export function Admin() {
   );
 
   const filteredUsers = users.filter(item => {
+    const compName = getCompanyName(item);
     const matchesSearch = (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (item.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (item.type || '').toLowerCase().includes(searchTerm.toLowerCase());
     if (userRole === 'DIRECTOR') {
-      return matchesSearch && (item.company_name || item.companyName || '').includes('Senac');
+      const isOwner = item.ownerId === user.id;
+      const userComp = user?.company_name || user?.companyName || '';
+      const isLinkedByName = userComp && userComp !== 'StudyGo Central' && compName.toLowerCase().includes(userComp.toLowerCase());
+      
+      if (isOwner || isLinkedByName) return matchesSearch;
+      return false;
     }
     return matchesSearch;
   });
@@ -280,7 +319,7 @@ export function Admin() {
           fieldOfStudy: courseForm.Field_of_study,
           companyId: companyId,
           categoryIds: categoryIds,
-          userId: user?.id || 1,
+          ownerId: user?.id || 1,
           status: courseForm.status || 'ATIVO'
         };
         const response = await apiFetch('/course', { method: 'POST', body: JSON.stringify(payload) });
@@ -288,8 +327,12 @@ export function Admin() {
           const newCourse = await response.json();
           setCourses([newCourse, ...courses]);
           showToast(`✓ Curso "${newCourse.name}" inserido no banco com sucesso!`);
-          setCourseForm({ name: '', description: '', urlImg: '', workload: '', Field_of_study: 'Tecnologia', company_name: 'Senac São Carlos', ranking: '1', status: 'ATIVO' });
-        } else { alert('Erro ao inserir curso no banco.'); }
+          setCourseForm({ name: '', description: '', urlImg: '', workload: '', Field_of_study: 'Tecnologia', company_name: directorCompany ? directorCompany.name : 'Senac São Carlos', ranking: '1', status: 'ATIVO' });
+        } else {
+          const errText = await response.text();
+          alert('Erro ao inserir curso no banco. Detalhes: ' + errText);
+          console.error('Erro backend:', errText);
+        }
       } catch (err) { console.error(err); alert('Erro de conexão.'); }
     }
     else if (modalEntityType === 'company') {
@@ -306,7 +349,7 @@ export function Admin() {
           fundamentals: companyForm.fundaments || 'Formação e qualificação educacional.',
           methods: companyForm.methods || 'Presencial e EAD',
           ranking: Number(companyForm.ranking) || 1,
-          userId: user?.id || 1
+          ownerId: user?.id || 1
         };
         const response = await apiFetch('/companie', { method: 'POST', body: JSON.stringify(payload) });
         if (response.ok) {
@@ -325,9 +368,7 @@ export function Admin() {
       try {
         const payload = {
           name: categoryForm.name,
-          description: categoryForm.description || 'Categoria de estudos',
-          companyId: 1, // Defaulting to 1
-          userId: user?.id || 1
+          description: categoryForm.description || 'Categoria de estudos'
         };
         const response = await apiFetch('/categorie', { method: 'POST', body: JSON.stringify(payload) });
         if (response.ok) {
@@ -467,78 +508,26 @@ export function Admin() {
             </div>
           </div>
 
-          {/* Role Switcher */}
+          {/* Welcome Panel */}
           <div className="role-switcher-card">
             <div className="role-header">
               <ShieldCheck size={18} className="role-icon" />
-              <span className="role-label">Simulador de Perfil de Acesso:</span>
+              <span className="role-label">Painel de Controle</span>
             </div>
-            <div className="role-buttons">
-              <button
-                type="button"
-                className={`role-btn ${userRole === 'ADMIN' ? 'active admin' : ''}`}
-                onClick={() => setUserRole('ADMIN')}
-              >
-                👑 Administrador (ADMIN)
-              </button>
-              <button
-                type="button"
-                className={`role-btn ${userRole === 'DIRECTOR' ? 'active director' : ''}`}
-                onClick={() => setUserRole('DIRECTOR')}
-              >
-                🎓 Diretor (DIRECTOR)
-              </button>
+            <div style={{ marginTop: '12px' }}>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fff', margin: 0 }}>
+                Bem-vindo, {user?.name || 'Usuário'}! 👋
+              </h2>
+              <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '6px' }}>
+                {userRole === 'ADMIN'
+                  ? '👑 Você está acessando como Administrador Global — controle total da plataforma.'
+                  : `🎓 Você está gerenciando a instituição vinculada à sua conta.`}
+              </p>
             </div>
-            <span className="role-desc">
-              {userRole === 'ADMIN'
-                ? 'Visualizando todos os registros e permissão de gestão global da plataforma.'
-                : `Modo Diretor: gerenciando os cursos e dados vinculados a ${user?.company_name || 'Senac São Carlos'}.`}
-            </span>
           </div>
         </section>
 
-        {/* Integration Pillars & MySQL Hostinger Status */}
-        <section className="integration-cards-grid">
-          <div className="integration-card primary-blue">
-            <div className="card-number-badge">1</div>
-            <div className="card-info">
-              <h3>Buscar dados do banco</h3>
-              <p>Integração de leitura para exibição em tempo real com filtros e busca rápida.</p>
-            </div>
-            <Database className="card-bg-icon" size={48} />
-          </div>
 
-          <div className="integration-card secondary-cyan">
-            <div className="card-number-badge">2</div>
-            <div className="card-info">
-              <h3>Inserir dados no banco</h3>
-              <p>Cadastre novos registros na base PostgreSQL com validações e feedback instantâneo.</p>
-            </div>
-            <Plus className="card-bg-icon" size={48} />
-          </div>
-
-          <div className="integration-card database-hostinger">
-            <div className="card-number-badge purple">
-              <Server size={20} />
-            </div>
-            <div className="card-info">
-              <div className="db-title-row">
-                <h3>PostgreSQL (Neon)</h3>
-                <a
-                  href={DB_CONFIG.consoleUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="db-phpmyadmin-btn"
-                >
-                  <span>Console Neon</span>
-                  <ExternalLink size={13} />
-                </a>
-              </div>
-              <p>Host: <code>{DB_CONFIG.server.substring(0, 22)}...</code> | DB: <code>{DB_CONFIG.database}</code></p>
-            </div>
-            <Server className="card-bg-icon" size={48} />
-          </div>
-        </section>
 
         {/* Metrics Overview Cards */}
         <section className="stats-row">
@@ -713,9 +702,9 @@ export function Admin() {
                           </div>
                         </td>
                         <td>
-                          <span className="badge-tag category-badge">{c.Field_of_study}</span>
+                          <span className="badge-tag category-badge">{c.Field_of_study || c.fieldOfStudy}</span>
                         </td>
-                        <td className="cell-company">{c.company_name}</td>
+                        <td className="cell-company">{getCompanyName(c)}</td>
                         <td>
                           <div className="workload-badge">
                             <Clock size={14} />
@@ -1114,15 +1103,30 @@ export function Admin() {
                 <div className="form-row">
                   <div className="form-group">
                     <label>Instituição Ofertante</label>
-                    <select
-                      value={courseForm.company_name}
-                      onChange={(e) => setCourseForm({...courseForm, company_name: e.target.value})}
-                      disabled={userRole === 'DIRECTOR'}
-                    >
-                      {companies.map(comp => (
-                        <option key={comp.id} value={comp.name}>{comp.name}</option>
-                      ))}
-                    </select>
+                    {userRole === 'DIRECTOR' ? (
+                      <div style={{
+                        padding: '10px 14px',
+                        background: 'rgba(99,102,241,0.1)',
+                        border: '1px solid rgba(99,102,241,0.4)',
+                        borderRadius: '8px',
+                        color: '#a5b4fc',
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}>
+                        🏫 {directorCompany ? directorCompany.name : 'Carregando sua instituição...'}
+                      </div>
+                    ) : (
+                      <select
+                        value={courseForm.company_name}
+                        onChange={(e) => setCourseForm({...courseForm, company_name: e.target.value})}
+                      >
+                        {companies.map(comp => (
+                          <option key={comp.id} value={comp.name}>{comp.name}</option>
+                        ))}
+                      </select>
+                    )}
                   </div>
 
                   <div className="form-group">

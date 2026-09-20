@@ -1,16 +1,20 @@
 import React from 'react';
-import { GraduationCap, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
+import heroBg from '../../assets/estudandes.jpg';
 
 export function Hero({ searchTerm, onSearchChange, onSearchSubmit }) {
   return (
-    <section className="hero-section">
-      <div className="hero-glow-bg"></div>
+    <section
+      className="hero-section"
+      style={{
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)), url(${heroBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+
+      }}
+    >
       <div className="hero-container">
-        {/* Badge superior */}
-        <div className="hero-pill-badge">
-          <span className="badge-icon">🎓</span>
-          <span>Seu futuro começa aqui</span>
-        </div>
 
         {/* Headline central */}
         <h1 className="hero-title">
@@ -18,7 +22,7 @@ export function Hero({ searchTerm, onSearchChange, onSearchSubmit }) {
         </h1>
 
         {/* Subtítulo */}
-        <p className="hero-subtitle">
+        <p className="hero-subtitle" style={{ color: '#e2e8f0', marginBottom: '2.5rem' }}>
           Mais de 100 escolas e milhares de cursos em um só lugar.
         </p>
 
@@ -28,15 +32,14 @@ export function Hero({ searchTerm, onSearchChange, onSearchSubmit }) {
             <Search size={20} className="hero-search-icon" />
             <input
               type="text"
-              placeholder="Pesquisar cursos, escolas ou áreas..."
+              placeholder="O que você procura?"
               className="hero-search-input"
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
             />
           </div>
-          <button type="submit" className="hero-search-btn">
-            <Search size={18} />
-            <span>Buscar</span>
+          <button type="submit" className="hero-search-btn" style={{ display: 'none' }}>
+            Buscar
           </button>
         </form>
       </div>

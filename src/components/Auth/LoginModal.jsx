@@ -5,19 +5,15 @@ import {
   Mail, 
   X, 
   LogIn, 
-  UserCheck, 
   Eye, 
   EyeOff, 
-  AlertCircle,
-  Building2,
-  Crown,
-  GraduationCap
+  AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './LoginModal.css';
 
 export function LoginModal() {
-  const { isAuthModalOpen, closeAuthModal, login, availableUsers } = useAuth();
+  const { isAuthModalOpen, closeAuthModal, login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -47,24 +43,6 @@ export function LoginModal() {
     }
   };
 
-  const handleQuickLogin = async (userEmail, userPass = '123') => {
-    setEmail(userEmail);
-    setPassword(userPass);
-    setErrorMessage('');
-    setLoading(true);
-    try {
-      const res = await login(userEmail, userPass);
-      if (!res.success) {
-        setErrorMessage(res.error);
-      } else {
-        closeAuthModal();
-      }
-    } catch (err) {
-      setErrorMessage('Erro ao tentar autenticar. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="login-modal-overlay" onClick={closeAuthModal}>
@@ -143,36 +121,6 @@ export function LoginModal() {
           </button>
         </form>
 
-        {/* Quick Demo Login Cards */}
-        <div className="quick-access-section">
-          <div className="quick-access-title">
-            <span>Ou escolha um perfil do banco de dados:</span>
-          </div>
-          <div className="quick-users-grid">
-            {availableUsers.filter(u => u.status === 'ATIVO').map((u) => (
-              <button
-                key={u.id}
-                type="button"
-                className={`quick-user-card ${u.type.toLowerCase()}`}
-                onClick={() => handleQuickLogin(u.email, u.password || '123')}
-              >
-                <div className="quick-user-avatar">
-                  {u.type === 'ADMIN' ? <Crown size={16} /> : <GraduationCap size={16} />}
-                </div>
-                <div className="quick-user-info">
-                  <div className="quick-user-name-row">
-                    <strong>{u.name}</strong>
-                    <span className={`quick-role-badge ${u.type.toLowerCase()}`}>
-                      {u.type === 'ADMIN' ? 'Admin' : 'Diretor'}
-                    </span>
-                  </div>
-                  <span className="quick-user-email">{u.email}</span>
-                  <span className="quick-user-company">{u.company_name}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );

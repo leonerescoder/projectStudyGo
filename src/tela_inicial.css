@@ -29,7 +29,7 @@
    ========================================================= */
 .hero-section {
   position: relative;
-  padding: 4.5rem 0 3.5rem;
+  padding: 10rem 0 8rem;
   text-align: center;
 }
 
@@ -100,15 +100,14 @@
 /* Barra de Busca */
 .hero-search-wrapper {
   width: 100%;
-  max-width: 680px;
+  max-width: 800px;
   display: flex;
   align-items: center;
-  background: rgba(15, 23, 42, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 9999px;
-  padding: 0.35rem 0.45rem 0.35rem 1.4rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(16px);
+  background: transparent;
+  border: 1px solid #ffffff;
+  border-radius: 4px;
+  padding: 0.8rem 1rem;
+  backdrop-filter: blur(2px);
   transition: all 0.25s ease;
 }
 
@@ -125,8 +124,9 @@
 }
 
 .hero-search-icon {
-  color: #64748b;
+  color: #ffffff;
   flex-shrink: 0;
+  font-weight: bold;
 }
 
 .hero-search-input {
@@ -140,7 +140,8 @@
 }
 
 .hero-search-input::placeholder {
-  color: #64748b;
+  color: #ffffff;
+  font-weight: 500;
 }
 
 .hero-search-btn {
@@ -454,9 +455,17 @@
   background: #475569;
 }
 
-.editor-dots span:nth-child(1) { background: #ef4444; }
-.editor-dots span:nth-child(2) { background: #f59e0b; }
-.editor-dots span:nth-child(3) { background: #10b981; }
+.editor-dots span:nth-child(1) {
+  background: #ef4444;
+}
+
+.editor-dots span:nth-child(2) {
+  background: #f59e0b;
+}
+
+.editor-dots span:nth-child(3) {
+  background: #10b981;
+}
 
 .editor-tag {
   font-family: monospace;
@@ -476,9 +485,20 @@
   border-radius: 2px;
 }
 
-.code-row.c-cyan { width: 75%; background: #38bdf8; }
-.code-row.c-pink { width: 45%; background: #f472b6; }
-.code-row.c-cyan-light { width: 60%; background: #7dd3fc; }
+.code-row.c-cyan {
+  width: 75%;
+  background: #38bdf8;
+}
+
+.code-row.c-pink {
+  width: 45%;
+  background: #f472b6;
+}
+
+.code-row.c-cyan-light {
+  width: 60%;
+  background: #7dd3fc;
+}
 
 .editor-closing-tag {
   align-self: flex-end;
@@ -529,9 +549,23 @@
   margin-top: -2px;
 }
 
-.badge-html5 { background: rgba(227, 79, 38, 0.2); border: 1px solid #e34f26; color: #ff6b4a; }
-.badge-css3 { background: rgba(21, 114, 182, 0.2); border: 1px solid #1572b6; color: #38bdf8; }
-.badge-js { background: rgba(247, 223, 30, 0.2); border: 1px solid #f7df1e; color: #fde047; }
+.badge-html5 {
+  background: rgba(227, 79, 38, 0.2);
+  border: 1px solid #e34f26;
+  color: #ff6b4a;
+}
+
+.badge-css3 {
+  background: rgba(21, 114, 182, 0.2);
+  border: 1px solid #1572b6;
+  color: #38bdf8;
+}
+
+.badge-js {
+  background: rgba(247, 223, 30, 0.2);
+  border: 1px solid #f7df1e;
+  color: #fde047;
+}
 
 /* 4. Cloud Visual */
 .visual-cloud {
@@ -623,9 +657,17 @@
   text-transform: uppercase;
 }
 
-.tag-orange { color: #f97316; }
-.tag-cyan { color: #38bdf8; }
-.tag-purple { color: #c084fc; }
+.tag-orange {
+  color: #f97316;
+}
+
+.tag-cyan {
+  color: #38bdf8;
+}
+
+.tag-purple {
+  color: #c084fc;
+}
 
 /* Corpo dos Cards */
 .card-body-details {
