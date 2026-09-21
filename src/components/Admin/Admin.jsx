@@ -27,6 +27,7 @@ import {
 import { apiFetch } from '../../API/apiClient';
 import { DB_CONFIG } from '../../data/databaseConfig';
 import { useAuth } from '../../context/AuthContext';
+import { getFallbackImageUrl, saveLocalCourseImage, getCourseImageUrl } from '../../utils/courseImage';
 import './Admin.css';
 
 const QUICK_IMAGE_PRESETS = [
@@ -52,6 +53,13 @@ export function Admin() {
       setUserRole(user.type);
     }
   }, [user]);
+
+  // Guard: If Director, do not allow user or category tabs
+  useEffect(() => {
+    if (userRole !== 'ADMIN' && (activeTab === 'users' || activeTab === 'categories')) {
+      setActiveTab('courses');
+    }
+  }, [userRole, activeTab]);
 
   // Data State (Buscar Dados)
   const [courses, setCourses] = useState([]);
@@ -166,13 +174,57 @@ export function Admin() {
   const handleCourseImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 3 * 1024 * 1024) {
-        alert('A imagem selecionada é muito grande. Escolha uma imagem de até 3MB.');
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor, selecione um arquivo de imagem válido (JPG, PNG, WEBP, etc.).');
+        e.target.value = '';
         return;
       }
+      
+      const MAX_SIZE_MB = 2;
+      const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+      if (file.size > MAX_SIZE_BYTES) {
+        const sizeFormatted = (file.size / (1024 * 1024)).toFixed(2);
+        alert(`Atenção: A imagem selecionada (${sizeFormatted} MB) ultrapassa o tamanho padrão permitido de ${MAX_SIZE_MB}MB. Por favor, escolha uma imagem menor.`);
+        e.target.value = '';
+        return;
+      }
+
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setCourseForm(prev => ({ ...prev, urlImg: reader.result }));
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          // Resize and compress image using Canvas to ensure it safely fits database columns and payload limits
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 600;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width);
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round((width * MAX_HEIGHT) / height);
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Get optimized base64
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          setCourseForm(prev => ({ ...prev, urlImg: compressedDataUrl }));
+        };
+        img.onerror = () => {
+          alert('Erro ao carregar o arquivo de imagem.');
+        };
+        img.src = event.target.result;
       };
       reader.readAsDataURL(file);
     }
@@ -222,21 +274,11 @@ export function Admin() {
     (item.description || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredUsers = users.filter(item => {
-    const compName = getCompanyName(item);
-    const matchesSearch = (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (item.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (item.type || '').toLowerCase().includes(searchTerm.toLowerCase());
-    if (userRole === 'DIRECTOR') {
-      const isOwner = item.ownerId === user.id;
-      const userComp = user?.company_name || user?.companyName || '';
-      const isLinkedByName = userComp && userComp !== 'StudyGo Central' && compName.toLowerCase().includes(userComp.toLowerCase());
-      
-      if (isOwner || isLinkedByName) return matchesSearch;
-      return false;
-    }
-    return matchesSearch;
-  });
+  const filteredUsers = userRole === 'ADMIN' ? users.filter(item => {
+    return (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+           (item.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+           (item.type || '').toLowerCase().includes(searchTerm.toLowerCase());
+  }) : [];
 
   // Handle deletion
   const handleDeleteCourse = async (id) => {
@@ -310,10 +352,15 @@ export function Admin() {
         const selectedCategory = categories.find(c => c.name === courseForm.Field_of_study);
         const categoryIds = selectedCategory ? [selectedCategory.id] : [1];
 
+        const isBase64Upload = courseForm.urlImg && courseForm.urlImg.startsWith('data:');
+        const safeBackendImageUrl = isBase64Upload
+          ? getFallbackImageUrl(courseForm.Field_of_study)
+          : (courseForm.urlImg ? courseForm.urlImg.trim().slice(0, 250) : getFallbackImageUrl(courseForm.Field_of_study));
+
         const payload = {
           name: courseForm.name,
           description: courseForm.description || 'Sem descrição informada.',
-          urlImg: courseForm.urlImg || '',
+          urlImg: safeBackendImageUrl,
           workload: Number(courseForm.workload),
           ranking: Number(courseForm.ranking) || 1,
           fieldOfStudy: courseForm.Field_of_study,
@@ -325,6 +372,13 @@ export function Admin() {
         const response = await apiFetch('/course', { method: 'POST', body: JSON.stringify(payload) });
         if (response.ok) {
           const newCourse = await response.json();
+          
+          if (isBase64Upload) {
+            saveLocalCourseImage(newCourse.id, courseForm.urlImg);
+            saveLocalCourseImage(newCourse.name, courseForm.urlImg);
+            newCourse.urlImg = courseForm.urlImg;
+          }
+          
           setCourses([newCourse, ...courses]);
           showToast(`✓ Curso "${newCourse.name}" inserido no banco com sucesso!`);
           setCourseForm({ name: '', description: '', urlImg: '', workload: '', Field_of_study: 'Tecnologia', company_name: directorCompany ? directorCompany.name : 'Senac São Carlos', ranking: '1', status: 'ATIVO' });
@@ -551,25 +605,29 @@ export function Admin() {
             </div>
           </div>
 
-          <div className="stat-card" onClick={() => setActiveTab('categories')}>
-            <div className="stat-icon icon-categories">
-              <Layers size={24} />
+          {userRole === 'ADMIN' && (
+            <div className="stat-card" onClick={() => setActiveTab('categories')}>
+              <div className="stat-icon icon-categories">
+                <Layers size={24} />
+              </div>
+              <div className="stat-info">
+                <span className="stat-label">Categorias Ativas</span>
+                <strong className="stat-number">{categories.length}</strong>
+              </div>
             </div>
-            <div className="stat-info">
-              <span className="stat-label">Categorias Ativas</span>
-              <strong className="stat-number">{categories.length}</strong>
-            </div>
-          </div>
+          )}
 
-          <div className="stat-card" onClick={() => setActiveTab('users')}>
-            <div className="stat-icon icon-users">
-              <Users size={24} />
+          {userRole === 'ADMIN' && (
+            <div className="stat-card" onClick={() => setActiveTab('users')}>
+              <div className="stat-icon icon-users">
+                <Users size={24} />
+              </div>
+              <div className="stat-info">
+                <span className="stat-label">Usuários no Sistema</span>
+                <strong className="stat-number">{filteredUsers.length}</strong>
+              </div>
             </div>
-            <div className="stat-info">
-              <span className="stat-label">Usuários no Sistema</span>
-              <strong className="stat-number">{filteredUsers.length}</strong>
-            </div>
-          </div>
+          )}
         </section>
 
         {/* Main Content Area: Tabs + Action Bar + Tables */}
@@ -620,8 +678,9 @@ export function Admin() {
                 onClick={() => {
                   if (activeTab === 'courses') openModal('course');
                   else if (activeTab === 'companies') openModal('company');
-                  else if (activeTab === 'categories') openModal('category');
-                  else openModal('user');
+                  else if (activeTab === 'categories' && userRole === 'ADMIN') openModal('category');
+                  else if (activeTab === 'users' && userRole === 'ADMIN') openModal('user');
+                  else openModal('course');
                 }}
               >
                 <Plus size={18} />
@@ -689,8 +748,8 @@ export function Admin() {
                         <td className="cell-main">
                           <div className="course-name-row">
                             <div className="course-table-thumb">
-                              {c.urlImg ? (
-                                <img src={c.urlImg} alt={c.name} onError={(e) => { e.target.style.display = 'none'; }} />
+                              {getCourseImageUrl(c) ? (
+                                <img src={getCourseImageUrl(c)} alt={c.name} onError={(e) => { e.target.style.display = 'none'; }} />
                               ) : (
                                 <span className="thumb-fallback">📚</span>
                               )}
@@ -1006,13 +1065,13 @@ export function Admin() {
                       <ImageIcon size={15} />
                       <span>Imagem de Capa do Curso</span>
                     </div>
-                    <span className="label-tip">Cole o link da imagem ou selecione do computador</span>
+                    <span className="label-tip">Cole o link da imagem ou selecione do computador (máx. 2MB)</span>
                   </label>
 
                   <div className="image-input-controls">
                     <input
-                      type="url"
-                      placeholder="https://exemplo.com/imagem-do-curso.jpg"
+                      type="text"
+                      placeholder="https://exemplo.com/imagem.jpg ou faça upload"
                       value={courseForm.urlImg}
                       onChange={(e) => setCourseForm({...courseForm, urlImg: e.target.value})}
                       className="url-image-input"

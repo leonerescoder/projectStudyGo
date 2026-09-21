@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { DB_CONFIG } from '../../data/databaseConfig';
 import { apiFetch } from '../../API/apiClient';
+import { getFallbackImageUrl, saveLocalCourseImage, getCourseImageUrl } from '../../utils/courseImage';
 import './DirectorAdmin.css';
 
 // Initial Director Profile
@@ -203,10 +204,15 @@ export function DirectorAdmin() {
       const categoryMap = { 'Tecnologia': 1, 'Mecânica': 2, 'Gastronomia': 3, 'Idiomas': 4, 'Saúde': 5, 'Moda': 6, 'Artes': 7, 'Música': 8, 'Educação': 9 };
       const categoryId = categoryMap[courseForm.Field_of_study] || 1;
 
+      const isBase64Upload = courseForm.urlImg && courseForm.urlImg.startsWith('data:');
+      const safeBackendImageUrl = isBase64Upload
+        ? getFallbackImageUrl(courseForm.Field_of_study)
+        : (courseForm.urlImg ? courseForm.urlImg.trim().slice(0, 250) : getFallbackImageUrl(courseForm.Field_of_study));
+
       const payload = {
         name: courseForm.name,
         description: courseForm.description || 'Sem descrição informada.',
-        urlImg: courseForm.urlImg || '',
+        urlImg: safeBackendImageUrl,
         workload: Number(courseForm.workload),
         ranking: Number(courseForm.ranking) || 1,
         fieldOfStudy: courseForm.Field_of_study,
@@ -219,6 +225,13 @@ export function DirectorAdmin() {
       const response = await apiFetch('/course', { method: 'POST', body: JSON.stringify(payload) });
       if (response.ok) {
         const newCourse = await response.json();
+        
+        if (isBase64Upload) {
+          saveLocalCourseImage(newCourse.id, courseForm.urlImg);
+          saveLocalCourseImage(newCourse.name, courseForm.urlImg);
+          newCourse.urlImg = courseForm.urlImg;
+        }
+
         setCourses([newCourse, ...courses]);
         setIsNewCourseModalOpen(false);
         setCourseForm({
@@ -237,13 +250,55 @@ export function DirectorAdmin() {
   const handleDirectorImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 3 * 1024 * 1024) {
-        alert('A imagem é muito grande. Escolha uma foto de até 3MB.');
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor, selecione um arquivo de imagem válido (JPG, PNG, WEBP, etc.).');
+        e.target.value = '';
         return;
       }
+      
+      const MAX_SIZE_MB = 2;
+      const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+      if (file.size > MAX_SIZE_BYTES) {
+        const sizeFormatted = (file.size / (1024 * 1024)).toFixed(2);
+        alert(`Atenção: A imagem selecionada (${sizeFormatted} MB) ultrapassa o tamanho padrão permitido de ${MAX_SIZE_MB}MB. Por favor, escolha uma imagem menor.`);
+        e.target.value = '';
+        return;
+      }
+
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setCourseForm(prev => ({ ...prev, urlImg: reader.result }));
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 600;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width);
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round((width * MAX_HEIGHT) / height);
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          setCourseForm(prev => ({ ...prev, urlImg: compressedDataUrl }));
+        };
+        img.onerror = () => {
+          alert('Erro ao carregar o arquivo de imagem.');
+        };
+        img.src = event.target.result;
       };
       reader.readAsDataURL(file);
     }
@@ -480,8 +535,8 @@ export function DirectorAdmin() {
                           <td className="cell-main">
                             <div className="course-name-row">
                               <div className="director-table-thumb">
-                                {c.urlImg ? (
-                                  <img src={c.urlImg} alt={c.name} onError={(e) => { e.target.style.display = 'none'; }} />
+                                {getCourseImageUrl(c) ? (
+                                  <img src={getCourseImageUrl(c)} alt={c.name} onError={(e) => { e.target.style.display = 'none'; }} />
                                 ) : (
                                   <span className="thumb-fallback">📚</span>
                                 )}
@@ -772,13 +827,13 @@ export function DirectorAdmin() {
                     <ImageIcon size={15} />
                     <span>Imagem de Capa do Curso</span>
                   </div>
-                  <span className="label-help">Link da web ou arquivo do dispositivo</span>
+                  <span className="label-help">Link da web ou arquivo do dispositivo (máx. 2MB)</span>
                 </label>
 
                 <div className="director-image-inputs">
                   <input
-                    type="url"
-                    placeholder="https://exemplo.com/imagem-do-curso.jpg"
+                    type="text"
+                    placeholder="https://exemplo.com/imagem.jpg ou faça upload"
                     value={courseForm.urlImg}
                     onChange={(e) => setCourseForm({...courseForm, urlImg: e.target.value})}
                   />
