@@ -27,6 +27,7 @@ import {
 import { apiFetch } from '../../API/apiClient';
 import { DB_CONFIG } from '../../data/databaseConfig';
 import { useAuth } from '../../context/AuthContext';
+import { getFallbackImageUrl, saveLocalCourseImage, getCourseImageUrl } from '../../utils/courseImage';
 import './Admin.css';
 
 const QUICK_IMAGE_PRESETS = [
@@ -52,6 +53,13 @@ export function Admin() {
       setUserRole(user.type);
     }
   }, [user]);
+
+  // Guard: If Director, only users tab is restricted (categories and courses are accessible)
+  useEffect(() => {
+    if (userRole !== 'ADMIN' && activeTab === 'users') {
+      setActiveTab('courses');
+    }
+  }, [userRole, activeTab]);
 
   // Data State (Buscar Dados)
   const [courses, setCourses] = useState([]);
@@ -166,13 +174,57 @@ export function Admin() {
   const handleCourseImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 3 * 1024 * 1024) {
-        alert('A imagem selecionada é muito grande. Escolha uma imagem de até 3MB.');
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor, selecione um arquivo de imagem válido (JPG, PNG, WEBP, etc.).');
+        e.target.value = '';
         return;
       }
+      
+      const MAX_SIZE_MB = 2;
+      const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+      if (file.size > MAX_SIZE_BYTES) {
+        const sizeFormatted = (file.size / (1024 * 1024)).toFixed(2);
+        alert(`Atenção: A imagem selecionada (${sizeFormatted} MB) ultrapassa o tamanho padrão permitido de ${MAX_SIZE_MB}MB. Por favor, escolha uma imagem menor.`);
+        e.target.value = '';
+        return;
+      }
+
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setCourseForm(prev => ({ ...prev, urlImg: reader.result }));
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          // Resize and compress image using Canvas to ensure it safely fits database columns and payload limits
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 600;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width);
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round((width * MAX_HEIGHT) / height);
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Get optimized base64
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          setCourseForm(prev => ({ ...prev, urlImg: compressedDataUrl }));
+        };
+        img.onerror = () => {
+          alert('Erro ao carregar o arquivo de imagem.');
+        };
+        img.src = event.target.result;
       };
       reader.readAsDataURL(file);
     }
@@ -222,21 +274,11 @@ export function Admin() {
     (item.description || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredUsers = users.filter(item => {
-    const compName = getCompanyName(item);
-    const matchesSearch = (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (item.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (item.type || '').toLowerCase().includes(searchTerm.toLowerCase());
-    if (userRole === 'DIRECTOR') {
-      const isOwner = item.ownerId === user.id;
-      const userComp = user?.company_name || user?.companyName || '';
-      const isLinkedByName = userComp && userComp !== 'StudyGo Central' && compName.toLowerCase().includes(userComp.toLowerCase());
-      
-      if (isOwner || isLinkedByName) return matchesSearch;
-      return false;
-    }
-    return matchesSearch;
-  });
+  const filteredUsers = userRole === 'ADMIN' ? users.filter(item => {
+    return (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+           (item.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+           (item.type || '').toLowerCase().includes(searchTerm.toLowerCase());
+  }) : [];
 
   // Handle deletion
   const handleDeleteCourse = async (id) => {
@@ -300,8 +342,18 @@ export function Admin() {
     e.preventDefault();
 
     if (modalEntityType === 'course') {
-      if (!courseForm.name || !courseForm.workload) {
-        alert('Por favor, preencha o nome e a carga horária do curso.');
+      const trimmedName = (courseForm.name || '').trim();
+      if (!trimmedName || trimmedName.length < 2) {
+        alert('Por favor, preencha o nome do curso com no mínimo 2 caracteres.');
+        return;
+      }
+      if (!courseForm.workload) {
+        alert('Por favor, informe a carga horária do curso.');
+        return;
+      }
+      const trimmedDesc = (courseForm.description || '').trim();
+      if (trimmedDesc.length < 10) {
+        alert('Atenção: A descrição do curso deve conter pelo menos 10 caracteres.');
         return;
       }
       try {
@@ -310,10 +362,15 @@ export function Admin() {
         const selectedCategory = categories.find(c => c.name === courseForm.Field_of_study);
         const categoryIds = selectedCategory ? [selectedCategory.id] : [1];
 
+        const isBase64Upload = courseForm.urlImg && courseForm.urlImg.startsWith('data:');
+        const safeBackendImageUrl = isBase64Upload
+          ? getFallbackImageUrl(courseForm.Field_of_study)
+          : (courseForm.urlImg ? courseForm.urlImg.trim().slice(0, 250) : getFallbackImageUrl(courseForm.Field_of_study));
+
         const payload = {
           name: courseForm.name,
-          description: courseForm.description || 'Sem descrição informada.',
-          urlImg: courseForm.urlImg || '',
+          description: trimmedDesc,
+          urlImg: safeBackendImageUrl,
           workload: Number(courseForm.workload),
           ranking: Number(courseForm.ranking) || 1,
           fieldOfStudy: courseForm.Field_of_study,
@@ -325,12 +382,28 @@ export function Admin() {
         const response = await apiFetch('/course', { method: 'POST', body: JSON.stringify(payload) });
         if (response.ok) {
           const newCourse = await response.json();
+          
+          if (isBase64Upload) {
+            saveLocalCourseImage(newCourse.id, courseForm.urlImg);
+            saveLocalCourseImage(newCourse.name, courseForm.urlImg);
+            newCourse.urlImg = courseForm.urlImg;
+          }
+          
           setCourses([newCourse, ...courses]);
           showToast(`✓ Curso "${newCourse.name}" inserido no banco com sucesso!`);
           setCourseForm({ name: '', description: '', urlImg: '', workload: '', Field_of_study: 'Tecnologia', company_name: directorCompany ? directorCompany.name : 'Senac São Carlos', ranking: '1', status: 'ATIVO' });
         } else {
           const errText = await response.text();
-          alert('Erro ao inserir curso no banco. Detalhes: ' + errText);
+          let userMsg = errText;
+          try {
+            const errJson = JSON.parse(errText);
+            if (errJson.details && Array.isArray(errJson.details) && errJson.details.length > 0) {
+              userMsg = errJson.details.map(d => d.message || `${d.path?.join('.')}: campo inválido`).join('\n');
+            } else if (errJson.error || errJson.message) {
+              userMsg = errJson.error || errJson.message;
+            }
+          } catch (e) {}
+          alert('Aviso ao cadastrar curso:\n' + userMsg);
           console.error('Erro backend:', errText);
         }
       } catch (err) { console.error(err); alert('Erro de conexão.'); }
@@ -361,23 +434,30 @@ export function Admin() {
       } catch (err) { console.error(err); alert('Erro de conexão.'); }
     }
     else if (modalEntityType === 'category') {
-      if (!categoryForm.name) {
+      if (!categoryForm.name || !categoryForm.name.trim()) {
         alert('Por favor, informe o nome da categoria.');
         return;
       }
       try {
         const payload = {
-          name: categoryForm.name,
+          name: categoryForm.name.trim(),
           description: categoryForm.description || 'Categoria de estudos'
         };
         const response = await apiFetch('/categorie', { method: 'POST', body: JSON.stringify(payload) });
         if (response.ok) {
           const newCat = await response.json();
-          setCategories([...categories, newCat]);
-          showToast(`✓ Categoria "${newCat.name}" cadastrada no banco!`);
+          setCategories(prev => {
+            const exists = prev.some(c => c.id === newCat.id || c.name.toLowerCase() === newCat.name.toLowerCase());
+            return exists ? prev : [...prev, newCat];
+          });
+          setCourseForm(prev => ({ ...prev, Field_of_study: newCat.name }));
+          showToast(`✓ Categoria "${newCat.name}" cadastrada no banco e disponível para todos os diretores!`);
           setCategoryForm({ name: '', description: '' });
-        } else { alert('Erro ao inserir categoria no banco.'); }
-      } catch (err) { console.error(err); alert('Erro de conexão.'); }
+        } else {
+          const errText = await response.text();
+          alert('Erro ao inserir categoria no banco: ' + errText);
+        }
+      } catch (err) { console.error(err); alert('Erro de conexão ao salvar categoria.'); }
     }
     else if (modalEntityType === 'user') {
       if (!userForm.name || !userForm.email || !userForm.cpf) {
@@ -561,15 +641,17 @@ export function Admin() {
             </div>
           </div>
 
-          <div className="stat-card" onClick={() => setActiveTab('users')}>
-            <div className="stat-icon icon-users">
-              <Users size={24} />
+          {userRole === 'ADMIN' && (
+            <div className="stat-card" onClick={() => setActiveTab('users')}>
+              <div className="stat-icon icon-users">
+                <Users size={24} />
+              </div>
+              <div className="stat-info">
+                <span className="stat-label">Usuários no Sistema</span>
+                <strong className="stat-number">{filteredUsers.length}</strong>
+              </div>
             </div>
-            <div className="stat-info">
-              <span className="stat-label">Usuários no Sistema</span>
-              <strong className="stat-number">{filteredUsers.length}</strong>
-            </div>
-          </div>
+          )}
         </section>
 
         {/* Main Content Area: Tabs + Action Bar + Tables */}
@@ -593,24 +675,22 @@ export function Admin() {
                 <span>Escolas ({filteredCompanies.length})</span>
               </button>
 
-              {userRole === 'ADMIN' && (
-                <>
-                  <button
-                    className={`tab-btn ${activeTab === 'categories' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('categories')}
-                  >
-                    <Layers size={18} />
-                    <span>Categorias ({filteredCategories.length})</span>
-                  </button>
+              <button
+                className={`tab-btn ${activeTab === 'categories' ? 'active' : ''}`}
+                onClick={() => setActiveTab('categories')}
+              >
+                <Layers size={18} />
+                <span>Categorias ({filteredCategories.length})</span>
+              </button>
 
-                  <button
-                    className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('users')}
-                  >
-                    <Users size={18} />
-                    <span>Usuários ({filteredUsers.length})</span>
-                  </button>
-                </>
+              {userRole === 'ADMIN' && (
+                <button
+                  className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('users')}
+                >
+                  <Users size={18} />
+                  <span>Usuários ({filteredUsers.length})</span>
+                </button>
               )}
             </div>
 
@@ -621,7 +701,8 @@ export function Admin() {
                   if (activeTab === 'courses') openModal('course');
                   else if (activeTab === 'companies') openModal('company');
                   else if (activeTab === 'categories') openModal('category');
-                  else openModal('user');
+                  else if (activeTab === 'users' && userRole === 'ADMIN') openModal('user');
+                  else openModal('course');
                 }}
               >
                 <Plus size={18} />
@@ -689,8 +770,8 @@ export function Admin() {
                         <td className="cell-main">
                           <div className="course-name-row">
                             <div className="course-table-thumb">
-                              {c.urlImg ? (
-                                <img src={c.urlImg} alt={c.name} onError={(e) => { e.target.style.display = 'none'; }} />
+                              {getCourseImageUrl(c) ? (
+                                <img src={getCourseImageUrl(c)} alt={c.name} onError={(e) => { e.target.style.display = 'none'; }} />
                               ) : (
                                 <span className="thumb-fallback">📚</span>
                               )}
@@ -812,7 +893,7 @@ export function Admin() {
           {/* ==================================================== */}
           {/* TAB 3: CATEGORIAS (categories) */}
           {/* ==================================================== */}
-          {activeTab === 'categories' && userRole === 'ADMIN' && (
+          {activeTab === 'categories' && (
             <div className="table-responsive">
               <table className="admin-table">
                 <thead>
@@ -833,13 +914,17 @@ export function Admin() {
                         </td>
                         <td>{cat.description}</td>
                         <td className="cell-actions">
-                          <button
-                            className="action-btn delete-btn"
-                            title="Remover categoria"
-                            onClick={() => handleDeleteCategory(cat.id)}
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          {userRole === 'ADMIN' ? (
+                            <button
+                              className="action-btn delete-btn"
+                              title="Remover categoria"
+                              onClick={() => handleDeleteCategory(cat.id)}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          ) : (
+                            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Padrão Global</span>
+                          )}
                         </td>
                       </tr>
                     ))
@@ -962,26 +1047,24 @@ export function Admin() {
                 <span>Escola/Empresa</span>
               </button>
 
-              {userRole === 'ADMIN' && (
-                <>
-                  <button
-                    type="button"
-                    className={`entity-tab ${modalEntityType === 'category' ? 'active' : ''}`}
-                    onClick={() => setModalEntityType('category')}
-                  >
-                    <Layers size={16} />
-                    <span>Categoria</span>
-                  </button>
+              <button
+                type="button"
+                className={`entity-tab ${modalEntityType === 'category' ? 'active' : ''}`}
+                onClick={() => setModalEntityType('category')}
+              >
+                <Layers size={16} />
+                <span>Categoria</span>
+              </button>
 
-                  <button
-                    type="button"
-                    className={`entity-tab ${modalEntityType === 'user' ? 'active' : ''}`}
-                    onClick={() => setModalEntityType('user')}
-                  >
-                    <Users size={16} />
-                    <span>Usuário</span>
-                  </button>
-                </>
+              {userRole === 'ADMIN' && (
+                <button
+                  type="button"
+                  className={`entity-tab ${modalEntityType === 'user' ? 'active' : ''}`}
+                  onClick={() => setModalEntityType('user')}
+                >
+                  <Users size={16} />
+                  <span>Usuário</span>
+                </button>
               )}
             </div>
 
@@ -989,10 +1072,13 @@ export function Admin() {
             {modalEntityType === 'course' && (
               <form onSubmit={handleCreateSubmit} className="admin-form">
                 <div className="form-group">
-                  <label>Nome do Curso *</label>
+                  <label>
+                    Nome do Curso * <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 'normal' }}>(mínimo 2 caracteres)</span>
+                  </label>
                   <input
                     type="text"
-                    placeholder="Ex: Inteligência Artificial na Prática"
+                    minLength={2}
+                    placeholder="Ex: IA, Java, Python na Prática..."
                     value={courseForm.name}
                     onChange={(e) => setCourseForm({...courseForm, name: e.target.value})}
                     required
@@ -1006,13 +1092,13 @@ export function Admin() {
                       <ImageIcon size={15} />
                       <span>Imagem de Capa do Curso</span>
                     </div>
-                    <span className="label-tip">Cole o link da imagem ou selecione do computador</span>
+                    <span className="label-tip">Cole o link da imagem ou selecione do computador (máx. 2MB)</span>
                   </label>
 
                   <div className="image-input-controls">
                     <input
-                      type="url"
-                      placeholder="https://exemplo.com/imagem-do-curso.jpg"
+                      type="text"
+                      placeholder="https://exemplo.com/imagem.jpg ou faça upload"
                       value={courseForm.urlImg}
                       onChange={(e) => setCourseForm({...courseForm, urlImg: e.target.value})}
                       className="url-image-input"
@@ -1077,7 +1163,27 @@ export function Admin() {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Área de Estudo / Categoria *</label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label style={{ margin: 0 }}>Área de Estudo / Categoria *</label>
+                      <button
+                        type="button"
+                        onClick={() => openModal('category')}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#38bdf8',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px'
+                        }}
+                        title="Cadastrar nova categoria no banco de dados"
+                      >
+                        <Plus size={13} /> + Nova Categoria
+                      </button>
+                    </div>
                     <select
                       value={courseForm.Field_of_study}
                       onChange={(e) => setCourseForm({...courseForm, Field_of_study: e.target.value})}
@@ -1153,10 +1259,14 @@ export function Admin() {
                 </div>
 
                 <div className="form-group">
-                  <label>Descrição do Curso</label>
+                  <label>
+                    Descrição do Curso * <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 'normal' }}>(mínimo 10 caracteres)</span>
+                  </label>
                   <textarea
                     rows="3"
-                    placeholder="Conteúdo programático, objetivos e competências desenvolvidas..."
+                    required
+                    minLength={10}
+                    placeholder="Descreva o conteúdo programático, metodologia e objetivos do curso (mín. 10 caracteres)..."
                     value={courseForm.description}
                     onChange={(e) => setCourseForm({...courseForm, description: e.target.value})}
                   ></textarea>

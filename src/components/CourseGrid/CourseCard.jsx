@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Flame, Star, Rocket, Clock, Building } from 'lucide-react';
+import { getCourseImageUrl } from '../../utils/courseImage';
 
 export function CourseCard({ course }) {
   const navigate = useNavigate();
@@ -42,13 +43,15 @@ export function CourseCard({ course }) {
     return null;
   };
 
+  const imgUrl = getCourseImageUrl(course);
+
   const renderVisual = () => {
-    if (course.urlImg) {
+    if (imgUrl) {
       return (
         <div className="card-visual-frame visual-image" style={{ padding: 0, overflow: 'hidden' }}>
           <img 
-            src={course.urlImg} 
-            alt={course.title} 
+            src={imgUrl} 
+            alt={course.title || course.name} 
             style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
             onError={(e) => {
               // Fallback para não mostrar imagem quebrada
