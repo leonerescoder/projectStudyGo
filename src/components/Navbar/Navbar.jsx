@@ -13,7 +13,7 @@ import {
   LayoutDashboard,
   LogIn
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
 
@@ -22,11 +22,28 @@ const defaultIcon = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
 function Navbar() {
   const { user, logout, openAuthModal } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [hasScrolled, setHasScrolled] = useState(false);
   const userMenuRef = useRef(null);
+
+  const isHomePage = location.pathname === '/';
+  const showSearch = !isHomePage || hasScrolled;
+
+  // Scroll listener — detecta se o usuário saiu do topo
+  useEffect(() => {
+    const handleScroll = () => {
+      setHasScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    // Resetar ao trocar de rota
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [location.pathname]);
 
   useEffect(() => {
     const token = localStorage.getItem('studygo_token') || localStorage.getItem('token');
@@ -83,13 +100,14 @@ function Navbar() {
           </Link>
         </div>
 
-        <div className="navbar-center">
+        <div className={`navbar-center ${showSearch ? 'search-visible' : 'search-hidden'}`}>
           <div className="search-bar">
-            <Search size={20} className="search-icon" />
+            <Search size={20} className="search-icon" strokeWidth={2.5} />
             <input
               type="text"
               placeholder="Pesquisar cursos, escolas ou áreas..."
               className="search-input"
+              tabIndex={showSearch ? 0 : -1}
             />
           </div>
         </div>

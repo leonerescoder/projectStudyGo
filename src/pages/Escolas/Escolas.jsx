@@ -38,20 +38,16 @@ function Escolas() {
         // Calcula o maior ranking da lista
         const maxRanking = sortedData.length > 0 ? (sortedData[0].ranking || 0) : 0;
         
-        // Map backend data to frontend card format if needed
+        // Map backend data to frontend card format
         const mappedData = sortedData.map((companie, index) => {
-          const ranking = companie.ranking || 0;
-          let rating = 0;
-          if (maxRanking > 0) {
-            rating = Math.round((ranking / maxRanking) * 5);
-          }
-
           return {
             id: companie.id,
             name: companie.name,
             places: companie.places || "Não informado",
-            rating: rating,
+            ranking: companie.ranking || 0,
             rankingPosition: index + 1,
+            coursesCount: Array.isArray(companie.courses) ? companie.courses.length : 0,
+            foundation: companie.foundation || null,
             createdAt: companie.foundation || new Date().toISOString()
           };
         });

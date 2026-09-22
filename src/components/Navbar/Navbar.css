@@ -59,12 +59,71 @@
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Search Bar */
+/* Search Bar — Pill Expand Animation */
 #main-navbar .navbar-center {
   flex: 1;
   display: flex;
   justify-content: center;
   padding: 0 2rem;
+  /* Transition all animated properties */
+}
+
+/* === COLLAPSED: apenas o ícone circular === */
+#main-navbar .navbar-center.search-hidden {
+  /* Encolhe o container ao tamanho de um ícone */
+  flex: 0 0 auto;
+  padding: 0;
+}
+
+#main-navbar .navbar-center.search-hidden .search-bar {
+  /* Transforma em círculo */
+  width: 42px;
+  min-width: 42px;
+  max-width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+#main-navbar .navbar-center.search-hidden .search-icon {
+  margin-right: 0;
+  flex-shrink: 0;
+}
+
+#main-navbar .navbar-center.search-hidden .search-input {
+  width: 0;
+  opacity: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+/* === EXPANDED: barra completa === */
+#main-navbar .navbar-center.search-visible {
+  flex: 1;
+  padding: 0 2rem;
+}
+
+#main-navbar .navbar-center.search-visible .search-bar {
+  width: 100%;
+  max-width: 500px;
+}
+
+#main-navbar .navbar-center.search-visible .search-input {
+  width: 100%;
+  opacity: 1;
+}
+
+/* Transições suaves em todos os estados */
+#main-navbar .navbar-center {
+  transition: flex 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              padding 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #main-navbar .search-bar {
@@ -74,9 +133,14 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 30px;
   padding: 0.5rem 1rem;
-  width: 100%;
-  max-width: 500px;
-  transition: all 0.2s ease;
+  transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              max-width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              min-width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              height 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              border-radius 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              padding 0.35s ease,
+              background-color 0.3s ease,
+              border-color 0.3s ease;
 }
 
 #main-navbar .search-bar:focus-within {
@@ -88,15 +152,20 @@
 #main-navbar .search-icon {
   color: #3b82f6;
   margin-right: 0.5rem;
+  flex-shrink: 0;
+  transition: margin 0.35s ease;
 }
 
 #main-navbar .search-input {
   border: none;
   background: transparent;
-  width: 100%;
   font-size: 0.9rem;
   color: #ffffff;
   outline: none;
+  transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 #main-navbar .search-input::placeholder {
