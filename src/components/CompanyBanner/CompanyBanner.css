@@ -1,0 +1,150 @@
+.company-banner-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 24px;
+}
+
+.company-banner-content {
+  background: linear-gradient(135deg, #131b4d 0%, #0d1236 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 32px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+  gap: 32px;
+}
+
+/* Efeito de brilho de fundo */
+.company-banner-content::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -20%;
+  width: 60%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(79, 70, 229, 0.15) 0%, transparent 70%);
+  transform: rotate(-15deg);
+  pointer-events: none;
+}
+
+.company-banner-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  z-index: 1;
+}
+
+.company-banner-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.company-banner-icon-bg {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3);
+}
+
+.company-banner-icon {
+  color: white;
+}
+
+.company-banner-titles h3 {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
+}
+
+.company-banner-titles p {
+  color: #94a3b8;
+  font-size: 1rem;
+  margin: 0;
+  line-height: 1.5;
+  max-width: 400px;
+}
+
+.company-banner-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.company-banner-btn:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+.company-banner-btn:active {
+  transform: translateY(0);
+}
+
+.company-banner-right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  z-index: 1;
+}
+
+.company-banner-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px 32px;
+}
+
+.company-benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #cbd5e1;
+  font-size: 0.95rem;
+}
+
+.company-benefit-icon {
+  color: #818cf8;
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .company-banner-content {
+    flex-direction: column;
+    padding: 32px 24px;
+  }
+  
+  .company-banner-right {
+    justify-content: flex-start;
+    width: 100%;
+    margin-top: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .company-banner-benefits {
+    grid-template-columns: 1fr;
+  }
+}

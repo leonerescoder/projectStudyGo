@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { INITIAL_USERS } from '../components/Admin/adminData';
-import { 
-  BASE_URL, 
-  getStoredToken, 
-  setStoredToken, 
-  removeStoredToken, 
-  generateClientToken 
+import {
+  BASE_URL,
+  getStoredToken,
+  setStoredToken,
+  removeStoredToken,
+  generateClientToken
 } from '../API/apiClient';
 
 const AuthContext = createContext(null);
@@ -20,19 +20,13 @@ export function AuthProvider({ children }) {
     } catch (e) {
       console.error('Erro ao ler usuário salvo:', e);
     }
-    // Default initial user (Admin) for instant experience
-    return INITIAL_USERS[0];
+    // Sem sessão salva — inicia sem usuário logado
+    return null;
   });
 
   const [token, setTokenState] = useState(() => {
     const existing = getStoredToken();
     if (existing) return existing;
-    // Se o usuário inicial existir, gerar token padrão
-    if (INITIAL_USERS[0]) {
-      const initialToken = generateClientToken(INITIAL_USERS[0]);
-      setStoredToken(initialToken);
-      return initialToken;
-    }
     return '';
   });
 
@@ -116,12 +110,16 @@ export function AuthProvider({ children }) {
       // 3. Fallback: busca usuário na API e gera token local (pode não funcionar para POST/DELETE)
       let fetchedUser = null;
       try {
-        const response = await fetch(`${BASE_URL}/user?email=${encodeURIComponent(cleanEmail)}`);
+        // Busca todos os usuários ou filtra por email, dependendo da API
+        const response = await fetch(`${BASE_URL}/user`);
         if (response.ok) {
           const data = await response.json();
-          if (Array.isArray(data) && data.length > 0) {
-            fetchedUser = data[0];
-          } else if (data && data.id) {
+          const usersArray = Array.isArray(data) ? data : (data.value || data.data || []);
+
+          if (Array.isArray(usersArray)) {
+            // Procura o usuário pelo email na lista retornada
+            fetchedUser = usersArray.find(u => u.email && u.email.toLowerCase() === cleanEmail);
+          } else if (data && data.email && data.email.toLowerCase() === cleanEmail) {
             fetchedUser = data;
           }
         }
