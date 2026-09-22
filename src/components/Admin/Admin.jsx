@@ -54,9 +54,9 @@ export function Admin() {
     }
   }, [user]);
 
-  // Guard: If Director, do not allow user or category tabs
+  // Guard: If Director, only users tab is restricted (categories and courses are accessible)
   useEffect(() => {
-    if (userRole !== 'ADMIN' && (activeTab === 'users' || activeTab === 'categories')) {
+    if (userRole !== 'ADMIN' && activeTab === 'users') {
       setActiveTab('courses');
     }
   }, [userRole, activeTab]);
@@ -342,8 +342,18 @@ export function Admin() {
     e.preventDefault();
 
     if (modalEntityType === 'course') {
-      if (!courseForm.name || !courseForm.workload) {
-        alert('Por favor, preencha o nome e a carga horária do curso.');
+      const trimmedName = (courseForm.name || '').trim();
+      if (!trimmedName || trimmedName.length < 2) {
+        alert('Por favor, preencha o nome do curso com no mínimo 2 caracteres.');
+        return;
+      }
+      if (!courseForm.workload) {
+        alert('Por favor, informe a carga horária do curso.');
+        return;
+      }
+      const trimmedDesc = (courseForm.description || '').trim();
+      if (trimmedDesc.length < 10) {
+        alert('Atenção: A descrição do curso deve conter pelo menos 10 caracteres.');
         return;
       }
       try {
@@ -359,7 +369,7 @@ export function Admin() {
 
         const payload = {
           name: courseForm.name,
-          description: courseForm.description || 'Sem descrição informada.',
+          description: trimmedDesc,
           urlImg: safeBackendImageUrl,
           workload: Number(courseForm.workload),
           ranking: Number(courseForm.ranking) || 1,
@@ -384,7 +394,16 @@ export function Admin() {
           setCourseForm({ name: '', description: '', urlImg: '', workload: '', Field_of_study: 'Tecnologia', company_name: directorCompany ? directorCompany.name : 'Senac São Carlos', ranking: '1', status: 'ATIVO' });
         } else {
           const errText = await response.text();
-          alert('Erro ao inserir curso no banco. Detalhes: ' + errText);
+          let userMsg = errText;
+          try {
+            const errJson = JSON.parse(errText);
+            if (errJson.details && Array.isArray(errJson.details) && errJson.details.length > 0) {
+              userMsg = errJson.details.map(d => d.message || `${d.path?.join('.')}: campo inválido`).join('\n');
+            } else if (errJson.error || errJson.message) {
+              userMsg = errJson.error || errJson.message;
+            }
+          } catch (e) {}
+          alert('Aviso ao cadastrar curso:\n' + userMsg);
           console.error('Erro backend:', errText);
         }
       } catch (err) { console.error(err); alert('Erro de conexão.'); }
@@ -415,23 +434,30 @@ export function Admin() {
       } catch (err) { console.error(err); alert('Erro de conexão.'); }
     }
     else if (modalEntityType === 'category') {
-      if (!categoryForm.name) {
+      if (!categoryForm.name || !categoryForm.name.trim()) {
         alert('Por favor, informe o nome da categoria.');
         return;
       }
       try {
         const payload = {
-          name: categoryForm.name,
+          name: categoryForm.name.trim(),
           description: categoryForm.description || 'Categoria de estudos'
         };
         const response = await apiFetch('/categorie', { method: 'POST', body: JSON.stringify(payload) });
         if (response.ok) {
           const newCat = await response.json();
-          setCategories([...categories, newCat]);
-          showToast(`✓ Categoria "${newCat.name}" cadastrada no banco!`);
+          setCategories(prev => {
+            const exists = prev.some(c => c.id === newCat.id || c.name.toLowerCase() === newCat.name.toLowerCase());
+            return exists ? prev : [...prev, newCat];
+          });
+          setCourseForm(prev => ({ ...prev, Field_of_study: newCat.name }));
+          showToast(`✓ Categoria "${newCat.name}" cadastrada no banco e disponível para todos os diretores!`);
           setCategoryForm({ name: '', description: '' });
-        } else { alert('Erro ao inserir categoria no banco.'); }
-      } catch (err) { console.error(err); alert('Erro de conexão.'); }
+        } else {
+          const errText = await response.text();
+          alert('Erro ao inserir categoria no banco: ' + errText);
+        }
+      } catch (err) { console.error(err); alert('Erro de conexão ao salvar categoria.'); }
     }
     else if (modalEntityType === 'user') {
       if (!userForm.name || !userForm.email || !userForm.cpf) {
@@ -605,17 +631,15 @@ export function Admin() {
             </div>
           </div>
 
-          {userRole === 'ADMIN' && (
-            <div className="stat-card" onClick={() => setActiveTab('categories')}>
-              <div className="stat-icon icon-categories">
-                <Layers size={24} />
-              </div>
-              <div className="stat-info">
-                <span className="stat-label">Categorias Ativas</span>
-                <strong className="stat-number">{categories.length}</strong>
-              </div>
+          <div className="stat-card" onClick={() => setActiveTab('categories')}>
+            <div className="stat-icon icon-categories">
+              <Layers size={24} />
             </div>
-          )}
+            <div className="stat-info">
+              <span className="stat-label">Categorias Ativas</span>
+              <strong className="stat-number">{categories.length}</strong>
+            </div>
+          </div>
 
           {userRole === 'ADMIN' && (
             <div className="stat-card" onClick={() => setActiveTab('users')}>
@@ -651,24 +675,22 @@ export function Admin() {
                 <span>Escolas ({filteredCompanies.length})</span>
               </button>
 
-              {userRole === 'ADMIN' && (
-                <>
-                  <button
-                    className={`tab-btn ${activeTab === 'categories' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('categories')}
-                  >
-                    <Layers size={18} />
-                    <span>Categorias ({filteredCategories.length})</span>
-                  </button>
+              <button
+                className={`tab-btn ${activeTab === 'categories' ? 'active' : ''}`}
+                onClick={() => setActiveTab('categories')}
+              >
+                <Layers size={18} />
+                <span>Categorias ({filteredCategories.length})</span>
+              </button>
 
-                  <button
-                    className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('users')}
-                  >
-                    <Users size={18} />
-                    <span>Usuários ({filteredUsers.length})</span>
-                  </button>
-                </>
+              {userRole === 'ADMIN' && (
+                <button
+                  className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('users')}
+                >
+                  <Users size={18} />
+                  <span>Usuários ({filteredUsers.length})</span>
+                </button>
               )}
             </div>
 
@@ -678,7 +700,7 @@ export function Admin() {
                 onClick={() => {
                   if (activeTab === 'courses') openModal('course');
                   else if (activeTab === 'companies') openModal('company');
-                  else if (activeTab === 'categories' && userRole === 'ADMIN') openModal('category');
+                  else if (activeTab === 'categories') openModal('category');
                   else if (activeTab === 'users' && userRole === 'ADMIN') openModal('user');
                   else openModal('course');
                 }}
@@ -871,7 +893,7 @@ export function Admin() {
           {/* ==================================================== */}
           {/* TAB 3: CATEGORIAS (categories) */}
           {/* ==================================================== */}
-          {activeTab === 'categories' && userRole === 'ADMIN' && (
+          {activeTab === 'categories' && (
             <div className="table-responsive">
               <table className="admin-table">
                 <thead>
@@ -892,13 +914,17 @@ export function Admin() {
                         </td>
                         <td>{cat.description}</td>
                         <td className="cell-actions">
-                          <button
-                            className="action-btn delete-btn"
-                            title="Remover categoria"
-                            onClick={() => handleDeleteCategory(cat.id)}
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          {userRole === 'ADMIN' ? (
+                            <button
+                              className="action-btn delete-btn"
+                              title="Remover categoria"
+                              onClick={() => handleDeleteCategory(cat.id)}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          ) : (
+                            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Padrão Global</span>
+                          )}
                         </td>
                       </tr>
                     ))
@@ -1021,26 +1047,24 @@ export function Admin() {
                 <span>Escola/Empresa</span>
               </button>
 
-              {userRole === 'ADMIN' && (
-                <>
-                  <button
-                    type="button"
-                    className={`entity-tab ${modalEntityType === 'category' ? 'active' : ''}`}
-                    onClick={() => setModalEntityType('category')}
-                  >
-                    <Layers size={16} />
-                    <span>Categoria</span>
-                  </button>
+              <button
+                type="button"
+                className={`entity-tab ${modalEntityType === 'category' ? 'active' : ''}`}
+                onClick={() => setModalEntityType('category')}
+              >
+                <Layers size={16} />
+                <span>Categoria</span>
+              </button>
 
-                  <button
-                    type="button"
-                    className={`entity-tab ${modalEntityType === 'user' ? 'active' : ''}`}
-                    onClick={() => setModalEntityType('user')}
-                  >
-                    <Users size={16} />
-                    <span>Usuário</span>
-                  </button>
-                </>
+              {userRole === 'ADMIN' && (
+                <button
+                  type="button"
+                  className={`entity-tab ${modalEntityType === 'user' ? 'active' : ''}`}
+                  onClick={() => setModalEntityType('user')}
+                >
+                  <Users size={16} />
+                  <span>Usuário</span>
+                </button>
               )}
             </div>
 
@@ -1048,10 +1072,13 @@ export function Admin() {
             {modalEntityType === 'course' && (
               <form onSubmit={handleCreateSubmit} className="admin-form">
                 <div className="form-group">
-                  <label>Nome do Curso *</label>
+                  <label>
+                    Nome do Curso * <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 'normal' }}>(mínimo 2 caracteres)</span>
+                  </label>
                   <input
                     type="text"
-                    placeholder="Ex: Inteligência Artificial na Prática"
+                    minLength={2}
+                    placeholder="Ex: IA, Java, Python na Prática..."
                     value={courseForm.name}
                     onChange={(e) => setCourseForm({...courseForm, name: e.target.value})}
                     required
@@ -1136,7 +1163,27 @@ export function Admin() {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Área de Estudo / Categoria *</label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label style={{ margin: 0 }}>Área de Estudo / Categoria *</label>
+                      <button
+                        type="button"
+                        onClick={() => openModal('category')}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#38bdf8',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px'
+                        }}
+                        title="Cadastrar nova categoria no banco de dados"
+                      >
+                        <Plus size={13} /> + Nova Categoria
+                      </button>
+                    </div>
                     <select
                       value={courseForm.Field_of_study}
                       onChange={(e) => setCourseForm({...courseForm, Field_of_study: e.target.value})}
@@ -1212,10 +1259,14 @@ export function Admin() {
                 </div>
 
                 <div className="form-group">
-                  <label>Descrição do Curso</label>
+                  <label>
+                    Descrição do Curso * <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 'normal' }}>(mínimo 10 caracteres)</span>
+                  </label>
                   <textarea
                     rows="3"
-                    placeholder="Conteúdo programático, objetivos e competências desenvolvidas..."
+                    required
+                    minLength={10}
+                    placeholder="Descreva o conteúdo programático, metodologia e objetivos do curso (mín. 10 caracteres)..."
                     value={courseForm.description}
                     onChange={(e) => setCourseForm({...courseForm, description: e.target.value})}
                   ></textarea>

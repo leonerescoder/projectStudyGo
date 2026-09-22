@@ -57,15 +57,22 @@ export function DirectorAdmin() {
   const [directorUser, setDirectorUser] = useState(INITIAL_DIRECTOR_USER);
   const [school, setSchool] = useState(INITIAL_DIRECTOR_COMPANY);
   const [courses, setCourses] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [courseRes, compRes, userRes] = await Promise.all([
+        const [courseRes, compRes, catRes, userRes] = await Promise.all([
           apiFetch('/course'),
           apiFetch('/companie'),
+          apiFetch('/categorie'),
           apiFetch('/user')
         ]);
+
+        if (catRes.ok) {
+          const catData = await catRes.json();
+          setCategories(Array.isArray(catData) ? catData : []);
+        }
 
         let fetchedSchool = null;
         if (compRes.ok) {
@@ -195,8 +202,18 @@ export function DirectorAdmin() {
   // Handle Course Creation (Attached only to this director's school)
   const handleCreateCourse = async (e) => {
     e.preventDefault();
-    if (!courseForm.name || !courseForm.workload) {
-      alert('Por favor, preencha o nome do curso e a carga horária.');
+    const trimmedName = (courseForm.name || '').trim();
+    if (!trimmedName || trimmedName.length < 2) {
+      alert('Por favor, preencha o nome do curso com no mínimo 2 caracteres.');
+      return;
+    }
+    if (!courseForm.workload) {
+      alert('Por favor, informe a carga horária do curso.');
+      return;
+    }
+    const trimmedDesc = (courseForm.description || '').trim();
+    if (trimmedDesc.length < 10) {
+      alert('Atenção: A descrição do curso deve conter pelo menos 10 caracteres.');
       return;
     }
 
@@ -211,7 +228,7 @@ export function DirectorAdmin() {
 
       const payload = {
         name: courseForm.name,
-        description: courseForm.description || 'Sem descrição informada.',
+        description: trimmedDesc,
         urlImg: safeBackendImageUrl,
         workload: Number(courseForm.workload),
         ranking: Number(courseForm.ranking) || 1,
@@ -239,7 +256,17 @@ export function DirectorAdmin() {
         });
         showToast(`✓ Novo curso "${newCourse.name}" adicionado à ${school.name}!`);
       } else {
-        alert('Erro ao criar curso na API.');
+        const errText = await response.text();
+        let userMsg = errText;
+        try {
+          const errJson = JSON.parse(errText);
+          if (errJson.details && Array.isArray(errJson.details) && errJson.details.length > 0) {
+            userMsg = errJson.details.map(d => d.message || `${d.path?.join('.')}: campo inválido`).join('\n');
+          } else if (errJson.error || errJson.message) {
+            userMsg = errJson.error || errJson.message;
+          }
+        } catch (e) {}
+        alert('Aviso ao cadastrar curso:\n' + userMsg);
       }
     } catch (err) {
       console.error(err);
@@ -810,10 +837,13 @@ export function DirectorAdmin() {
 
             <form onSubmit={handleCreateCourse} className="modal-form">
               <div className="form-group">
-                <label>Nome do Curso *</label>
+                <label>
+                  Nome do Curso * <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 'normal' }}>(mínimo 2 caracteres)</span>
+                </label>
                 <input
                   type="text"
-                  placeholder="Ex: Inteligência Artificial na Prática"
+                  minLength={2}
+                  placeholder="Ex: IA, UX, Programação Web..."
                   value={courseForm.name}
                   onChange={(e) => setCourseForm({...courseForm, name: e.target.value})}
                   required
@@ -870,15 +900,23 @@ export function DirectorAdmin() {
                     value={courseForm.Field_of_study}
                     onChange={(e) => setCourseForm({...courseForm, Field_of_study: e.target.value})}
                   >
-                    <option value="Tecnologia">Tecnologia</option>
-                    <option value="Mecânica">Mecânica</option>
-                    <option value="Gastronomia">Gastronomia</option>
-                    <option value="Idiomas">Idiomas</option>
-                    <option value="Saúde">Saúde</option>
-                    <option value="Moda">Moda</option>
-                    <option value="Artes">Artes</option>
-                    <option value="Música">Música</option>
-                    <option value="Educação">Educação</option>
+                    {categories.length > 0 ? (
+                      categories.map(cat => (
+                        <option key={cat.id} value={cat.name}>{cat.name}</option>
+                      ))
+                    ) : (
+                      <>
+                        <option value="Tecnologia">Tecnologia</option>
+                        <option value="Mecânica">Mecânica</option>
+                        <option value="Gastronomia">Gastronomia</option>
+                        <option value="Idiomas">Idiomas</option>
+                        <option value="Saúde">Saúde</option>
+                        <option value="Moda">Moda</option>
+                        <option value="Artes">Artes</option>
+                        <option value="Música">Música</option>
+                        <option value="Educação">Educação</option>
+                      </>
+                    )}
                   </select>
                 </div>
 
@@ -919,10 +957,14 @@ export function DirectorAdmin() {
               </div>
 
               <div className="form-group">
-                <label>Descrição e Competências</label>
+                <label>
+                  Descrição do Curso * <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 'normal' }}>(mínimo 10 caracteres)</span>
+                </label>
                 <textarea
                   rows="3"
-                  placeholder="Objetivos do curso, metodologia e mercado de atuação..."
+                  required
+                  minLength={10}
+                  placeholder="Objetivos do curso, metodologia e mercado de atuação (mín. 10 caracteres)..."
                   value={courseForm.description}
                   onChange={(e) => setCourseForm({...courseForm, description: e.target.value})}
                 ></textarea>
