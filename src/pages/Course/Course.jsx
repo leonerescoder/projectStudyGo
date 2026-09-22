@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Star, Clock, BarChart, Calendar, Award, Code, Building } from 'lucide-react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { buscaID, buscaTodos } from '../../ApiCourses/ApiCourse';
+import { getCourseImageUrl } from '../../utils/courseImage';
 import './Course.css';
 
 function Course() {
@@ -93,8 +94,8 @@ function Course() {
               <span className="fire-icon">🔥</span> Mais procurado
             </div>
           )}
-          {course.urlImg ? (
-            <img src={course.urlImg} alt={course.name} className="course-image" />
+          {getCourseImageUrl(course) ? (
+            <img src={getCourseImageUrl(course)} alt={course.name} className="course-image" />
           ) : (
             <div className="image-placeholder">
               <div className="python-logo">📚</div>
@@ -181,8 +182,8 @@ function Course() {
                   {rc.ranking && (
                     <span className="card-ranking">{rc.ranking}º lugar</span>
                   )}
-                  {rc.urlImg ? (
-                    <img src={rc.urlImg} alt={rc.name} className="related-card-img" />
+                  {getCourseImageUrl(rc) ? (
+                    <img src={getCourseImageUrl(rc)} alt={rc.name} className="related-card-img" />
                   ) : (
                     <div className="card-logo">📚</div>
                   )}

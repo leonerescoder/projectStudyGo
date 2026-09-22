@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { 
-  ShieldCheck, 
-  Lock, 
-  Mail, 
-  X, 
-  LogIn, 
-  Eye, 
-  EyeOff, 
+import {
+  ShieldCheck,
+  Lock,
+  Mail,
+  X,
+  LogIn,
+  Eye,
+  EyeOff,
   AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';

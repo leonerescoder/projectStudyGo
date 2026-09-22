@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { DB_CONFIG } from '../../data/databaseConfig';
 import { apiFetch } from '../../API/apiClient';
+import { getFallbackImageUrl, saveLocalCourseImage, getCourseImageUrl } from '../../utils/courseImage';
 import './DirectorAdmin.css';
 
 // Initial Director Profile
@@ -56,15 +57,22 @@ export function DirectorAdmin() {
   const [directorUser, setDirectorUser] = useState(INITIAL_DIRECTOR_USER);
   const [school, setSchool] = useState(INITIAL_DIRECTOR_COMPANY);
   const [courses, setCourses] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [courseRes, compRes, userRes] = await Promise.all([
+        const [courseRes, compRes, catRes, userRes] = await Promise.all([
           apiFetch('/course'),
           apiFetch('/companie'),
+          apiFetch('/categorie'),
           apiFetch('/user')
         ]);
+
+        if (catRes.ok) {
+          const catData = await catRes.json();
+          setCategories(Array.isArray(catData) ? catData : []);
+        }
 
         let fetchedSchool = null;
         if (compRes.ok) {
@@ -194,8 +202,18 @@ export function DirectorAdmin() {
   // Handle Course Creation (Attached only to this director's school)
   const handleCreateCourse = async (e) => {
     e.preventDefault();
-    if (!courseForm.name || !courseForm.workload) {
-      alert('Por favor, preencha o nome do curso e a carga horária.');
+    const trimmedName = (courseForm.name || '').trim();
+    if (!trimmedName || trimmedName.length < 2) {
+      alert('Por favor, preencha o nome do curso com no mínimo 2 caracteres.');
+      return;
+    }
+    if (!courseForm.workload) {
+      alert('Por favor, informe a carga horária do curso.');
+      return;
+    }
+    const trimmedDesc = (courseForm.description || '').trim();
+    if (trimmedDesc.length < 10) {
+      alert('Atenção: A descrição do curso deve conter pelo menos 10 caracteres.');
       return;
     }
 
@@ -203,10 +221,15 @@ export function DirectorAdmin() {
       const categoryMap = { 'Tecnologia': 1, 'Mecânica': 2, 'Gastronomia': 3, 'Idiomas': 4, 'Saúde': 5, 'Moda': 6, 'Artes': 7, 'Música': 8, 'Educação': 9 };
       const categoryId = categoryMap[courseForm.Field_of_study] || 1;
 
+      const isBase64Upload = courseForm.urlImg && courseForm.urlImg.startsWith('data:');
+      const safeBackendImageUrl = isBase64Upload
+        ? getFallbackImageUrl(courseForm.Field_of_study)
+        : (courseForm.urlImg ? courseForm.urlImg.trim().slice(0, 250) : getFallbackImageUrl(courseForm.Field_of_study));
+
       const payload = {
         name: courseForm.name,
-        description: courseForm.description || 'Sem descrição informada.',
-        urlImg: courseForm.urlImg || '',
+        description: trimmedDesc,
+        urlImg: safeBackendImageUrl,
         workload: Number(courseForm.workload),
         ranking: Number(courseForm.ranking) || 1,
         fieldOfStudy: courseForm.Field_of_study,
@@ -219,6 +242,13 @@ export function DirectorAdmin() {
       const response = await apiFetch('/course', { method: 'POST', body: JSON.stringify(payload) });
       if (response.ok) {
         const newCourse = await response.json();
+        
+        if (isBase64Upload) {
+          saveLocalCourseImage(newCourse.id, courseForm.urlImg);
+          saveLocalCourseImage(newCourse.name, courseForm.urlImg);
+          newCourse.urlImg = courseForm.urlImg;
+        }
+
         setCourses([newCourse, ...courses]);
         setIsNewCourseModalOpen(false);
         setCourseForm({
@@ -226,7 +256,17 @@ export function DirectorAdmin() {
         });
         showToast(`✓ Novo curso "${newCourse.name}" adicionado à ${school.name}!`);
       } else {
-        alert('Erro ao criar curso na API.');
+        const errText = await response.text();
+        let userMsg = errText;
+        try {
+          const errJson = JSON.parse(errText);
+          if (errJson.details && Array.isArray(errJson.details) && errJson.details.length > 0) {
+            userMsg = errJson.details.map(d => d.message || `${d.path?.join('.')}: campo inválido`).join('\n');
+          } else if (errJson.error || errJson.message) {
+            userMsg = errJson.error || errJson.message;
+          }
+        } catch (e) {}
+        alert('Aviso ao cadastrar curso:\n' + userMsg);
       }
     } catch (err) {
       console.error(err);
@@ -237,13 +277,55 @@ export function DirectorAdmin() {
   const handleDirectorImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 3 * 1024 * 1024) {
-        alert('A imagem é muito grande. Escolha uma foto de até 3MB.');
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor, selecione um arquivo de imagem válido (JPG, PNG, WEBP, etc.).');
+        e.target.value = '';
         return;
       }
+      
+      const MAX_SIZE_MB = 2;
+      const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+      if (file.size > MAX_SIZE_BYTES) {
+        const sizeFormatted = (file.size / (1024 * 1024)).toFixed(2);
+        alert(`Atenção: A imagem selecionada (${sizeFormatted} MB) ultrapassa o tamanho padrão permitido de ${MAX_SIZE_MB}MB. Por favor, escolha uma imagem menor.`);
+        e.target.value = '';
+        return;
+      }
+
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setCourseForm(prev => ({ ...prev, urlImg: reader.result }));
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 600;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width);
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round((width * MAX_HEIGHT) / height);
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          setCourseForm(prev => ({ ...prev, urlImg: compressedDataUrl }));
+        };
+        img.onerror = () => {
+          alert('Erro ao carregar o arquivo de imagem.');
+        };
+        img.src = event.target.result;
       };
       reader.readAsDataURL(file);
     }
@@ -480,8 +562,8 @@ export function DirectorAdmin() {
                           <td className="cell-main">
                             <div className="course-name-row">
                               <div className="director-table-thumb">
-                                {c.urlImg ? (
-                                  <img src={c.urlImg} alt={c.name} onError={(e) => { e.target.style.display = 'none'; }} />
+                                {getCourseImageUrl(c) ? (
+                                  <img src={getCourseImageUrl(c)} alt={c.name} onError={(e) => { e.target.style.display = 'none'; }} />
                                 ) : (
                                   <span className="thumb-fallback">📚</span>
                                 )}
@@ -755,10 +837,13 @@ export function DirectorAdmin() {
 
             <form onSubmit={handleCreateCourse} className="modal-form">
               <div className="form-group">
-                <label>Nome do Curso *</label>
+                <label>
+                  Nome do Curso * <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 'normal' }}>(mínimo 2 caracteres)</span>
+                </label>
                 <input
                   type="text"
-                  placeholder="Ex: Inteligência Artificial na Prática"
+                  minLength={2}
+                  placeholder="Ex: IA, UX, Programação Web..."
                   value={courseForm.name}
                   onChange={(e) => setCourseForm({...courseForm, name: e.target.value})}
                   required
@@ -772,13 +857,13 @@ export function DirectorAdmin() {
                     <ImageIcon size={15} />
                     <span>Imagem de Capa do Curso</span>
                   </div>
-                  <span className="label-help">Link da web ou arquivo do dispositivo</span>
+                  <span className="label-help">Link da web ou arquivo do dispositivo (máx. 2MB)</span>
                 </label>
 
                 <div className="director-image-inputs">
                   <input
-                    type="url"
-                    placeholder="https://exemplo.com/imagem-do-curso.jpg"
+                    type="text"
+                    placeholder="https://exemplo.com/imagem.jpg ou faça upload"
                     value={courseForm.urlImg}
                     onChange={(e) => setCourseForm({...courseForm, urlImg: e.target.value})}
                   />
@@ -815,15 +900,23 @@ export function DirectorAdmin() {
                     value={courseForm.Field_of_study}
                     onChange={(e) => setCourseForm({...courseForm, Field_of_study: e.target.value})}
                   >
-                    <option value="Tecnologia">Tecnologia</option>
-                    <option value="Mecânica">Mecânica</option>
-                    <option value="Gastronomia">Gastronomia</option>
-                    <option value="Idiomas">Idiomas</option>
-                    <option value="Saúde">Saúde</option>
-                    <option value="Moda">Moda</option>
-                    <option value="Artes">Artes</option>
-                    <option value="Música">Música</option>
-                    <option value="Educação">Educação</option>
+                    {categories.length > 0 ? (
+                      categories.map(cat => (
+                        <option key={cat.id} value={cat.name}>{cat.name}</option>
+                      ))
+                    ) : (
+                      <>
+                        <option value="Tecnologia">Tecnologia</option>
+                        <option value="Mecânica">Mecânica</option>
+                        <option value="Gastronomia">Gastronomia</option>
+                        <option value="Idiomas">Idiomas</option>
+                        <option value="Saúde">Saúde</option>
+                        <option value="Moda">Moda</option>
+                        <option value="Artes">Artes</option>
+                        <option value="Música">Música</option>
+                        <option value="Educação">Educação</option>
+                      </>
+                    )}
                   </select>
                 </div>
 
@@ -864,10 +957,14 @@ export function DirectorAdmin() {
               </div>
 
               <div className="form-group">
-                <label>Descrição e Competências</label>
+                <label>
+                  Descrição do Curso * <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 'normal' }}>(mínimo 10 caracteres)</span>
+                </label>
                 <textarea
                   rows="3"
-                  placeholder="Objetivos do curso, metodologia e mercado de atuação..."
+                  required
+                  minLength={10}
+                  placeholder="Objetivos do curso, metodologia e mercado de atuação (mín. 10 caracteres)..."
                   value={courseForm.description}
                   onChange={(e) => setCourseForm({...courseForm, description: e.target.value})}
                 ></textarea>

@@ -3,6 +3,9 @@ import { Hero } from './components/Hero/Hero';
 import { Features } from './components/Features/Features';
 import { CourseGrid } from './components/CourseGrid/CourseGrid';
 import { Footer } from './components/Footer/Footer';
+import { CompanyBanner } from './components/CompanyBanner/CompanyBanner';
+import { DirectorRegistrationModal } from './components/Auth/DirectorRegistrationModal';
+import { CompanyRegistrationModal } from './components/Auth/CompanyRegistrationModal';
 import { buscaTodos } from './ApiCourses/ApiCourse';
 
 import './tela_inicial.css';
@@ -30,6 +33,8 @@ export function TelaInicial() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [courses, setCourses] = useState([]);
+  const [isDirectorModalOpen, setIsDirectorModalOpen] = useState(false);
+  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
 
   useEffect(() => {
     async function loadCourses() {
@@ -110,8 +115,26 @@ export function TelaInicial() {
         onResetFilters={handleResetFilters}
       />
 
-      {/* 4. Rodapé Completo */}
+      {/* 4. Banner para Empresas (Call to Action) */}
+      <CompanyBanner onRegisterClick={() => setIsDirectorModalOpen(true)} />
+
+      {/* 5. Rodapé Completo */}
       <Footer />
+
+      {/* Modais */}
+      <DirectorRegistrationModal 
+        isOpen={isDirectorModalOpen} 
+        onClose={() => setIsDirectorModalOpen(false)} 
+        onSuccessRegistration={() => {
+          setIsDirectorModalOpen(false);
+          setIsCompanyModalOpen(true);
+        }}
+      />
+
+      <CompanyRegistrationModal
+        isOpen={isCompanyModalOpen}
+        onClose={() => setIsCompanyModalOpen(false)}
+      />
     </div>
   );
 }
