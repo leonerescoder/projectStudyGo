@@ -1,9 +1,25 @@
 #escola-selecionada-page {
   width: 100%;
   min-height: calc(100vh - 70px);
-  background-color: var(--bg-dark);
+    background-color: #ffffff;
   padding: 2rem;
   color: var(--color-text-main);
+}
+
+#escola-selecionada-page .escola-name-professional,
+#escola-selecionada-page h1,
+#escola-selecionada-page h2,
+#escola-selecionada-page h3,
+#escola-selecionada-page .info-value,
+#escola-selecionada-page .text-block-title {
+    color: #0f172a;
+}
+
+#escola-selecionada-page p,
+#escola-selecionada-page .escola-location-prof,
+#escola-selecionada-page .info-label,
+#escola-selecionada-page .text-block-content {
+    color: #475569;
 }
 
 .escola-container {

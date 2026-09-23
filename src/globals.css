@@ -1,15 +1,17 @@
 :root {
-  --color-primary: #0b1426;
-  --color-secondary: #0c1c38;
-  --color-accent: #2c6cfb;
-  --color-accent-hover: #1e52c8;
-  --color-text-main: #ffffff;
-  --color-text-muted: #a0aec0;
-  --color-border: rgba(255, 255, 255, 0.1);
-  --color-card-bg: rgba(255, 255, 255, 0.03);
-  --color-card-hover: rgba(255, 255, 255, 0.08);
-  --color-badge: rgba(255, 255, 255, 1);
-  --color-badge-text: #000;
+  --color-primary: #ffffff;
+  --color-secondary: #f8fafc;
+  --color-accent: #123b78;
+  --color-accent-hover: #0b2a59;
+  --color-accent-light: #e8eefb;
+  --color-text-main: #0f172a;
+  --color-text-secondary: #334155;
+  --color-text-muted: #64748b;
+  --color-border: rgba(15, 23, 42, 0.08);
+  --color-card-bg: #ffffff;
+  --color-card-hover: #f8fafc;
+  --color-badge: #123b78;
+  --color-badge-text: #ffffff;
   --color-warning: #f59e0b;
   --font-main: 'Inter', system-ui, -apple-system, sans-serif;
 }
@@ -22,11 +24,28 @@
 
 body {
   font-family: var(--font-main);
-  background: linear-gradient(135deg, var(--color-primary) 0%, #060b14 100%);
+  background: #ffffff;
   color: var(--color-text-main);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+#tela-inicial,
+#home-page,
+#courses-catalog-page,
+#course-page,
+#escolas-page,
+#escola-selecionada-page,
+#admin-page,
+#director-admin-page {
+  background-color: #ffffff;
+  color: #0f172a;
 }
 
 a {

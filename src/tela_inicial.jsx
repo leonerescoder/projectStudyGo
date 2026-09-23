@@ -108,6 +108,7 @@ export function TelaInicial() {
     <div id="tela-inicial">
       {/* 1. Seção Hero Centralizada */}
       <Hero
+        courses={courses}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         onSearchSubmit={handleSearchSubmit}

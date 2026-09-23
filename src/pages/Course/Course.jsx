@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Star, Clock, BarChart, Calendar, Award, Code
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { buscaID, buscaTodos } from '../../ApiCourses/ApiCourse';
 import { getCourseImageUrl } from '../../utils/courseImage';
+import courseImageFallback from '../../assets/estudandes.jpg';
 import './Course.css';
 
 function Course() {
@@ -23,12 +24,17 @@ function Course() {
         setError(null);
 
         // Busca o curso pelo ID
-        const courseData = await buscaID(id);
+        const courseResponse = await buscaID(id);
+        const courseData = courseResponse?.value || courseResponse?.data || courseResponse;
         setCourse(courseData);
+        setLoading(false);
 
         // Busca todos os cursos para calcular posição real no ranking e pegar relacionados
         try {
-          const allCourses = await buscaTodos();
+          const allCoursesResponse = await buscaTodos();
+          const allCourses = Array.isArray(allCoursesResponse)
+            ? allCoursesResponse
+            : (allCoursesResponse?.value || allCoursesResponse?.data || []);
 
           // Ordena todos por ranking (views) decrescente e calcula posição real
           const sorted = [...allCourses].sort((a, b) => (b.ranking || 0) - (a.ranking || 0));
@@ -108,7 +114,15 @@ function Course() {
             </div>
           )}
           {getCourseImageUrl(course) ? (
-            <img src={getCourseImageUrl(course)} alt={course.name} className="course-image" />
+            <img
+              src={getCourseImageUrl(course)}
+              alt={course.name}
+              className="course-image"
+              onError={(event) => {
+                event.currentTarget.onerror = null;
+                event.currentTarget.src = courseImageFallback;
+              }}
+            />
           ) : (
             <div className="image-placeholder">
               <div className="python-logo">📚</div>
@@ -196,7 +210,15 @@ function Course() {
                     <span className="card-ranking">{relatedRankMap[rc.id]}º lugar</span>
                   )}
                   {getCourseImageUrl(rc) ? (
-                    <img src={getCourseImageUrl(rc)} alt={rc.name} className="related-card-img" />
+                    <img
+                      src={getCourseImageUrl(rc)}
+                      alt={rc.name}
+                      className="related-card-img"
+                      onError={(event) => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = courseImageFallback;
+                      }}
+                    />
                   ) : (
                     <div className="card-logo">📚</div>
                   )}

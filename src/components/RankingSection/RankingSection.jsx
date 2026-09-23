@@ -3,6 +3,7 @@ import './RankingSection.css';
 import { useNavigate } from 'react-router-dom';
 import { Trophy } from 'lucide-react';
 import { getCourseImageUrl } from '../../utils/courseImage';
+import courseImageFallback from '../../assets/estudandes.jpg';
 
 export function RankingSection({ courses }) {
   const navigate = useNavigate();
@@ -60,7 +61,15 @@ export function RankingSection({ courses }) {
                 <div className="ranking-card-image-wrapper">
                   {renderMedal(index)}
                   {getCourseImageUrl(course) ? (
-                    <img src={getCourseImageUrl(course)} alt={course.title} className="ranking-card-image" />
+                    <img
+                      src={getCourseImageUrl(course)}
+                      alt={course.title}
+                      className="ranking-card-image"
+                      onError={(event) => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = courseImageFallback;
+                      }}
+                    />
                   ) : (
                     <div className="ranking-image-placeholder">
                       <div className="placeholder-icon">📚</div>

@@ -7,8 +7,8 @@
 #home-page {
   width: 100%;
   min-height: 100vh;
-  background-color: #060b13;
-  color: #ffffff;
+  background-color: #ffffff;
+  color: #0f172a;
   font-family: var(--font-main, 'Inter', system-ui, -apple-system, sans-serif);
   position: relative;
   overflow-x: hidden;
@@ -29,8 +29,75 @@
    ========================================================= */
 .hero-section {
   position: relative;
-  padding: 10rem 0 8rem;
+  padding: 10rem 0 9rem;
   text-align: center;
+  overflow: hidden;
+  background: #0a0f1e;
+}
+
+.teh-root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #0a0f1e;
+  pointer-events: none;
+}
+
+.teh-gradient {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 22% 30%, rgba(37, 99, 235, 0.38), transparent 55%),
+    radial-gradient(circle at 78% 65%, rgba(34, 211, 238, 0.22), transparent 50%),
+    radial-gradient(circle at 88% 15%, rgba(59, 130, 246, 0.22), transparent 45%),
+    radial-gradient(circle at 8% 85%, rgba(34, 211, 238, 0.15), transparent 45%),
+    linear-gradient(160deg, #0a0f1e 0%, #0d1526 55%, #0a0f1e 100%);
+}
+
+.teh-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(148, 197, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 197, 255, 0.05) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(ellipse at center, black 40%, transparent 85%);
+}
+
+.teh-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.teh-icon {
+  position: absolute;
+  filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.25));
+  animation: teh-float 7s ease-in-out infinite;
+}
+
+.teh-icon--cap { top: 16%; left: 10%; }
+.teh-icon--book { bottom: 20%; right: 14%; animation-delay: 1.8s; }
+.teh-icon--code { top: 62%; left: 20%; animation-delay: 3.4s; }
+.teh-icon--bulb { top: 22%; right: 22%; animation-delay: 2.6s; }
+.teh-icon--chip { bottom: 14%; left: 32%; animation-delay: 0.9s; }
+
+@keyframes teh-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .teh-icon { animation: none; }
+}
+
+#tela-inicial .hero-title {
+  color: #ffffff;
+}
+
+#tela-inicial .hero-subtitle {
+  color: #e2e8f0;
 }
 
 .hero-glow-bg {
@@ -52,6 +119,105 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.hero-course-carousel {
+  width: min(1120px, 100%);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 3rem;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-course-window {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.hero-course-track {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.hero-course-slide {
+  min-width: 0;
+  height: 170px;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  background: #0f172a;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.hero-course-slide:hover,
+.hero-course-slide:focus-visible {
+  transform: translateY(-4px);
+  border-color: #67e8f9;
+  outline: none;
+}
+
+.hero-course-slide-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.hero-course-slide::after {
+  content: '';
+  position: absolute;
+  inset: 35% 0 0;
+  background: linear-gradient(transparent, rgba(2, 6, 23, 0.9));
+}
+
+.hero-course-slide-caption {
+  position: absolute;
+  z-index: 1;
+  right: 0.75rem;
+  bottom: 0.7rem;
+  left: 0.75rem;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hero-carousel-arrow {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+  background: rgba(2, 6, 23, 0.8);
+  color: #ffffff;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.hero-carousel-arrow:hover:not(:disabled),
+.hero-carousel-arrow:focus-visible:not(:disabled) {
+  background: #123b78;
+  outline: none;
+}
+
+.hero-carousel-arrow:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 /* Badge Superior */
@@ -86,7 +252,7 @@
 }
 
 .hero-title .highlight-cyan {
-  color: #38bdf8;
+  color: #ffffff;
 }
 
 /* Subtítulo */
@@ -167,7 +333,10 @@
    2. FEATURES SECTION (4 Cards Estatísticas)
    ========================================================= */
 .features-section {
-  padding: 1.5rem 0 3.5rem;
+  position: relative;
+  z-index: 2;
+  margin-top: 0;
+  padding: 1rem 0 1rem;
 }
 
 .features-grid {
@@ -186,6 +355,13 @@
   gap: 1.1rem;
   transition: all 0.25s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 767px) {
+  .features-section {
+    margin-top: 0;
+    padding-top: 1.5rem;
+  }
 }
 
 .feature-card:hover {
@@ -232,7 +408,7 @@
    3. COURSES SHOWCASE SECTION (Header + Filtros + Grid)
    ========================================================= */
 .courses-showcase-section {
-  padding: 1rem 0 5rem;
+  padding: 0.5rem 0 5rem;
 }
 
 /* Header com Barra de Destaque */
@@ -422,6 +598,19 @@
   align-items: center;
   justify-content: center;
   position: relative;
+}
+
+.visual-image {
+  overflow: hidden;
+  background: #e2e8f0;
+}
+
+.course-card-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
 }
 
 /* 1. Code Editor */
@@ -825,6 +1014,10 @@
    5. RESPONSIVIDADE
    ========================================================= */
 @media (max-width: 1100px) {
+  .hero-course-track {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .courses-grid-layout {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -840,6 +1033,26 @@
 }
 
 @media (max-width: 768px) {
+  .hero-course-carousel {
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .hero-course-track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  .hero-course-slide {
+    height: 135px;
+  }
+
+  .hero-carousel-arrow {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+  }
+
   .hero-title {
     font-size: 2.2rem;
   }
@@ -864,6 +1077,18 @@
 }
 
 @media (max-width: 520px) {
+  .hero-course-carousel {
+    gap: 0.35rem;
+  }
+
+  .hero-course-track {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-course-slide {
+    height: 120px;
+  }
+
   .courses-grid-layout {
     grid-template-columns: 1fr;
   }
@@ -878,5 +1103,314 @@
 
   .hero-search-btn span {
     display: none;
+  }
+}
+
+#tela-inicial .hero-glow-bg,
+#tela-inicial .hero-pill-badge,
+#tela-inicial .hero-search-wrapper {
+  background: #ffffff;
+}
+
+#tela-inicial .hero-title,
+#tela-inicial .section-main-title {
+  color: #ffffff;
+}
+
+#tela-inicial .hero-search-input,
+#tela-inicial .hero-search-icon {
+  color: #0f172a;
+}
+
+#tela-inicial .hero-subtitle {
+  color: #334155;
+}
+
+#tela-inicial .hero-pill-badge {
+  background: #000000;
+  color: #ffffff;
+  border-color: #123b78;
+}
+
+#tela-inicial .hero-search-input::placeholder {
+  color: #64748b;
+}
+
+#tela-inicial .feature-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
+}
+
+#tela-inicial .feature-card:hover {
+  background: #ffffff;
+  border-color: #123b78;
+  box-shadow: 0 10px 26px rgba(18, 59, 120, 0.2);
+}
+
+#tela-inicial .feature-title-text {
+  color: #0f172a;
+}
+
+#tela-inicial .feature-category-label {
+  color: #123b78;
+}
+
+#tela-inicial .filter-pill-btn {
+  background: #000000;
+  border-color: #000000;
+  color: #ffffff;
+}
+
+#tela-inicial .filter-pill-btn:hover,
+#tela-inicial .filter-pill-btn.active {
+  background: #123b78;
+  border-color: #123b78;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+#tela-inicial .course-card-item {
+  background: #ffffff;
+  border: none;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+}
+
+#tela-inicial .course-card-item:hover {
+  border: none;
+  box-shadow: inset 0 0 0 2px #123b78, 0 12px 28px rgba(18, 59, 120, 0.2);
+}
+
+#tela-inicial .card-badge {
+  background: #000000;
+  border-color: #000000;
+  color: #ffffff;
+}
+
+#tela-inicial .card-title-heading,
+#tela-inicial .card-category-text,
+#tela-inicial .card-footer-meta {
+  color: #0f172a;
+}
+
+#tela-inicial .see-all-pill-btn {
+  background: #000000;
+  border-color: #000000;
+  color: #ffffff;
+}
+
+#tela-inicial .see-all-pill-btn:hover {
+  background: #123b78;
+  border-color: #123b78;
+  color: #ffffff;
+}
+
+/* Banner principal no estilo de carrossel de ofertas */
+#tela-inicial .hero-section {
+  padding: 0 0 2.25rem;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+#tela-inicial .hero-banner-carousel {
+  width: 100%;
+  height: 420px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #0f2d59;
+}
+
+#tela-inicial .hero-banner-slide {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  position: relative;
+  overflow: hidden;
+  background: #0f2d59;
+  cursor: pointer;
+  text-align: left;
+  animation: hero-banner-enter 0.7s ease both;
+}
+
+@keyframes hero-banner-enter {
+  from {
+    opacity: 0.35;
+    transform: scale(1.035);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+#tela-inicial .hero-banner-slide:focus-visible {
+  outline: 3px solid #67e8f9;
+  outline-offset: -3px;
+}
+
+#tela-inicial .hero-banner-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.45s ease;
+}
+
+#tela-inicial .hero-banner-slide:hover .hero-banner-image {
+  transform: scale(1.03);
+}
+
+#tela-inicial .hero-banner-slide:hover .hero-banner-overlay {
+  background: linear-gradient(90deg, rgba(3, 16, 38, 0.88), rgba(3, 16, 38, 0.18) 70%), linear-gradient(0deg, rgba(3, 16, 38, 0.5), transparent 45%);
+}
+
+#tela-inicial .hero-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(3, 16, 38, 0.82), rgba(3, 16, 38, 0.1) 70%), linear-gradient(0deg, rgba(3, 16, 38, 0.45), transparent 45%);
+}
+
+#tela-inicial .hero-banner-content {
+  position: absolute;
+  z-index: 1;
+  left: max(2rem, calc((100% - 1240px) / 2 + 1.5rem));
+  bottom: 2.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  max-width: min(480px, 55%);
+  color: #ffffff;
+}
+
+#tela-inicial .hero-banner-content small {
+  color: #67e8f9;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+#tela-inicial .hero-banner-content strong {
+  font-size: clamp(1.8rem, 4vw, 3.5rem);
+  line-height: 1.05;
+}
+
+#tela-inicial .hero-banner-content span:last-child {
+  font-size: 0.95rem;
+  color: #dbeafe;
+}
+
+#tela-inicial .hero-banner-carousel .hero-carousel-arrow {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  transform: translateY(-50%);
+  border-color: rgba(255, 255, 255, 0.65);
+}
+
+#tela-inicial .hero-banner-carousel .hero-carousel-arrow-left {
+  left: 1.5rem;
+}
+
+#tela-inicial .hero-banner-carousel .hero-carousel-arrow-right {
+  right: 1.5rem;
+}
+
+#tela-inicial .hero-banner-dots {
+  position: absolute;
+  z-index: 2;
+  bottom: 1rem;
+  left: 50%;
+  display: flex;
+  gap: 0.45rem;
+  transform: translateX(-50%);
+}
+
+#tela-inicial .hero-banner-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+#tela-inicial .hero-banner-dots span.active {
+  width: 24px;
+  border-radius: 999px;
+  background: #67e8f9;
+}
+
+#tela-inicial .hero-section > .hero-container {
+  padding-top: 2.5rem;
+}
+
+#tela-inicial .hero-title {
+  color: #0f172a;
+}
+
+#tela-inicial .hero-title .highlight-cyan {
+  color: #123b78;
+}
+
+#tela-inicial .hero-subtitle {
+  color: #475569 !important;
+}
+
+#tela-inicial .hero-search-wrapper {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+}
+
+@media (max-width: 768px) {
+  #tela-inicial .hero-banner-carousel {
+    height: 330px;
+  }
+
+  #tela-inicial .hero-banner-content {
+    left: 4.5rem;
+    bottom: 2rem;
+    max-width: 62%;
+  }
+
+  #tela-inicial .hero-banner-carousel .hero-carousel-arrow-left {
+    left: 0.75rem;
+  }
+
+  #tela-inicial .hero-banner-carousel .hero-carousel-arrow-right {
+    right: 0.75rem;
+  }
+}
+
+@media (max-width: 520px) {
+  #tela-inicial .hero-banner-carousel {
+    height: 280px;
+  }
+
+  #tela-inicial .hero-banner-content {
+    left: 3.75rem;
+    bottom: 1.75rem;
+    max-width: 65%;
+  }
+
+  #tela-inicial .hero-banner-content strong {
+    font-size: 1.5rem;
+  }
+
+  #tela-inicial .hero-banner-content span:last-child {
+    font-size: 0.78rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #tela-inicial .hero-banner-slide,
+  #tela-inicial .hero-banner-image {
+    animation: none;
+    transition: none;
   }
 }

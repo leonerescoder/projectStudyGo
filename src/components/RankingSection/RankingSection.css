@@ -1,7 +1,7 @@
 .ranking-section {
-  padding: 2rem 0 4rem;
-  background-color: #060b13;
-  color: #ffffff;
+  padding: 0.5rem 0 1.5rem;
+  background-color: #ffffff;
+  color: #0f172a;
 }
 
 .ranking-container-full {
@@ -12,7 +12,7 @@
 
 /* Left Column: Ranking List */
 .ranking-main-content {
-  background: #09101c;
+  background: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   padding: 1.5rem;
@@ -38,7 +38,7 @@
 .ranking-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #0f172a;
   margin-bottom: 0.2rem;
 }
 
@@ -89,7 +89,7 @@
 .ranking-course-card {
   min-width: 180px;
   flex: 1;
-  background: #0d1726;
+  background: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
   overflow: hidden;
@@ -101,7 +101,7 @@
 
 .ranking-course-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(59, 130, 246, 0.3);
+  border-color: #123b78;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 

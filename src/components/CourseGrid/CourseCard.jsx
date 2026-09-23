@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Flame, Star, Rocket, Clock, Building } from 'lucide-react';
 import { getCourseImageUrl } from '../../utils/courseImage';
+import courseImageFallback from '../../assets/estudandes.jpg';
 
 export function CourseCard({ course }) {
   const navigate = useNavigate();
@@ -48,16 +49,14 @@ export function CourseCard({ course }) {
   const renderVisual = () => {
     if (imgUrl) {
       return (
-        <div className="card-visual-frame visual-image" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="card-visual-frame visual-image">
           <img 
             src={imgUrl} 
             alt={course.title || course.name} 
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+            className="course-card-image"
             onError={(e) => {
-              // Fallback para não mostrar imagem quebrada
-              e.target.style.display = 'none';
-              e.target.parentNode.style.padding = '1.5rem';
-              e.target.parentNode.innerHTML = '<span class="default-icon">📚</span>';
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = courseImageFallback;
             }}
           />
         </div>

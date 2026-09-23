@@ -6,14 +6,14 @@
 }
 
 .company-banner-content {
-  background: linear-gradient(135deg, #131b4d 0%, #0d1236 100%);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
   padding: 32px 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.14);
   position: relative;
   overflow: hidden;
   gap: 32px;
@@ -63,7 +63,7 @@
 }
 
 .company-banner-titles h3 {
-  color: white;
+  color: #0f172a;
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0 0 8px 0;
@@ -71,7 +71,7 @@
 }
 
 .company-banner-titles p {
-  color: #94a3b8;
+  color: #475569;
   font-size: 1rem;
   margin: 0;
   line-height: 1.5;
@@ -121,7 +121,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #cbd5e1;
+  color: #334155;
   font-size: 0.95rem;
 }
 

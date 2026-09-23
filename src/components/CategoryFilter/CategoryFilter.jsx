@@ -1,12 +1,12 @@
 import React from 'react';
 
 export const CATEGORIES_LIST = [
-  { id: 'todos', name: 'Todos', icon: '🌐' },
-  { id: 'ti', name: 'Tecnologia da Informação', icon: '💻' },
-  { id: 'design', name: 'Design', icon: '🎨' },
-  { id: 'gestao', name: 'Gestão & Negócios', icon: '📊' },
-  { id: 'marketing', name: 'Marketing Digital', icon: '🚀' },
-  { id: 'idiomas', name: 'Idiomas', icon: '🗣️' }
+  { id: 'todos', name: 'Todos' },
+  { id: 'ti', name: 'Tecnologia da Informação' },
+  { id: 'design', name: 'Design' },
+  { id: 'gestao', name: 'Gestão & Negócios' },
+  { id: 'marketing', name: 'Marketing Digital' },
+  { id: 'idiomas', name: 'Idiomas' }
 ];
 
 export function CategoryFilter({ activeCategory, onSelectCategory }) {
@@ -21,7 +21,6 @@ export function CategoryFilter({ activeCategory, onSelectCategory }) {
             className={`filter-pill-btn ${isActive ? 'active' : ''}`}
             onClick={() => onSelectCategory(cat.name)}
           >
-            <span className="pill-icon">{cat.icon}</span>
             <span className="pill-text">{cat.name}</span>
           </button>
         );

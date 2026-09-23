@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Menu, 
   Search, 
   GraduationCap, 
   X, 
   ChevronRight, 
   ChevronDown,
   ShieldCheck,
-  User,
   LogOut,
   Crown,
   LayoutDashboard,
-  LogIn
 } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -21,7 +18,6 @@ const defaultIcon = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
 
 function Navbar() {
   const { user, logout, openAuthModal } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -91,9 +87,6 @@ function Navbar() {
     <header className="navbar-wrapper">
       <nav id="main-navbar" className="navbar">
         <div className="navbar-left">
-          <button className="icon-btn menu-btn" onClick={toggleCategoryMenu} title="Menu de Categorias">
-            <Menu size={24} />
-          </button>
           <Link to="/" className="logo-container">
             <GraduationCap size={28} className="logo-icon" />
             <span className="logo-text">StudyGo</span>
