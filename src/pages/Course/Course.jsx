@@ -11,6 +11,8 @@ function Course() {
 
   const [course, setCourse] = useState(null);
   const [relatedCourses, setRelatedCourses] = useState([]);
+  const [rankPosition, setRankPosition] = useState(null);
+  const [relatedRankMap, setRelatedRankMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -24,13 +26,24 @@ function Course() {
         const courseData = await buscaID(id);
         setCourse(courseData);
 
-        // Busca todos os cursos para pegar os relacionados (mesma área de estudo)
+        // Busca todos os cursos para calcular posição real no ranking e pegar relacionados
         try {
           const allCourses = await buscaTodos();
+
+          // Ordena todos por ranking (views) decrescente e calcula posição real
+          const sorted = [...allCourses].sort((a, b) => (b.ranking || 0) - (a.ranking || 0));
+          const position = sorted.findIndex(c => c.id === courseData.id);
+          setRankPosition(position !== -1 ? position + 1 : null);
+
+          // Monta um mapa de posição para os cursos relacionados
+          const rankMap = {};
+          sorted.forEach((c, i) => { rankMap[c.id] = i + 1; });
+          setRelatedRankMap(rankMap);
+
           const related = allCourses
             .filter(c =>
               c.id !== courseData.id &&
-              (c.fieldOfStudy === courseData.fieldOfStudy || 
+              (c.fieldOfStudy === courseData.fieldOfStudy ||
                c.categories?.some(cat => courseData.categories?.some(cc => cc.id === cat.id)))
             )
             .slice(0, 4);
@@ -89,7 +102,7 @@ function Course() {
 
       <div className="main-course-card">
         <div className="course-image-container">
-          {course.ranking && course.ranking <= 5 && (
+          {rankPosition !== null && rankPosition <= 5 && (
             <div className="badge">
               <span className="fire-icon">🔥</span> Mais procurado
             </div>
@@ -104,12 +117,12 @@ function Course() {
         </div>
 
         <div className="course-details">
-          {course.ranking && (
+          {rankPosition !== null && (
             <div className="ranking-badge">
               <Star size={16} fill="#f59e0b" color="#f59e0b" />
               <div className="ranking-text">
                 <span className="ranking-label">Ranking</span>
-                <span className="ranking-value">{course.ranking}º lugar</span>
+                <span className="ranking-value">{rankPosition}º lugar</span>
               </div>
             </div>
           )}
@@ -179,8 +192,8 @@ function Course() {
                   className="card-image"
                   style={{ background: `linear-gradient(135deg, ${relatedColors[index % relatedColors.length]}, ${relatedColors[(index + 1) % relatedColors.length]})` }}
                 >
-                  {rc.ranking && (
-                    <span className="card-ranking">{rc.ranking}º lugar</span>
+                  {relatedRankMap[rc.id] && (
+                    <span className="card-ranking">{relatedRankMap[rc.id]}º lugar</span>
                   )}
                   {getCourseImageUrl(rc) ? (
                     <img src={getCourseImageUrl(rc)} alt={rc.name} className="related-card-img" />

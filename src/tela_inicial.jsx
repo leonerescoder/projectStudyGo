@@ -44,6 +44,11 @@ export function TelaInicial() {
         // Check if response is an array or wrapped in a property like .value or .data
         const data = Array.isArray(response) ? response : (response.value || response.data || []);
         
+        // Ordena por ranking (views) decrescente para determinar posições reais
+        const sorted = [...data].sort((a, b) => (b.ranking || 0) - (a.ranking || 0));
+        const rankPositionMap = {};
+        sorted.forEach((c, i) => { rankPositionMap[c.id] = i + 1; });
+
         const mappedCourses = data.map(c => ({
           id: c.id,
           title: c.name || 'Curso sem nome',
@@ -54,7 +59,9 @@ export function TelaInicial() {
           urlImg: c.urlImg,
           visualType: getVisualType(c.name),
           rawRanking: c.ranking || 0,
-          badge: c.ranking && c.ranking <= 3 ? { type: 'popular', text: 'Mais procurado' } : null
+          rankPosition: rankPositionMap[c.id] || null,
+          // Badge só aparece nos top 3 por posição real (não pelo valor bruto de views)
+          badge: rankPositionMap[c.id] <= 3 ? { type: 'popular', text: 'Mais procurado' } : null
         }));
         setCourses(mappedCourses);
       } catch (err) {
