@@ -64,7 +64,7 @@ function EscolaSelecionada() {
             places: companieData.places || 'Não informado',
             ranking: companieData.ranking || 0,
             rankingPosition: companieData.ranking || 1,
-            fundamentals: companieData.fundamentals || 'Não informado',
+            fundamentals: companieData.fundaments || 'Não informado',
             methods: companieData.methods || 'Não informado',
             courses: companieData.courses || []
           });

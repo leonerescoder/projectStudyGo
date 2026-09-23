@@ -6,6 +6,7 @@ import { Footer } from './components/Footer/Footer';
 import { CompanyBanner } from './components/CompanyBanner/CompanyBanner';
 import { DirectorRegistrationModal } from './components/Auth/DirectorRegistrationModal';
 import { CompanyRegistrationModal } from './components/Auth/CompanyRegistrationModal';
+import { RankingSection } from './components/RankingSection/RankingSection';
 import { buscaTodos } from './ApiCourses/ApiCourse';
 
 import './tela_inicial.css';
@@ -52,6 +53,7 @@ export function TelaInicial() {
           workload: `${c.workload || 0} horas`,
           urlImg: c.urlImg,
           visualType: getVisualType(c.name),
+          rawRanking: c.ranking || 0,
           badge: c.ranking && c.ranking <= 3 ? { type: 'popular', text: 'Mais procurado' } : null
         }));
         setCourses(mappedCourses);
@@ -106,6 +108,9 @@ export function TelaInicial() {
 
       {/* 2. Barra de Estatísticas / Diferenciais */}
       <Features />
+
+      {/* 2.5 Seção de Ranking de Cursos */}
+      <RankingSection courses={courses} />
 
       {/* 3. Seção de Cursos em Destaque com Filtros */}
       <CourseGrid
