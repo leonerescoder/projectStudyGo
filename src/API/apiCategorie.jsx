@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
 import { BASE_URL, getStoredToken } from "./apiClient";
 
+export async function buscaCategorias() {
+  const token = getStoredToken();
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  const request = await fetch(`${BASE_URL}/categorie`, { headers });
+  if (!request.ok) throw new Error("Erro ao buscar categorias");
+  const data = await request.json();
+  return Array.isArray(data) ? data : [];
+}
+
 function App() {
   const [curso, setCursos] = useState([]);
   const [pesquisa, setPesquisa] = useState(0);

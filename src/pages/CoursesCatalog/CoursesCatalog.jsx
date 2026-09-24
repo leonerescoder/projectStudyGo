@@ -1,25 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, Clock, Calendar, BarChart, MapPin, ChevronRight, ChevronDown, Flame, Sparkles, Building } from 'lucide-react';
 import { buscaTodos } from '../../ApiCourses/ApiCourse';
+import { buscaEmpresas } from '../../API/apiCompany';
 import { getCourseImageUrl } from '../../utils/courseImage';
 import './CoursesCatalog.css';
 
 function CoursesCatalog() {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get('search') || '');
   const [sortBy, setSortBy] = useState('popular');
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const categoryFilter = searchParams.get('category') || '';
+  const categoryTitle = categoryFilter ? `Cursos de ${categoryFilter}` : 'Catálogo de cursos';
+
+  useEffect(() => {
+    setSearchTerm(searchParams.get('search') || '');
+  }, [searchParams]);
 
   useEffect(() => {
     async function loadCourses() {
       try {
         setLoading(true);
         setError(null);
-        const data = await buscaTodos();
-        setCourses(data);
+        const [courseData, companyData] = await Promise.all([buscaTodos(), buscaEmpresas()]);
+        const companiesById = Object.fromEntries(companyData.map(company => [company.id, company]));
+        setCourses(courseData.map(course => ({ ...course, company: course.company || companiesById[course.companyId] })));
       } catch (err) {
         console.error('Erro ao carregar cursos:', err);
         setError('Não foi possível carregar os cursos. Tente novamente mais tarde.');
@@ -30,11 +39,20 @@ function CoursesCatalog() {
     loadCourses();
   }, []);
 
-  const filteredCourses = courses.filter(course =>
-    (course.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (course.fieldOfStudy || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (course.company?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const normalizedCategory = categoryFilter.toLowerCase();
+  const normalizedSearch = searchTerm.toLowerCase();
+  const filteredCourses = courses.filter(course => {
+    const matchesCategory = !normalizedCategory ||
+      (course.categories || []).some(category => (category.name || '').toLowerCase() === normalizedCategory) ||
+      (course.fieldOfStudy || '').toLowerCase() === normalizedCategory;
+    const matchesSearch = !normalizedSearch ||
+      (course.name || '').toLowerCase().includes(normalizedSearch) ||
+      (course.fieldOfStudy || '').toLowerCase().includes(normalizedSearch) ||
+      (course.company?.name || '').toLowerCase().includes(normalizedSearch) ||
+      (course.description || '').toLowerCase().includes(normalizedSearch) ||
+      (course.categories || []).some(category => (category.name || '').toLowerCase().includes(normalizedSearch));
+    return matchesCategory && matchesSearch;
+  });
 
   const cardColors = ['#c2410c', '#16a34a', '#2563eb', '#9333ea', '#0891b2', '#dc2626'];
 
@@ -47,7 +65,7 @@ function CoursesCatalog() {
     return (
       <div id="courses-catalog-page">
         <div className="catalog-header">
-          <h1>Catálogo de cursos</h1>
+          <h1>{categoryTitle}</h1>
           <p>Carregando cursos...</p>
         </div>
         <div className="catalog-loading">
@@ -71,7 +89,7 @@ function CoursesCatalog() {
   return (
     <div id="courses-catalog-page">
       <div className="catalog-header">
-        <h1>Catálogo de cursos</h1>
+        <h1>{categoryTitle}</h1>
         <p>Veja os cursos das escolas parceiras e abra para conhecer os detalhes.</p>
       </div>
 

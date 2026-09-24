@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { ArrowDown } from 'lucide-react';
 import { Hero } from './components/Hero/Hero';
 import { Features } from './components/Features/Features';
 import { CourseGrid } from './components/CourseGrid/CourseGrid';
@@ -8,6 +9,8 @@ import { DirectorRegistrationModal } from './components/Auth/DirectorRegistratio
 import { CompanyRegistrationModal } from './components/Auth/CompanyRegistrationModal';
 import { RankingSection } from './components/RankingSection/RankingSection';
 import { buscaTodos } from './ApiCourses/ApiCourse';
+import { buscaCategorias } from './API/apiCategorie';
+import { buscaEmpresas } from './API/apiCompany';
 
 import './tela_inicial.css';
 
@@ -19,6 +22,11 @@ const mockSchools = {
 };
 
 const getSchoolName = (id) => mockSchools[id] || `Escola (ID: ${id})`;
+
+const courseBelongsToCategory = (course, categoryName) => (
+  course.categories.some(category => category.name?.toLowerCase() === categoryName.toLowerCase()) ||
+  course.category.toLowerCase() === categoryName.toLowerCase()
+);
 
 const getVisualType = (name = '') => {
   const n = name.toLowerCase();
@@ -34,13 +42,16 @@ export function TelaInicial() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [courses, setCourses] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const [isDirectorModalOpen, setIsDirectorModalOpen] = useState(false);
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
 
   useEffect(() => {
     async function loadCourses() {
       try {
-        const response = await buscaTodos();
+        const [response, companyData] = await Promise.all([buscaTodos(), buscaEmpresas()]);
+        setCompanies(companyData);
         // Check if response is an array or wrapped in a property like .value or .data
         const data = Array.isArray(response) ? response : (response.value || response.data || []);
         
@@ -52,9 +63,10 @@ export function TelaInicial() {
         const mappedCourses = data.map(c => ({
           id: c.id,
           title: c.name || 'Curso sem nome',
-          category: c.fieldOfStudy || 'Geral',
+          category: c.categories?.map(category => category.name).join(', ') || c.fieldOfStudy || 'Geral',
+          categories: Array.isArray(c.categories) ? c.categories : [],
           description: c.description || '',
-          school: getSchoolName(c.companyId),
+          school: c.company?.name || companyData.find(company => company.id === c.companyId)?.name || getSchoolName(c.companyId),
           workload: `${c.workload || 0} horas`,
           urlImg: c.urlImg,
           visualType: getVisualType(c.name),
@@ -71,12 +83,16 @@ export function TelaInicial() {
     loadCourses();
   }, []);
 
+  useEffect(() => {
+    buscaCategorias().then(setCategories).catch(err => console.error('Erro ao buscar categorias:', err));
+  }, []);
+
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
       // Filtro por categoria
       const matchesCategory =
         activeCategory === 'Todos' ||
-        course.category.toLowerCase() === activeCategory.toLowerCase();
+        courseBelongsToCategory(course, activeCategory);
 
       // Filtro por busca
       const query = searchTerm.trim().toLowerCase();
@@ -104,6 +120,10 @@ export function TelaInicial() {
     setActiveCategory('Todos');
   };
 
+  const handleCompanyCardClick = () => {
+    document.getElementById('company-registration-banner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
   return (
     <div id="tela-inicial">
       {/* 1. Seção Hero Centralizada */}
@@ -114,6 +134,14 @@ export function TelaInicial() {
         onSearchSubmit={handleSearchSubmit}
       />
 
+      <button type="button" className="company-invite-card" onClick={handleCompanyCardClick}>
+        <span className="company-invite-card-content">
+          <strong>Cadastre sua empresa no StudyGo</strong>
+          <span>Divulgue seus cursos para novos alunos</span>
+        </span>
+        <ArrowDown size={22} aria-hidden="true" />
+      </button>
+
       {/* 2. Barra de Estatísticas / Diferenciais */}
       <Features />
 
@@ -123,10 +151,27 @@ export function TelaInicial() {
       {/* 3. Seção de Cursos em Destaque com Filtros */}
       <CourseGrid
         courses={filteredCourses}
+        categories={categories}
         activeCategory={activeCategory}
         onSelectCategory={setActiveCategory}
         onResetFilters={handleResetFilters}
       />
+
+      {categories.map(category => {
+        const categoryCourses = filteredCourses.filter(course => courseBelongsToCategory(course, category.name));
+        if (!categoryCourses.length) return null;
+        return (
+          <CourseGrid
+            key={category.id}
+            sectionId={`categoria-${category.id}`}
+            sectionTitle={category.name}
+            categoryName={category.name}
+            courses={categoryCourses}
+            showCategoryFilter={false}
+            onResetFilters={handleResetFilters}
+          />
+        );
+      })}
 
       {/* 4. Banner para Empresas (Call to Action) */}
       <CompanyBanner onRegisterClick={() => setIsDirectorModalOpen(true)} />

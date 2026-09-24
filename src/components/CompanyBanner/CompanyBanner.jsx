@@ -11,7 +11,7 @@ export function CompanyBanner({ onRegisterClick }) {
   ];
 
   return (
-    <div className="company-banner-container">
+    <div id="company-registration-banner" className="company-banner-container">
       <div className="company-banner-content">
         <div className="company-banner-left">
           <div className="company-banner-header">

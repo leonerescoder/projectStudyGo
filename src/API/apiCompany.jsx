@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
 import { BASE_URL, getStoredToken } from "./apiClient";
 
+export async function buscaEmpresas() {
+  const token = getStoredToken();
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  const request = await fetch(`${BASE_URL}/companie`, { headers });
+  if (!request.ok) throw new Error("Erro ao buscar escolas");
+  const data = await request.json();
+  return Array.isArray(data) ? data : [];
+}
+
 function App() {
   const [companie, setCompanie] = useState([]);
   const [pesquisa, setPesquisa] = useState(0);

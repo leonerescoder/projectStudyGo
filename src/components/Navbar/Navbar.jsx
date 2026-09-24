@@ -18,12 +18,14 @@ const defaultIcon = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
 
 function Navbar() {
   const { user, logout, openAuthModal } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [categories, setCategories] = useState([]);
   const [hasScrolled, setHasScrolled] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const userMenuRef = useRef(null);
 
   const isHomePage = location.pathname === '/';
@@ -83,6 +85,12 @@ function Navbar() {
     setIsUserMenuOpen(false);
   };
 
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+    const query = searchTerm.trim();
+    navigate(query ? `/cursos?search=${encodeURIComponent(query)}` : '/cursos');
+  };
+
   return (
     <header className="navbar-wrapper">
       <nav id="main-navbar" className="navbar">
@@ -94,15 +102,17 @@ function Navbar() {
         </div>
 
         <div className={`navbar-center ${showSearch ? 'search-visible' : 'search-hidden'}`}>
-          <div className="search-bar">
+          <form className="search-bar" onSubmit={handleSearchSubmit}>
             <Search size={20} className="search-icon" strokeWidth={2.5} />
             <input
               type="text"
               placeholder="Pesquisar cursos, escolas ou áreas..."
               className="search-input"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
               tabIndex={showSearch ? 0 : -1}
             />
-          </div>
+          </form>
         </div>
 
         <div className="navbar-right">
