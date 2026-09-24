@@ -37,7 +37,7 @@ Representa as pessoas que interagem no sistema.
 
 ### Company (Empresa)
 Representa as organizações cadastradas.
-- **Campos**: Nome (único), CNPJ (único), Fundação, Locais de atuação (places), Fundamentos, Métodos e Ranking.
+- **Campos**: Nome (único), CNPJ (único), Email, Telefone (tel), URL da Imagem (urlImg), Fundação, Locais de atuação (places), Fundamentos, Métodos e Ranking.
 - **Relacionamentos**:
   - Possui vários **Users** (colaboradores/membros).
   - Possui vários **Courses** (cursos oferecidos pela empresa).

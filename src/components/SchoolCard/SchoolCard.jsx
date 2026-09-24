@@ -34,7 +34,11 @@ const SchoolCard = ({ school }) => {
       <div className="school-card-header">
         <div className="school-header-left">
           <div className="school-avatar">
-            {school.name.charAt(0)}
+            {school.urlImg ? (
+              <img src={school.urlImg} alt={school.name} className="school-logo-img" />
+            ) : (
+              school.name.charAt(0)
+            )}
           </div>
           <div className="school-name-group">
             <h3 className="school-name">{school.name}</h3>

@@ -8,7 +8,10 @@ import {
   X,
   AlertCircle,
   CheckCircle2,
-  Send
+  Send,
+  Mail,
+  Phone,
+  Image as ImageIcon
 } from 'lucide-react';
 import { BASE_URL } from '../../API/apiClient';
 import { useAuth } from '../../context/AuthContext';
@@ -19,6 +22,9 @@ export function CompanyRegistrationModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState({
     name: '',
     cnpj: '',
+    email: '',
+    tel: '',
+    urlImg: '',
     foundation: '',
     places: '',
     fundaments: '',
@@ -79,6 +85,9 @@ export function CompanyRegistrationModal({ isOpen, onClose }) {
       const payload = {
         name: formData.name,
         cnpj: rawCnpj,
+        email: formData.email,
+        tel: formData.tel,
+        urlImg: formData.urlImg,
         foundation: isoDate,
         places: formData.places,
         fundaments: formData.fundaments,
@@ -129,7 +138,7 @@ export function CompanyRegistrationModal({ isOpen, onClose }) {
       setTimeout(() => {
         onClose();
         setSuccessMessage('');
-        setFormData({ name: '', cnpj: '', foundation: '', places: '', fundaments: '', methods: '' });
+        setFormData({ name: '', cnpj: '', email: '', tel: '', urlImg: '', foundation: '', places: '', fundaments: '', methods: '' });
       }, 3000);
       
     } catch (error) {
@@ -220,6 +229,55 @@ export function CompanyRegistrationModal({ isOpen, onClose }) {
                   required
                 />
               </div>
+            </div>
+          </div>
+
+          <div className="comp-row-group">
+            <div className="comp-input-group">
+              <label htmlFor="comp-email">E-mail</label>
+              <div className="comp-input-with-icon">
+                <Mail size={18} className="comp-field-icon" />
+                <input
+                  id="comp-email"
+                  name="email"
+                  type="email"
+                  placeholder="contato@escola.com.br"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="comp-input-group">
+              <label htmlFor="comp-tel">Telefone</label>
+              <div className="comp-input-with-icon">
+                <Phone size={18} className="comp-field-icon" />
+                <input
+                  id="comp-tel"
+                  name="tel"
+                  type="tel"
+                  placeholder="(00) 00000-0000"
+                  value={formData.tel}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="comp-input-group">
+            <label htmlFor="comp-urlImg">URL da Imagem de Capa (Opcional)</label>
+            <div className="comp-input-with-icon">
+              <ImageIcon size={18} className="comp-field-icon" />
+              <input
+                id="comp-urlImg"
+                name="urlImg"
+                type="url"
+                placeholder="https://exemplo.com/imagem.png"
+                value={formData.urlImg}
+                onChange={handleChange}
+              />
             </div>
           </div>
 

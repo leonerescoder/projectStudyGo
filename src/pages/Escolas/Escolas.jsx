@@ -48,6 +48,7 @@ function Escolas() {
             rankingPosition: index + 1,
             coursesCount: Array.isArray(companie.courses) ? companie.courses.length : 0,
             foundation: companie.foundation || null,
+            urlImg: companie.urlImg || "",
             createdAt: companie.foundation || new Date().toISOString()
           };
         });
