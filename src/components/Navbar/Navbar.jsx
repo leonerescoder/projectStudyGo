@@ -217,7 +217,7 @@ function Navbar() {
               </div>
 
               <div className="category-list">
-                {categories.map(cat => (
+                {[...categories].sort((a, b) => (a.name || '').localeCompare(b.name || '')).map(cat => (
                   <div key={cat.id} className="category-item-container">
                     <button
                       className={`category-btn ${selectedCategory === cat.id ? 'active' : ''}`}

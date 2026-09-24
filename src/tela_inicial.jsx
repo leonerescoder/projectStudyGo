@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ArrowDown } from 'lucide-react';
+import { Building2, CheckCircle2 } from 'lucide-react';
 import { Hero } from './components/Hero/Hero';
 import { Features } from './components/Features/Features';
 import { CourseGrid } from './components/CourseGrid/CourseGrid';
@@ -341,14 +341,7 @@ export function TelaInicial() {
   };
 
   const handleCompanyCardClick = () => {
-    document
-      .getElementById(
-        'company-registration-banner'
-      )
-      ?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
+    setIsDirectorModalOpen(true);
   };
 
   return (
@@ -363,26 +356,28 @@ export function TelaInicial() {
       />
 
       {/* Convite para empresas */}
-      <button
-        type="button"
-        className="company-invite-card"
-        onClick={handleCompanyCardClick}
-      >
-        <span className="company-invite-card-content">
-          <strong>
-            Cadastre sua empresa no StudyGo
-          </strong>
-
-          <span>
-            Divulgue seus cursos para novos alunos
-          </span>
-        </span>
-
-        <ArrowDown
-          size={22}
-          aria-hidden="true"
-        />
-      </button>
+      <div className="new-company-invite-banner">
+        <div className="new-company-invite-left">
+          <div className="new-company-invite-icon">
+            <Building2 size={32} color="#ffffff" strokeWidth={1.5} />
+          </div>
+          <div className="new-company-invite-info">
+            <h3>Sua empresa no StudyGo</h3>
+            <p>Encontre alunos e divulgue seus cursos para milhares de estudantes.</p>
+            <button className="new-company-invite-btn" onClick={handleCompanyCardClick}>
+              Cadastrar minha empresa
+            </button>
+          </div>
+        </div>
+        <div className="new-company-invite-right">
+          <ul className="new-company-features">
+            <li><CheckCircle2 size={18} className="check-icon" /> Publique seus cursos</li>
+            <li><CheckCircle2 size={18} className="check-icon" /> Gerencie inscrições</li>
+            <li><CheckCircle2 size={18} className="check-icon" /> Acompanhe interessados</li>
+            <li><CheckCircle2 size={18} className="check-icon" /> Divulgue sua instituição</li>
+          </ul>
+        </div>
+      </div>
 
       {/* 2. Estatísticas / Diferenciais */}
       <Features />

@@ -367,7 +367,7 @@ export function Admin() {
   const filteredCategories = categories.filter(item =>
     (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (item.description || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
   const filteredUsers = userRole === 'ADMIN' ? users.filter(item => {
     return (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
