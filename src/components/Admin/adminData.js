@@ -6,7 +6,7 @@ export const INITIAL_COURSES = [
     description: 'Aprenda lógica estruturada, algoritmos e resolva desafios práticos.',
     urlImg: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=600&q=80',
     workload: 80,
-    ranking: 1,
+    ranking: 0,
     Field_of_study: 'Tecnologia',
     company_name: 'Senac São Carlos',
     company_id: 1,
@@ -19,7 +19,7 @@ export const INITIAL_COURSES = [
     description: 'Orientação a objetos, arquitetura em camadas e desenvolvimento corporativo.',
     urlImg: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=600&q=80',
     workload: 120,
-    ranking: 2,
+    ranking: 0,
     Field_of_study: 'Tecnologia',
     company_name: 'Alura Cursos',
     company_id: 2,
@@ -32,7 +32,7 @@ export const INITIAL_COURSES = [
     description: 'HTML5, CSS3, React, Node.js e integração com banco de dados MySQL.',
     urlImg: 'https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&w=600&q=80',
     workload: 180,
-    ranking: 3,
+    ranking: 0,
     Field_of_study: 'Tecnologia',
     company_name: 'SENAI Hub',
     company_id: 3,
@@ -45,7 +45,7 @@ export const INITIAL_COURSES = [
     description: 'Infraestrutura cloud, containers Docker, deploy contínuo e escalabilidade.',
     urlImg: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80',
     workload: 100,
-    ranking: 4,
+    ranking: 0,
     Field_of_study: 'Tecnologia',
     company_name: 'Unopar Tech',
     company_id: 4,
@@ -58,7 +58,7 @@ export const INITIAL_COURSES = [
     description: 'Técnicas culinárias contemporâneas, confeitaria e cozinha internacional.',
     urlImg: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
     workload: 90,
-    ranking: 5,
+    ranking: 0,
     Field_of_study: 'Gastronomia',
     company_name: 'Senac São Carlos',
     company_id: 1,
@@ -71,7 +71,7 @@ export const INITIAL_COURSES = [
     description: 'Formação completa com Redes Neurais, Deep Learning, Processamento de Linguagem Natural (NLP), Visão Computacional, PyTorch, TensorFlow e deploy de modelos em nuvem.',
     urlImg: 'https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=800&q=80',
     workload: 240,
-    ranking: 1,
+    ranking: 0,
     Field_of_study: 'Tecnologia',
     company_name: 'Senac São Carlos',
     company_id: 1,
@@ -128,15 +128,15 @@ export const INITIAL_COMPANIES = [
 ];
 
 export const INITIAL_CATEGORIES = [
-  { id: 1, name: 'Tecnologia', description: 'Programação, Redes, Cloud, Inteligência Artificial e Dados' },
-  { id: 2, name: 'Mecânica', description: 'Manutenção automotiva, robótica e processos industriais' },
-  { id: 3, name: 'Gastronomia', description: 'Culinária, panificação, confeitaria e enologia' },
-  { id: 4, name: 'Idiomas', description: 'Inglês, Espanhol, Francês e comunicação internacional' },
-  { id: 5, name: 'Saúde', description: 'Enfermagem, nutrição, bem-estar e primeiros socorros' },
-  { id: 6, name: 'Moda', description: 'Design de moda, costura, modelagem e tendências' },
-  { id: 7, name: 'Artes', description: 'Pintura, ilustração digital, escultura e história da arte' },
-  { id: 8, name: 'Música', description: 'Teoria musical, instrumentos, produção de áudio' },
-  { id: 9, name: 'Educação', description: 'Pedagogia, metodologias ativas e gestão escolar' }
+  { id: 1, name: 'Tecnologia', nome_normalizado: 'tecnologia', description: 'Programação, Redes, Cloud, Inteligência Artificial e Dados' },
+  { id: 2, name: 'Mecânica', nome_normalizado: 'mecanica', description: 'Manutenção automotiva, robótica e processos industriais' },
+  { id: 3, name: 'Gastronomia', nome_normalizado: 'gastronomia', description: 'Culinária, panificação, confeitaria e enologia' },
+  { id: 4, name: 'Idiomas', nome_normalizado: 'idiomas', description: 'Inglês, Espanhol, Francês e comunicação internacional' },
+  { id: 5, name: 'Saúde', nome_normalizado: 'saude', description: 'Enfermagem, nutrição, bem-estar e primeiros socorros' },
+  { id: 6, name: 'Moda', nome_normalizado: 'moda', description: 'Design de moda, costura, modelagem e tendências' },
+  { id: 7, name: 'Artes', nome_normalizado: 'artes', description: 'Pintura, ilustração digital, escultura e história da arte' },
+  { id: 8, name: 'Música', nome_normalizado: 'musica', description: 'Teoria musical, instrumentos, produção de áudio' },
+  { id: 9, name: 'Educação', nome_normalizado: 'educacao', description: 'Pedagogia, metodologias ativas e gestão escolar' }
 ];
 
 export const INITIAL_USERS = [

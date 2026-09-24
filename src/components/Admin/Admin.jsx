@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   ShieldCheck,
   GraduationCap,
@@ -22,12 +22,34 @@ import {
   Server,
   Image as ImageIcon,
   Upload,
-  Sparkles
+  Sparkles,
+  Rocket,
+  MousePointerClick,
+  TrendingUp,
+  ArrowUpRight,
+  RotateCcw,
+  Target
 } from 'lucide-react';
 import { apiFetch } from '../../API/apiClient';
 import { DB_CONFIG } from '../../data/databaseConfig';
 import { useAuth } from '../../context/AuthContext';
 import { getFallbackImageUrl, saveLocalCourseImage, getCourseImageUrl } from '../../utils/courseImage';
+import {
+  getCourseStats,
+  enrichCourseWithRanking,
+  boostCoursePoints,
+  setCourseBoostedPoints,
+  resetCourseStats,
+  RANKING_UPDATE_EVENT
+} from '../../utils/rankingService';
+import {
+  getGlobalCategories,
+  saveOrGetCategory,
+  normalizeCategoryName,
+  findCategoryMatch,
+  CATEGORIES_UPDATE_EVENT
+} from '../../utils/categoryService';
+import { CategorySmartInput } from '../CategorySmartInput/CategorySmartInput';
 import './Admin.css';
 
 const QUICK_IMAGE_PRESETS = [
@@ -70,10 +92,10 @@ export function Admin() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [courseRes, compRes, catRes, userRes] = await Promise.all([
+        const [courseRes, compRes, globalCats, userRes] = await Promise.all([
           apiFetch('/course'),
           apiFetch('/companie'),
-          apiFetch('/categorie'),
+          getGlobalCategories(),
           apiFetch('/user')
         ]);
 
@@ -85,9 +107,8 @@ export function Admin() {
           const compData = await compRes.json();
           setCompanies(Array.isArray(compData) ? compData : []);
         }
-        if (catRes.ok) {
-          const catData = await catRes.json();
-          setCategories(Array.isArray(catData) ? catData : []);
+        if (globalCats) {
+          setCategories(Array.isArray(globalCats) ? globalCats : []);
         }
         if (userRes.ok) {
           const userData = await userRes.json();
@@ -98,6 +119,21 @@ export function Admin() {
       }
     }
     loadData();
+
+    const handleCatUpdate = async () => {
+      const updatedCats = await getGlobalCategories();
+      setCategories(updatedCats);
+    };
+    window.addEventListener(CATEGORIES_UPDATE_EVENT, handleCatUpdate);
+    return () => window.removeEventListener(CATEGORIES_UPDATE_EVENT, handleCatUpdate);
+  }, []);
+
+  // Listen to dynamic ranking updates (clicks / points boost)
+  const [statsVersion, setStatsVersion] = useState(0);
+  useEffect(() => {
+    const handleRankingUpdate = () => setStatsVersion(v => v + 1);
+    window.addEventListener(RANKING_UPDATE_EVENT, handleRankingUpdate);
+    return () => window.removeEventListener(RANKING_UPDATE_EVENT, handleRankingUpdate);
   }, []);
 
   // Modal State (Inserir Dados)
@@ -105,12 +141,18 @@ export function Admin() {
   const [modalEntityType, setModalEntityType] = useState('course'); // 'course' | 'company' | 'category' | 'user'
   const [toastMessage, setToastMessage] = useState(null);
 
+  // Boost Points Modal State
+  const [boostModalCourse, setBoostModalCourse] = useState(null);
+  const [selectedBoostPreset, setSelectedBoostPreset] = useState(50);
+  const [customBoostInput, setCustomBoostInput] = useState('');
+  const [isCustomBoost, setIsCustomBoost] = useState(false);
+
   // Derive the director's own company from the loaded companies list
   const directorCompany = userRole === 'DIRECTOR'
     ? companies.find(c => c.ownerId === user?.id) || null
     : null;
 
-  // Form Fields State for Course
+  // Form Fields State for Course (Ranking starts at 0 by default)
   const [courseForm, setCourseForm] = useState({
     name: '',
     description: '',
@@ -118,7 +160,7 @@ export function Admin() {
     workload: '',
     Field_of_study: 'Tecnologia',
     company_name: '',
-    ranking: '1',
+    ranking: '0',
     status: 'ATIVO'
   });
 
@@ -179,7 +221,7 @@ export function Admin() {
         e.target.value = '';
         return;
       }
-      
+
       const MAX_SIZE_MB = 2;
       const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
       if (file.size > MAX_SIZE_BYTES) {
@@ -237,17 +279,70 @@ export function Admin() {
     return comp ? comp.name : 'Indefinida';
   };
 
-  const filteredCourses = courses.filter(item => {
+  // Open Boost Points Modal
+  const openBoostModal = (course) => {
+    setBoostModalCourse(course);
+    setSelectedBoostPreset(50);
+    setCustomBoostInput('');
+    setIsCustomBoost(false);
+  };
+
+  // Apply Points Boost (Modal)
+  const handleApplyBoost = (e) => {
+    e.preventDefault();
+    if (!boostModalCourse) return;
+    const pointsToAdd = isCustomBoost ? (parseInt(customBoostInput, 10) || 0) : selectedBoostPreset;
+    if (pointsToAdd <= 0) {
+      alert('Por favor, informe uma quantidade válida de pontos para upar (mínimo 1 ponto).');
+      return;
+    }
+    const res = boostCoursePoints(boostModalCourse.id, pointsToAdd);
+    showToast(`🚀 +${pointsToAdd} pontos upados com sucesso para "${boostModalCourse.name}"! Ranking Total: ${res.totalRanking} pts`);
+    setBoostModalCourse(null);
+  };
+
+  // Quick Boost +1 Point (Acréscimo de 1 em 1 direto na tabela)
+  const handleQuickBoostOne = (course) => {
+    const res = boostCoursePoints(course.id, 1);
+    showToast(`🚀 +1 Ponto upado para "${course.name}"! Ranking Total: ${res.totalRanking} pts`);
+  };
+
+  // Quick Decrement -1 Point
+  const handleQuickDecrementOne = (course) => {
+    const currentBoost = getCourseBoostedPoints(course.id);
+    if (currentBoost <= 0) {
+      showToast(`A pontuação upada de "${course.name}" já está em 0.`);
+      return;
+    }
+    const res = boostCoursePoints(course.id, -1);
+    showToast(`Ajustado -1 Ponto para "${course.name}". Ranking Total: ${res.totalRanking} pts`);
+  };
+
+  // Reset Stats for a course
+  const handleResetCourseRanking = (courseId, courseName) => {
+    if (window.confirm(`Deseja realmente zerar os cliques e pontos upados do curso "${courseName}"? O ranking voltará para 0.`)) {
+      resetCourseStats(courseId);
+      showToast(`Pontuação do curso "${courseName}" reiniciada para 0.`);
+      setBoostModalCourse(null);
+    }
+  };
+
+  // Enrich courses with real-time stats and sort
+  const enrichedCourses = useMemo(() => {
+    return courses.map(c => enrichCourseWithRanking(c));
+  }, [courses, statsVersion]);
+
+  const filteredCourses = enrichedCourses.filter(item => {
     const compName = getCompanyName(item);
     const matchesSearch = (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (item.Field_of_study || item.fieldOfStudy || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (compName).toLowerCase().includes(searchTerm.toLowerCase());
+      (item.Field_of_study || item.fieldOfStudy || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (compName).toLowerCase().includes(searchTerm.toLowerCase());
     if (userRole === 'DIRECTOR') {
       const isOwner = item.ownerId === user.id;
       const belongsToMyCompany = companies.some(c => c.id === item.companyId && c.ownerId === user.id);
       const userComp = user?.company_name || user?.companyName || '';
       const isLinkedByName = userComp && userComp !== 'StudyGo Central' && compName.toLowerCase().includes(userComp.toLowerCase());
-      
+
       if (isOwner || belongsToMyCompany || isLinkedByName) return matchesSearch;
       return false;
     }
@@ -256,13 +351,13 @@ export function Admin() {
 
   const filteredCompanies = companies.filter(item => {
     const matchesSearch = (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (item.places || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (item.cnpj || '').includes(searchTerm);
+      (item.places || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.cnpj || '').includes(searchTerm);
     if (userRole === 'DIRECTOR') {
       const isOwner = item.ownerId === user.id;
       const userComp = user?.company_name || user?.companyName || '';
       const isLinkedByName = userComp && userComp !== 'StudyGo Central' && (item.name || '').toLowerCase().includes(userComp.toLowerCase());
-      
+
       if (isOwner || isLinkedByName) return matchesSearch;
       return false;
     }
@@ -276,8 +371,8 @@ export function Admin() {
 
   const filteredUsers = userRole === 'ADMIN' ? users.filter(item => {
     return (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-           (item.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-           (item.type || '').toLowerCase().includes(searchTerm.toLowerCase());
+      (item.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.type || '').toLowerCase().includes(searchTerm.toLowerCase());
   }) : [];
 
   // Handle deletion
@@ -359,21 +454,41 @@ export function Admin() {
       try {
         const selectedCompany = companies.find(c => c.name === courseForm.company_name);
         const companyId = selectedCompany ? selectedCompany.id : 1;
-        const selectedCategory = categories.find(c => c.name === courseForm.Field_of_study);
-        const categoryIds = selectedCategory ? [selectedCategory.id] : [1];
+
+        // FASE 7 & 12: Resolve o ID real da categoria (Reutiliza existente ou cria inédita no banco)
+        let targetCategory = categories.find(
+          c => (c.nome_normalizado && c.nome_normalizado === normalizeCategoryName(courseForm.Field_of_study)) ||
+               c.name?.toLowerCase() === courseForm.Field_of_study?.toLowerCase()
+        );
+
+        if (!targetCategory && courseForm.Field_of_study && courseForm.Field_of_study.trim()) {
+          try {
+            const catResult = await saveOrGetCategory(courseForm.Field_of_study);
+            targetCategory = catResult.category;
+            setCategories(prev => {
+              const exists = prev.some(c => c.id === targetCategory.id);
+              return exists ? prev : [...prev, targetCategory];
+            });
+          } catch (e) {
+            console.warn('Erro ao salvar categoria no banco:', e);
+          }
+        }
+
+        const categoryIds = targetCategory ? [targetCategory.id] : [1];
+        const canonicalCategoryName = targetCategory ? targetCategory.name : (courseForm.Field_of_study || 'Tecnologia');
 
         const isBase64Upload = courseForm.urlImg && courseForm.urlImg.startsWith('data:');
         const safeBackendImageUrl = isBase64Upload
-          ? getFallbackImageUrl(courseForm.Field_of_study)
-          : (courseForm.urlImg ? courseForm.urlImg.trim().slice(0, 250) : getFallbackImageUrl(courseForm.Field_of_study));
+          ? getFallbackImageUrl(canonicalCategoryName)
+          : (courseForm.urlImg ? courseForm.urlImg.trim().slice(0, 250) : getFallbackImageUrl(canonicalCategoryName));
 
         const payload = {
           name: courseForm.name,
           description: trimmedDesc,
           urlImg: safeBackendImageUrl,
           workload: Number(courseForm.workload),
-          ranking: Number(courseForm.ranking) || 1,
-          fieldOfStudy: courseForm.Field_of_study,
+          ranking: Number(courseForm.ranking) || 0,
+          fieldOfStudy: canonicalCategoryName,
           companyId: companyId,
           categoryIds: categoryIds,
           ownerId: user?.id || 1,
@@ -382,16 +497,16 @@ export function Admin() {
         const response = await apiFetch('/course', { method: 'POST', body: JSON.stringify(payload) });
         if (response.ok) {
           const newCourse = await response.json();
-          
+
           if (isBase64Upload) {
             saveLocalCourseImage(newCourse.id, courseForm.urlImg);
             saveLocalCourseImage(newCourse.name, courseForm.urlImg);
             newCourse.urlImg = courseForm.urlImg;
           }
-          
+
           setCourses([newCourse, ...courses]);
-          showToast(`✓ Curso "${newCourse.name}" inserido no banco com sucesso!`);
-          setCourseForm({ name: '', description: '', urlImg: '', workload: '', Field_of_study: 'Tecnologia', company_name: directorCompany ? directorCompany.name : 'Senac São Carlos', ranking: '1', status: 'ATIVO' });
+          showToast(`✓ Curso "${newCourse.name}" cadastrado com sucesso com Ranking Inicial 0 na categoria "${canonicalCategoryName}"!`);
+          setCourseForm({ name: '', description: '', urlImg: '', workload: '', Field_of_study: 'Tecnologia', company_name: directorCompany ? directorCompany.name : 'Senac São Carlos', ranking: '0', status: 'ATIVO' });
         } else {
           const errText = await response.text();
           let userMsg = errText;
@@ -402,11 +517,17 @@ export function Admin() {
             } else if (errJson.error || errJson.message) {
               userMsg = errJson.error || errJson.message;
             }
-          } catch (e) {}
-          alert('Aviso ao cadastrar curso:\n' + userMsg);
+          } catch (e) { }
+
+          if (userMsg.toLowerCase().includes('jwt expired') || response.status === 401) {
+            alert('Aviso ao cadastrar curso:\nSua sessão de acesso expirou no servidor. Por favor, faça login novamente para renovar suas credenciais.');
+            if (typeof openAuthModal === 'function') openAuthModal();
+          } else {
+            alert('Aviso ao cadastrar curso:\n' + userMsg);
+          }
           console.error('Erro backend:', errText);
         }
-      } catch (err) { console.error(err); alert('Erro de conexão.'); }
+      } catch (err) { console.error(err); alert('Erro de conexão ao salvar curso no servidor.'); }
     }
     else if (modalEntityType === 'company') {
       if (!companyForm.name || !companyForm.cnpj) {
@@ -439,25 +560,27 @@ export function Admin() {
         return;
       }
       try {
-        const payload = {
-          name: categoryForm.name.trim(),
-          description: categoryForm.description || 'Categoria de estudos'
-        };
-        const response = await apiFetch('/categorie', { method: 'POST', body: JSON.stringify(payload) });
-        if (response.ok) {
-          const newCat = await response.json();
-          setCategories(prev => {
-            const exists = prev.some(c => c.id === newCat.id || c.name.toLowerCase() === newCat.name.toLowerCase());
-            return exists ? prev : [...prev, newCat];
-          });
-          setCourseForm(prev => ({ ...prev, Field_of_study: newCat.name }));
-          showToast(`✓ Categoria "${newCat.name}" cadastrada no banco e disponível para todos os diretores!`);
-          setCategoryForm({ name: '', description: '' });
+        // FASE 5, 6, 7 e 8: Normaliza, detecta duplicatas e salva ou reaproveita categoria
+        const result = await saveOrGetCategory(categoryForm.name, categoryForm.description);
+        
+        setCategories(prev => {
+          const exists = prev.some(c => c.id === result.category.id);
+          return exists ? prev : [...prev, result.category];
+        });
+        setCourseForm(prev => ({ ...prev, Field_of_study: result.category.name }));
+
+        if (result.reused) {
+          showToast(`ℹ️ Categoria existente "${result.category.name}" (ID: #${result.category.id}) reaproveitada com sucesso!`);
         } else {
-          const errText = await response.text();
-          alert('Erro ao inserir categoria no banco: ' + errText);
+          showToast(`✓ Nova categoria "${result.category.name}" cadastrada no banco e disponível para todos os diretores!`);
         }
-      } catch (err) { console.error(err); alert('Erro de conexão ao salvar categoria.'); }
+        
+        setCategoryForm({ name: '', description: '' });
+        setIsModalOpen(false);
+      } catch (err) {
+        console.error(err);
+        alert('Aviso ao processar categoria:\n' + (err.message || 'Erro de conexão ao salvar categoria.'));
+      }
     }
     else if (modalEntityType === 'user') {
       if (!userForm.name || !userForm.email || !userForm.cpf) {
@@ -717,11 +840,10 @@ export function Admin() {
               <Search size={18} className="search-icon" />
               <input
                 type="text"
-                placeholder={`Pesquisar em ${
-                  activeTab === 'courses' ? 'Cursos' :
+                placeholder={`Pesquisar em ${activeTab === 'courses' ? 'Cursos' :
                   activeTab === 'companies' ? 'Escolas' :
-                  activeTab === 'categories' ? 'Categorias' : 'Usuários'
-                }...`}
+                    activeTab === 'categories' ? 'Categorias' : 'Usuários'
+                  }...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -737,8 +859,8 @@ export function Admin() {
               <span>
                 Visualizando <strong>{
                   activeTab === 'courses' ? filteredCourses.length :
-                  activeTab === 'companies' ? filteredCompanies.length :
-                  activeTab === 'categories' ? filteredCategories.length : filteredUsers.length
+                    activeTab === 'companies' ? filteredCompanies.length :
+                      activeTab === 'categories' ? filteredCategories.length : filteredUsers.length
                 }</strong> registros
               </span>
             </div>
@@ -757,66 +879,127 @@ export function Admin() {
                     <th>Categoria / Área</th>
                     <th>Escola Parceira</th>
                     <th>Carga Horária</th>
-                    <th>Ranking</th>
+                    <th>🎯 Ranking Inicial</th>
+                    <th>🖱️ Cliques do Usuário</th>
+                    <th>🚀 Pontos Upados (+1)</th>
+                    <th>⭐ Ranking Total (Soma)</th>
                     <th>Status</th>
                     <th className="th-actions">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredCourses.length > 0 ? (
-                    filteredCourses.map((c) => (
-                      <tr key={c.id}>
-                        <td className="cell-id">#{c.id}</td>
-                        <td className="cell-main">
-                          <div className="course-name-row">
-                            <div className="course-table-thumb">
-                              {getCourseImageUrl(c) ? (
-                                <img src={getCourseImageUrl(c)} alt={c.name} onError={(e) => { e.target.style.display = 'none'; }} />
-                              ) : (
-                                <span className="thumb-fallback">📚</span>
-                              )}
+                    filteredCourses.map((c) => {
+                      const stats = getCourseStats(c);
+                      return (
+                        <tr key={c.id}>
+                          <td className="cell-id">#{c.id}</td>
+                          <td className="cell-main">
+                            <div className="course-name-row">
+                              <div className="course-table-thumb">
+                                {getCourseImageUrl(c) ? (
+                                  <img src={getCourseImageUrl(c)} alt={c.name} onError={(e) => { e.target.style.display = 'none'; }} />
+                                ) : (
+                                  <span className="thumb-fallback">📚</span>
+                                )}
+                              </div>
+                              <div className="name-wrapper">
+                                <span className="item-title">{c.name}</span>
+                                <span className="item-subtitle">{c.description}</span>
+                              </div>
                             </div>
-                            <div className="name-wrapper">
-                              <span className="item-title">{c.name}</span>
-                              <span className="item-subtitle">{c.description}</span>
+                          </td>
+                          <td>
+                            <span className="badge-tag category-badge">{c.Field_of_study || c.fieldOfStudy}</span>
+                          </td>
+                          <td className="cell-company">{getCompanyName(c)}</td>
+                          <td>
+                            <div className="workload-badge">
+                              <Clock size={14} />
+                              <span>{c.workload}h</span>
                             </div>
-                          </div>
-                        </td>
-                        <td>
-                          <span className="badge-tag category-badge">{c.Field_of_study || c.fieldOfStudy}</span>
-                        </td>
-                        <td className="cell-company">{getCompanyName(c)}</td>
-                        <td>
-                          <div className="workload-badge">
-                            <Clock size={14} />
-                            <span>{c.workload}h</span>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="ranking-badge-sm">
-                            <Star size={14} fill="#f59e0b" color="#f59e0b" />
-                            <span>{c.ranking}º lugar</span>
-                          </div>
-                        </td>
-                        <td>
-                          <span className={`status-pill ${(c.status || '').toLowerCase()}`}>
-                            {c.status}
-                          </span>
-                        </td>
-                        <td className="cell-actions">
-                          <button
-                            className="action-btn delete-btn"
-                            title="Remover do banco"
-                            onClick={() => handleDeleteCourse(c.id)}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                          </td>
+                          {/* COLUNA 0: RANKING INICIAL (PADRÃO: 0) */}
+                          <td className="cell-initial-ranking">
+                            <div className="initial-ranking-badge" title="Ranking inicial de cadastro (Padrão: 0)">
+                              <Target size={13} />
+                              <span>0 pts</span>
+                            </div>
+                          </td>
+                          {/* COLUNA 1: CLIQUES DO USUÁRIO (SEPARADO) */}
+                          <td className="cell-clicks">
+                            <div className="clicks-counter-box" title="Contagem de cliques reais registrados automaticamente pelo usuário">
+                              <span className="clicks-icon">🖱️</span>
+                              <span className="clicks-val">{stats.clicks}</span>
+                              <span className="clicks-lbl">cliques</span>
+                            </div>
+                          </td>
+                          {/* COLUNA 2: BOTÃO PARA UPAR PONTOS (ACRÉSCIMO DE 1 EM 1) */}
+                          <td className="cell-boost">
+                            <div className="boost-inline-stepper">
+                              <button
+                                type="button"
+                                className="stepper-step-btn dec"
+                                title="Diminuir 1 ponto (-1)"
+                                disabled={stats.boostedPoints <= 0}
+                                onClick={() => handleQuickDecrementOne(c)}
+                              >
+                                -1
+                              </button>
+                              <div className="stepper-display" title="Pontos upados pelo administrador">
+                                <span className="stepper-pts-val">{stats.boostedPoints}</span>
+                                <span className="stepper-pts-lbl">pts</span>
+                              </div>
+                              <button
+                                type="button"
+                                className="stepper-step-btn inc"
+                                title="Upar +1 Ponto agora (+1 por clique)"
+                                onClick={() => handleQuickBoostOne(c)}
+                              >
+                                <Rocket size={13} />
+                                <span>+1</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="stepper-more-btn"
+                                title="Abrir ferramenta para upar em lote ou customizado"
+                                onClick={() => openBoostModal(c)}
+                              >
+                                Opções
+                              </button>
+                            </div>
+                          </td>
+                          {/* COLUNA 3: RANKING TOTAL (SOMATÓRIA) */}
+                          <td className="cell-ranking">
+                            <div className="ranking-total-badge" title={`Somatória: ${stats.clicks} cliques + ${stats.boostedPoints} upados = ${stats.totalRanking} pts`}>
+                              <Star size={14} fill="#f59e0b" color="#f59e0b" />
+                              <span className="ranking-pts-val">{stats.totalRanking}</span>
+                              <span className="ranking-pts-label">pts</span>
+                            </div>
+                            <div className="ranking-equation-sub">
+                              {stats.clicks}c + {stats.boostedPoints}u
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`status-pill ${(c.status || '').toLowerCase()}`}>
+                              {c.status}
+                            </span>
+                          </td>
+                          <td className="cell-actions">
+                            <button
+                              className="action-btn delete-btn"
+                              title="Remover do banco"
+                              onClick={() => handleDeleteCourse(c.id)}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
                   ) : (
                     <tr>
-                      <td colSpan="8" className="empty-table">
+                      <td colSpan="10" className="empty-table">
                         <Database size={32} />
                         <p>Nenhum curso encontrado no banco para os filtros informados.</p>
                       </td>
@@ -900,6 +1083,7 @@ export function Admin() {
                   <tr>
                     <th>ID</th>
                     <th>Nome da Categoria</th>
+                    <th>Chave Normalizada (Anti-Duplicidade)</th>
                     <th>Descrição dos Cursos Vinculados</th>
                     <th className="th-actions">Ações</th>
                   </tr>
@@ -911,6 +1095,19 @@ export function Admin() {
                         <td className="cell-id">#{cat.id}</td>
                         <td className="cell-main">
                           <span className="item-title">{cat.name}</span>
+                        </td>
+                        <td>
+                          <span style={{
+                            background: 'rgba(56, 189, 248, 0.12)',
+                            color: '#38bdf8',
+                            border: '1px solid rgba(56, 189, 248, 0.25)',
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            fontSize: '0.78rem',
+                            fontFamily: 'monospace'
+                          }}>
+                            {cat.nome_normalizado || normalizeCategoryName(cat.name)}
+                          </span>
                         </td>
                         <td>{cat.description}</td>
                         <td className="cell-actions">
@@ -930,7 +1127,7 @@ export function Admin() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="4" className="empty-table">
+                      <td colSpan="5" className="empty-table">
                         <Database size={32} />
                         <p>Nenhuma categoria encontrada.</p>
                       </td>
@@ -1080,7 +1277,7 @@ export function Admin() {
                     minLength={2}
                     placeholder="Ex: IA, Java, Python na Prática..."
                     value={courseForm.name}
-                    onChange={(e) => setCourseForm({...courseForm, name: e.target.value})}
+                    onChange={(e) => setCourseForm({ ...courseForm, name: e.target.value })}
                     required
                   />
                 </div>
@@ -1100,7 +1297,7 @@ export function Admin() {
                       type="text"
                       placeholder="https://exemplo.com/imagem.jpg ou faça upload"
                       value={courseForm.urlImg}
-                      onChange={(e) => setCourseForm({...courseForm, urlImg: e.target.value})}
+                      onChange={(e) => setCourseForm({ ...courseForm, urlImg: e.target.value })}
                       className="url-image-input"
                     />
 
@@ -1184,14 +1381,12 @@ export function Admin() {
                         <Plus size={13} /> + Nova Categoria
                       </button>
                     </div>
-                    <select
+                    <CategorySmartInput
                       value={courseForm.Field_of_study}
-                      onChange={(e) => setCourseForm({...courseForm, Field_of_study: e.target.value})}
-                    >
-                      {categories.map(cat => (
-                        <option key={cat.id} value={cat.name}>{cat.name}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setCourseForm({ ...courseForm, Field_of_study: val })}
+                      onSelectCategory={(cat) => setCourseForm({ ...courseForm, Field_of_study: cat.name })}
+                      placeholder="Pesquise ou digite a categoria..."
+                    />
                   </div>
 
                   <div className="form-group">
@@ -1200,7 +1395,7 @@ export function Admin() {
                       type="number"
                       placeholder="Ex: 80"
                       value={courseForm.workload}
-                      onChange={(e) => setCourseForm({...courseForm, workload: e.target.value})}
+                      onChange={(e) => setCourseForm({ ...courseForm, workload: e.target.value })}
                       required
                     />
                   </div>
@@ -1226,7 +1421,7 @@ export function Admin() {
                     ) : (
                       <select
                         value={courseForm.company_name}
-                        onChange={(e) => setCourseForm({...courseForm, company_name: e.target.value})}
+                        onChange={(e) => setCourseForm({ ...courseForm, company_name: e.target.value })}
                       >
                         {companies.map(comp => (
                           <option key={comp.id} value={comp.name}>{comp.name}</option>
@@ -1236,14 +1431,26 @@ export function Admin() {
                   </div>
 
                   <div className="form-group">
-                    <label>Posição Ranking</label>
-                    <input
-                      type="number"
-                      min="1"
-                      placeholder="Ex: 1"
-                      value={courseForm.ranking}
-                      onChange={(e) => setCourseForm({...courseForm, ranking: e.target.value})}
-                    />
+                    <label>
+                      🎯 Ranking Inicial <span style={{ fontSize: '0.78rem', color: '#fbbf24', fontWeight: 600 }}>(Padrão: 0)</span>
+                    </label>
+                    <div className="initial-rank-form-display">
+                      <div className="initial-rank-tag">
+                        <Target size={15} color="#fbbf24" />
+                        <strong>Inicia em 0 (zero)</strong>
+                      </div>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        value={courseForm.ranking}
+                        onChange={(e) => setCourseForm({ ...courseForm, ranking: e.target.value })}
+                        className="input-rank-number"
+                      />
+                    </div>
+                    <span style={{ fontSize: '0.74rem', color: '#94a3b8', display: 'block', marginTop: '4px' }}>
+                      O ranking inicial começa em 0 e aumenta com <strong>cliques do usuário</strong> + <strong>pontos upados</strong>.
+                    </span>
                   </div>
                 </div>
 
@@ -1251,7 +1458,7 @@ export function Admin() {
                   <label>Status do Curso no Sistema</label>
                   <select
                     value={courseForm.status}
-                    onChange={(e) => setCourseForm({...courseForm, status: e.target.value})}
+                    onChange={(e) => setCourseForm({ ...courseForm, status: e.target.value })}
                   >
                     <option value="ATIVO">🟢 ATIVO (Visível e disponível para matrículas)</option>
                     <option value="INATIVO">🔴 INATIVO (Oculto no catálogo público)</option>
@@ -1268,7 +1475,7 @@ export function Admin() {
                     minLength={10}
                     placeholder="Descreva o conteúdo programático, metodologia e objetivos do curso (mín. 10 caracteres)..."
                     value={courseForm.description}
-                    onChange={(e) => setCourseForm({...courseForm, description: e.target.value})}
+                    onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })}
                   ></textarea>
                 </div>
 
@@ -1293,7 +1500,7 @@ export function Admin() {
                     type="text"
                     placeholder="Ex: Centro Universitário Tech"
                     value={companyForm.name}
-                    onChange={(e) => setCompanyForm({...companyForm, name: e.target.value})}
+                    onChange={(e) => setCompanyForm({ ...companyForm, name: e.target.value })}
                     required
                   />
                 </div>
@@ -1305,7 +1512,7 @@ export function Admin() {
                       type="text"
                       placeholder="Ex: 12.345.678/0001-90"
                       value={companyForm.cnpj}
-                      onChange={(e) => setCompanyForm({...companyForm, cnpj: e.target.value})}
+                      onChange={(e) => setCompanyForm({ ...companyForm, cnpj: e.target.value })}
                       required
                     />
                   </div>
@@ -1315,7 +1522,7 @@ export function Admin() {
                     <input
                       type="date"
                       value={companyForm.foundation}
-                      onChange={(e) => setCompanyForm({...companyForm, foundation: e.target.value})}
+                      onChange={(e) => setCompanyForm({ ...companyForm, foundation: e.target.value })}
                     />
                   </div>
                 </div>
@@ -1326,7 +1533,7 @@ export function Admin() {
                     type="text"
                     placeholder="Ex: São Paulo, SP - Campinas e EAD"
                     value={companyForm.places}
-                    onChange={(e) => setCompanyForm({...companyForm, places: e.target.value})}
+                    onChange={(e) => setCompanyForm({ ...companyForm, places: e.target.value })}
                   />
                 </div>
 
@@ -1336,7 +1543,7 @@ export function Admin() {
                     rows="2"
                     placeholder="Valores, missão institucional e diferenciais..."
                     value={companyForm.fundaments}
-                    onChange={(e) => setCompanyForm({...companyForm, fundaments: e.target.value})}
+                    onChange={(e) => setCompanyForm({ ...companyForm, fundaments: e.target.value })}
                   ></textarea>
                 </div>
 
@@ -1352,41 +1559,72 @@ export function Admin() {
               </form>
             )}
 
-            {/* FORM: CATEGORIA */}
-            {modalEntityType === 'category' && (
-              <form onSubmit={handleCreateSubmit} className="admin-form">
-                <div className="form-group">
-                  <label>Nome da Categoria *</label>
-                  <input
-                    type="text"
-                    placeholder="Ex: Inteligência Artificial"
-                    value={categoryForm.name}
-                    onChange={(e) => setCategoryForm({...categoryForm, name: e.target.value})}
-                    required
-                  />
-                </div>
+            {/* FORM: CATEGORIA COM PREVIEW DE NORMALIZAÇÃO E ANTI-DUPLICIDADE */}
+            {modalEntityType === 'category' && (() => {
+              const liveMatch = categoryForm.name.trim() ? findCategoryMatch(categoryForm.name, categories) : null;
+              const liveNormalized = normalizeCategoryName(categoryForm.name);
 
-                <div className="form-group">
-                  <label>Descrição da Categoria</label>
-                  <textarea
-                    rows="3"
-                    placeholder="Descrição das áreas e tipos de cursos que engloba..."
-                    value={categoryForm.description}
-                    onChange={(e) => setCategoryForm({...categoryForm, description: e.target.value})}
-                  ></textarea>
-                </div>
+              return (
+                <form onSubmit={handleCreateSubmit} className="admin-form">
+                  <div className="form-group">
+                    <label>Nome da Categoria *</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Inteligência Artificial, Design Gráfico..."
+                      value={categoryForm.name}
+                      onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                      required
+                    />
 
-                <div className="modal-actions">
-                  <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)}>
-                    Cancelar
-                  </button>
-                  <button type="submit" className="btn-submit">
-                    <Database size={16} />
-                    <span>Gravar Categoria no Banco</span>
-                  </button>
-                </div>
-              </form>
-            )}
+                    {/* LIVE FEEDBACK DE NORMALIZAÇÃO E DETECÇÃO */}
+                    {categoryForm.name.trim() && (
+                      <div style={{ marginTop: '8px', fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8' }}>
+                          <span>🏷️ Nome Normalizado de Comparação:</span>
+                          <strong style={{ color: '#38bdf8', background: 'rgba(56,189,248,0.1)', padding: '2px 6px', borderRadius: '4px' }}>
+                            "{liveNormalized}"
+                          </strong>
+                        </div>
+
+                        {liveMatch?.status === 'EXACT_MATCH' && (
+                          <div style={{ background: 'rgba(234,179,8,0.15)', border: '1px solid rgba(234,179,8,0.4)', borderRadius: '6px', padding: '8px 10px', color: '#fde047', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <CheckCircle2 size={16} />
+                            <span><strong>Aviso:</strong> Já existe uma categoria idêntica ("{liveMatch.exactMatch.name}", ID: #{liveMatch.exactMatch.id}). O sistema reaproveitará o cadastro global.</span>
+                          </div>
+                        )}
+
+                        {liveMatch?.status === 'SIMILAR_MATCH' && liveMatch.similarMatches.length > 0 && (
+                          <div style={{ background: 'rgba(56,189,248,0.12)', border: '1px solid rgba(56,189,248,0.3)', borderRadius: '6px', padding: '8px 10px', color: '#bae6fd', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Sparkles size={16} />
+                            <span><strong>Sugestão Semelhante:</strong> "{liveMatch.similarMatches[0].name}" (ID: #{liveMatch.similarMatches[0].id}).</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label>Descrição da Categoria</label>
+                    <textarea
+                      rows="3"
+                      placeholder="Descrição das áreas e tipos de cursos que engloba..."
+                      value={categoryForm.description}
+                      onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
+                    ></textarea>
+                  </div>
+
+                  <div className="modal-actions">
+                    <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)}>
+                      Cancelar
+                    </button>
+                    <button type="submit" className="btn-submit">
+                      <Database size={16} />
+                      <span>{liveMatch?.status === 'EXACT_MATCH' ? 'Reaproveitar / Gravar Categoria' : 'Gravar Categoria no Banco'}</span>
+                    </button>
+                  </div>
+                </form>
+              );
+            })()}
 
             {/* FORM: USUÁRIO */}
             {modalEntityType === 'user' && (
@@ -1397,7 +1635,7 @@ export function Admin() {
                     type="text"
                     placeholder="Ex: Lucas Ferreira"
                     value={userForm.name}
-                    onChange={(e) => setUserForm({...userForm, name: e.target.value})}
+                    onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
                     required
                   />
                 </div>
@@ -1409,7 +1647,7 @@ export function Admin() {
                       type="email"
                       placeholder="lucas@escola.com"
                       value={userForm.email}
-                      onChange={(e) => setUserForm({...userForm, email: e.target.value})}
+                      onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
                       required
                     />
                   </div>
@@ -1420,7 +1658,7 @@ export function Admin() {
                       type="text"
                       placeholder="123.456.789-00"
                       value={userForm.cpf}
-                      onChange={(e) => setUserForm({...userForm, cpf: e.target.value})}
+                      onChange={(e) => setUserForm({ ...userForm, cpf: e.target.value })}
                       required
                     />
                   </div>
@@ -1431,7 +1669,7 @@ export function Admin() {
                     <label>Tipo de Acesso</label>
                     <select
                       value={userForm.type}
-                      onChange={(e) => setUserForm({...userForm, type: e.target.value})}
+                      onChange={(e) => setUserForm({ ...userForm, type: e.target.value })}
                     >
                       <option value="DIRECTOR">🎓 DIRECTOR (Diretor de Escola)</option>
                       <option value="ADMIN">👑 ADMIN (Administrador Global)</option>
@@ -1442,7 +1680,7 @@ export function Admin() {
                     <label>Instituição Vinculada</label>
                     <select
                       value={userForm.company_name}
-                      onChange={(e) => setUserForm({...userForm, company_name: e.target.value})}
+                      onChange={(e) => setUserForm({ ...userForm, company_name: e.target.value })}
                     >
                       {companies.map(comp => (
                         <option key={comp.id} value={comp.name}>{comp.name}</option>
@@ -1462,6 +1700,151 @@ export function Admin() {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+      {/* ==================================================== */}
+      {/* MODAL: UPAR PONTOS (IMPULSIONAMENTO DE CURSO) */}
+      {/* ==================================================== */}
+      {boostModalCourse && (
+        <div className="modal-backdrop" onClick={() => setBoostModalCourse(null)}>
+          <div className="modal-content boost-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header boost-modal-header">
+              <div className="modal-title-group">
+                <div className="boost-header-icon-box">
+                  <Rocket size={24} className="boost-icon-anim" />
+                </div>
+                <div>
+                  <h2>Upar Pontos do Curso</h2>
+                  <p className="boost-course-target-name">{boostModalCourse.name}</p>
+                </div>
+              </div>
+              <button className="modal-close-btn" onClick={() => setBoostModalCourse(null)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="boost-modal-body">
+              {/* Stat Overview Card */}
+              {(() => {
+                const currentStats = getCourseStats(boostModalCourse);
+                const pointsToAdd = isCustomBoost
+                  ? (parseInt(customBoostInput, 10) || 0)
+                  : selectedBoostPreset;
+                const newTotal = currentStats.totalRanking + pointsToAdd;
+
+                return (
+                  <>
+                    <div className="boost-stats-card">
+                      <div className="stat-pill-item">
+                        <span className="pill-title">🖱️ Cliques Orgânicos</span>
+                        <strong className="pill-value">{currentStats.clicks}</strong>
+                      </div>
+                      <span className="stat-operator">+</span>
+                      <div className="stat-pill-item">
+                        <span className="pill-title">🚀 Pontos Upados</span>
+                        <strong className="pill-value">{currentStats.boostedPoints}</strong>
+                      </div>
+                      <span className="stat-operator">=</span>
+                      <div className="stat-pill-item highlight-total">
+                        <span className="pill-title">⭐ Ranking Atual</span>
+                        <strong className="pill-value">{currentStats.totalRanking} pts</strong>
+                      </div>
+                    </div>
+
+                    <div className="boost-projection-banner">
+                      <TrendingUp size={18} className="projection-icon" />
+                      <span>
+                        Projeção após o UP: <strong>{currentStats.totalRanking}</strong> + <span className="added-pts">+{pointsToAdd}</span> = <strong className="new-total-score">{newTotal} pts</strong> no Ranking!
+                      </span>
+                    </div>
+
+                    <form onSubmit={handleApplyBoost} className="boost-form-section">
+                      <label className="boost-section-label">
+                        <Sparkles size={15} /> Selecione o Pacote de Impulsionamento Pago:
+                      </label>
+
+                      <div className="boost-presets-grid">
+                        {[
+                          { pts: 10, label: 'Incentivo Básico', tag: '+10 pts' },
+                          { pts: 50, label: 'Destaque Bronze', tag: '+50 pts' },
+                          { pts: 100, label: 'Plano Prata', tag: '+100 pts' },
+                          { pts: 250, label: 'Plano Ouro', tag: '+250 pts' },
+                          { pts: 500, label: 'Super Destaque', tag: '+500 pts' }
+                        ].map((pkg) => (
+                          <button
+                            key={pkg.pts}
+                            type="button"
+                            className={`boost-preset-card ${!isCustomBoost && selectedBoostPreset === pkg.pts ? 'selected' : ''}`}
+                            onClick={() => {
+                              setIsCustomBoost(false);
+                              setSelectedBoostPreset(pkg.pts);
+                            }}
+                          >
+                            <span className="preset-pts-tag">{pkg.tag}</span>
+                            <span className="preset-name">{pkg.label}</span>
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="custom-boost-option">
+                        <label className="custom-boost-radio">
+                          <input
+                            type="radio"
+                            name="boostType"
+                            checked={isCustomBoost}
+                            onChange={() => setIsCustomBoost(true)}
+                          />
+                          <span>Ou digitar quantidade personalizada de pontos:</span>
+                        </label>
+                        {isCustomBoost && (
+                          <div className="custom-input-box">
+                            <input
+                              type="number"
+                              min="1"
+                              placeholder="Ex: 75, 300, 1000..."
+                              value={customBoostInput}
+                              onChange={(e) => setCustomBoostInput(e.target.value)}
+                              autoFocus
+                              required
+                            />
+                            <span className="input-suffix">pontos</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="boost-info-box">
+                        <p>
+                          💡 <strong>Regra de Ranking:</strong> O ranking de cada curso é sempre a somatória automática de <strong>Cliques dos Usuários ({currentStats.clicks})</strong> + <strong>Pontos Upados pelo Administrador ({currentStats.boostedPoints + pointsToAdd})</strong>.
+                        </p>
+                      </div>
+
+                      <div className="boost-modal-footer">
+                        <button
+                          type="button"
+                          className="btn-reset-stats"
+                          title="Zerar cliques e pontos upados"
+                          onClick={() => handleResetCourseRanking(boostModalCourse.id, boostModalCourse.name)}
+                        >
+                          <RotateCcw size={15} />
+                          <span>Zerar Pontuação</span>
+                        </button>
+
+                        <div className="footer-right-actions">
+                          <button type="button" className="btn-cancel" onClick={() => setBoostModalCourse(null)}>
+                            Cancelar
+                          </button>
+                          <button type="submit" className="btn-confirm-boost">
+                            <Rocket size={17} />
+                            <span>Confirmar e Upar (+{pointsToAdd} pts)</span>
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  </>
+                );
+              })()}
+            </div>
           </div>
         </div>
       )}

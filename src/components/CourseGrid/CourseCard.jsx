@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Flame, Star, Rocket, Clock, Building } from 'lucide-react';
 import { getCourseImageUrl } from '../../utils/courseImage';
 import courseImageFallback from '../../assets/estudandes.jpg';
+import { recordCourseClick } from '../../utils/rankingService';
 
 export function CourseCard({ course }) {
   const navigate = useNavigate();
@@ -18,6 +20,7 @@ export function CourseCard({ course }) {
         </div>
       );
     }
+
     if (course.badge.type === 'destaque') {
       return (
         <div className="card-badge badge-destaque">
@@ -26,6 +29,7 @@ export function CourseCard({ course }) {
         </div>
       );
     }
+
     if (course.badge.type === 'alta') {
       return (
         <div className="card-badge badge-alta">
@@ -34,6 +38,7 @@ export function CourseCard({ course }) {
         </div>
       );
     }
+
     if (course.badge.type === 'novo') {
       return (
         <div className="card-badge badge-novo">
@@ -41,6 +46,7 @@ export function CourseCard({ course }) {
         </div>
       );
     }
+
     return null;
   };
 
@@ -50,9 +56,9 @@ export function CourseCard({ course }) {
     if (imgUrl) {
       return (
         <div className="card-visual-frame visual-image">
-          <img 
-            src={imgUrl} 
-            alt={course.title || course.name} 
+          <img
+            src={imgUrl}
+            alt={course.title || course.name}
             className="course-card-image"
             onError={(e) => {
               e.currentTarget.onerror = null;
@@ -75,11 +81,13 @@ export function CourseCard({ course }) {
               </div>
               <span className="editor-tag">&lt;code&gt;</span>
             </div>
+
             <div className="editor-code-body">
               <div className="code-row c-cyan"></div>
               <div className="code-row c-pink"></div>
               <div className="code-row c-cyan-light"></div>
             </div>
+
             <span className="editor-closing-tag">&lt;/&gt;</span>
           </div>
         );
@@ -92,7 +100,10 @@ export function CourseCard({ course }) {
               <div className="steam-line"></div>
               <div className="cup-shape">☕</div>
             </div>
-            <span className="visual-subtag tag-orange">JAVA ENTERPRISE</span>
+
+            <span className="visual-subtag tag-orange">
+              JAVA ENTERPRISE
+            </span>
           </div>
         );
 
@@ -104,16 +115,21 @@ export function CourseCard({ course }) {
                 <span>5</span>
                 <small>HTML5</small>
               </div>
+
               <div className="tech-badge badge-css3">
                 <span>3</span>
                 <small>CSS3</small>
               </div>
+
               <div className="tech-badge badge-js">
                 <span>JS</span>
                 <small>ES6+</small>
               </div>
             </div>
-            <span className="visual-subtag tag-cyan">FULL STACK FRONTEND</span>
+
+            <span className="visual-subtag tag-cyan">
+              FULL STACK FRONTEND
+            </span>
           </div>
         );
 
@@ -121,18 +137,38 @@ export function CourseCard({ course }) {
         return (
           <div className="card-visual-frame visual-cloud">
             <div className="cloud-neon-wrapper">
-              <svg className="cloud-svg" viewBox="0 0 64 64" fill="none" stroke="currentColor">
+              <svg
+                className="cloud-svg"
+                viewBox="0 0 64 64"
+                fill="none"
+                stroke="currentColor"
+              >
                 <path
                   d="M18 42h28a12 12 0 0 0 0-24 16 16 0 0 0-31.2 4.4A9 9 0 0 0 18 42z"
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
-                <circle cx="32" cy="48" r="2" fill="currentColor" />
-                <line x1="32" y1="42" x2="32" y2="46" strokeWidth="2" strokeDasharray="2 2" />
+                <circle
+                  cx="32"
+                  cy="48"
+                  r="2"
+                  fill="currentColor"
+                />
+                <line
+                  x1="32"
+                  y1="42"
+                  x2="32"
+                  y2="46"
+                  strokeWidth="2"
+                  strokeDasharray="2 2"
+                />
               </svg>
             </div>
-            <span className="visual-subtag tag-cyan">CLOUD ARCHITECTURE</span>
+
+            <span className="visual-subtag tag-cyan">
+              CLOUD ARCHITECTURE
+            </span>
           </div>
         );
 
@@ -144,7 +180,10 @@ export function CourseCard({ course }) {
               <div className="cylinder-ring"></div>
               <div className="cylinder-ring"></div>
             </div>
-            <span className="visual-subtag tag-cyan">SQL &amp; NoSQL DATABASES</span>
+
+            <span className="visual-subtag tag-cyan">
+              SQL &amp; NoSQL DATABASES
+            </span>
           </div>
         );
 
@@ -156,12 +195,16 @@ export function CourseCard({ course }) {
                 <span className="wf-circle"></span>
                 <span className="wf-bar"></span>
               </div>
+
               <div className="wireframe-content">
                 <div className="wf-block"></div>
                 <div className="wf-block"></div>
               </div>
             </div>
-            <span className="visual-subtag tag-purple">FIGMA &amp; PRODUCT DESIGN</span>
+
+            <span className="visual-subtag tag-purple">
+              FIGMA &amp; PRODUCT DESIGN
+            </span>
           </div>
         );
 
@@ -177,7 +220,10 @@ export function CourseCard({ course }) {
   return (
     <div
       className="course-card-item"
-      onClick={() => navigate(`/course/${course.id}`)}
+      onClick={() => {
+        recordCourseClick(course.id, course);
+        navigate(`/course/${course.id}`);
+      }}
     >
       {/* Visual no topo */}
       <div className="card-top-container">
@@ -187,14 +233,20 @@ export function CourseCard({ course }) {
 
       {/* Detalhes do Curso */}
       <div className="card-body-details">
-        <span className="card-category-text">{course.category}</span>
-        <h3 className="card-title-heading">{course.title}</h3>
+        <span className="card-category-text">
+          {course.category}
+        </span>
+
+        <h3 className="card-title-heading">
+          {course.title}
+        </h3>
 
         <div className="card-footer-meta">
           <div className="meta-item">
             <Clock size={14} className="meta-icon" />
             <span>{course.workload}</span>
           </div>
+
           <div className="meta-item">
             <Building size={14} className="meta-icon" />
             <span>{course.school}</span>
@@ -206,3 +258,4 @@ export function CourseCard({ course }) {
 }
 
 export default CourseCard;
+

@@ -33,6 +33,18 @@ export function AuthProvider({ children }) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
+    const handleAuthExpired = (event) => {
+      console.warn("Sessão expirada detectada pelo interceptor:", event?.detail);
+      setIsAuthModalOpen(true);
+    };
+
+    window.addEventListener('studygo_auth_expired', handleAuthExpired);
+    return () => {
+      window.removeEventListener('studygo_auth_expired', handleAuthExpired);
+    };
+  }, []);
+
+  useEffect(() => {
     try {
       if (user) {
         localStorage.setItem('studygo_user', JSON.stringify(user));

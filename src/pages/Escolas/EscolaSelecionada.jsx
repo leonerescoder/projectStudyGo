@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { recordCourseClick } from '../../utils/rankingService';
 import './EscolaSelecionada.css';
 
 const getRankingStyle = (position) => {
@@ -84,6 +85,7 @@ function EscolaSelecionada() {
   };
 
   const handleCourseClick = (courseId) => {
+    recordCourseClick(courseId);
     navigate(`/course/${courseId}`);
   };
 
