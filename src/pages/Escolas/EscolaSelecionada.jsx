@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { recordCourseClick } from '../../utils/rankingService';
 import './EscolaSelecionada.css';
 
 /* ─── Helpers ─────────────────────────────────────────────── */
@@ -156,6 +157,14 @@ function EscolaSelecionada() {
     }
     fetchSchool();
   }, [id]);
+
+  const handleBackClick = () => {
+    navigate('/escolas');
+  };
+
+  const handleCourseClick = (courseId) => {
+    navigate(`/course/${courseId}`);
+  };
 
   if (loading) {
     return (

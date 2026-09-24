@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { recordCourseClick } from '../../utils/rankingService';
+import { getGlobalCategories, CATEGORIES_UPDATE_EVENT } from '../../utils/categoryService';
 import './Navbar.css';
 
 const defaultIcon = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>;
@@ -44,16 +46,15 @@ function Navbar() {
   }, [location.pathname]);
 
   useEffect(() => {
-    const token = localStorage.getItem('studygo_token') || localStorage.getItem('token');
-    const headers = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+    async function loadCategories() {
+      const globalCats = await getGlobalCategories();
+      setCategories(Array.isArray(globalCats) ? globalCats : []);
     }
+    loadCategories();
 
-    fetch('https://uc13-projeto.onrender.com/categorie', { headers })
-      .then(res => res.json())
-      .then(data => setCategories(Array.isArray(data) ? data : []))
-      .catch(err => console.error("Erro ao buscar categorias:", err));
+    const handleUpdate = () => loadCategories();
+    window.addEventListener(CATEGORIES_UPDATE_EVENT, handleUpdate);
+    return () => window.removeEventListener(CATEGORIES_UPDATE_EVENT, handleUpdate);
   }, []);
 
   // Close user dropdown when clicking outside
@@ -235,7 +236,15 @@ function Navbar() {
                       <div className="category-courses">
                         {cat.courses && cat.courses.length > 0 ? (
                           cat.courses.map(course => (
-                            <Link key={course.id} to={`/course/${course.id}`} onClick={toggleCategoryMenu} style={{ padding: '8px 16px', display: 'block', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '14px' }}>
+                            <Link
+                              key={course.id}
+                              to={`/course/${course.id}`}
+                              onClick={() => {
+                                recordCourseClick(course.id, course);
+                                toggleCategoryMenu();
+                              }}
+                              style={{ padding: '8px 16px', display: 'block', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '14px' }}
+                            >
                               {course.name}
                             </Link>
                           ))

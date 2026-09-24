@@ -19,11 +19,21 @@ import {
   ExternalLink,
   Image as ImageIcon,
   Upload,
-  Sparkles
+  Sparkles,
+  Target
 } from 'lucide-react';
 import { DB_CONFIG } from '../../data/databaseConfig';
 import { apiFetch } from '../../API/apiClient';
 import { getFallbackImageUrl, saveLocalCourseImage, getCourseImageUrl } from '../../utils/courseImage';
+import { getCourseStats, enrichCourseWithRanking, RANKING_UPDATE_EVENT } from '../../utils/rankingService';
+import {
+  getGlobalCategories,
+  saveOrGetCategory,
+  normalizeCategoryName,
+  findCategoryMatch,
+  CATEGORIES_UPDATE_EVENT
+} from '../../utils/categoryService';
+import { CategorySmartInput } from '../CategorySmartInput/CategorySmartInput';
 import './DirectorAdmin.css';
 
 // Initial Director Profile
@@ -62,16 +72,15 @@ export function DirectorAdmin() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [courseRes, compRes, catRes, userRes] = await Promise.all([
+        const [courseRes, compRes, globalCats, userRes] = await Promise.all([
           apiFetch('/course'),
           apiFetch('/companie'),
-          apiFetch('/categorie'),
+          getGlobalCategories(),
           apiFetch('/user')
         ]);
 
-        if (catRes.ok) {
-          const catData = await catRes.json();
-          setCategories(Array.isArray(catData) ? catData : []);
+        if (globalCats) {
+          setCategories(Array.isArray(globalCats) ? globalCats : []);
         }
 
         let fetchedSchool = null;
@@ -108,6 +117,13 @@ export function DirectorAdmin() {
       }
     }
     loadData();
+
+    const handleCatUpdate = async () => {
+      const updatedCats = await getGlobalCategories();
+      setCategories(updatedCats);
+    };
+    window.addEventListener(CATEGORIES_UPDATE_EVENT, handleCatUpdate);
+    return () => window.removeEventListener(CATEGORIES_UPDATE_EVENT, handleCatUpdate);
   }, []);
 
   // Active Tab: 'school' | 'courses' | 'profile'
@@ -120,14 +136,14 @@ export function DirectorAdmin() {
   const [isEditSchoolModalOpen, setIsEditSchoolModalOpen] = useState(false);
   const [isRegisterDirectorModalOpen, setIsRegisterDirectorModalOpen] = useState(false);
 
-  // Forms State
+  // Forms State (Default Ranking is 0)
   const [courseForm, setCourseForm] = useState({
     name: '',
     description: '',
     urlImg: '',
     workload: '',
     Field_of_study: 'Tecnologia',
-    ranking: '1',
+    ranking: '0',
     status: 'ATIVO'
   });
 
@@ -218,21 +234,40 @@ export function DirectorAdmin() {
     }
 
     try {
-      const categoryMap = { 'Tecnologia': 1, 'Mecânica': 2, 'Gastronomia': 3, 'Idiomas': 4, 'Saúde': 5, 'Moda': 6, 'Artes': 7, 'Música': 8, 'Educação': 9 };
-      const categoryId = categoryMap[courseForm.Field_of_study] || 1;
+      // FASE 7, 12 e 13: Resolve a categoria dinamicamente na base global compartilhada
+      let targetCategory = categories.find(
+        c => (c.nome_normalizado && c.nome_normalizado === normalizeCategoryName(courseForm.Field_of_study)) ||
+             c.name?.toLowerCase() === courseForm.Field_of_study?.toLowerCase()
+      );
+
+      if (!targetCategory && courseForm.Field_of_study && courseForm.Field_of_study.trim()) {
+        try {
+          const catResult = await saveOrGetCategory(courseForm.Field_of_study);
+          targetCategory = catResult.category;
+          setCategories(prev => {
+            const exists = prev.some(c => c.id === targetCategory.id);
+            return exists ? prev : [...prev, targetCategory];
+          });
+        } catch (e) {
+          console.warn('Erro ao salvar categoria no banco:', e);
+        }
+      }
+
+      const categoryId = targetCategory ? targetCategory.id : 1;
+      const canonicalCategoryName = targetCategory ? targetCategory.name : (courseForm.Field_of_study || 'Tecnologia');
 
       const isBase64Upload = courseForm.urlImg && courseForm.urlImg.startsWith('data:');
       const safeBackendImageUrl = isBase64Upload
-        ? getFallbackImageUrl(courseForm.Field_of_study)
-        : (courseForm.urlImg ? courseForm.urlImg.trim().slice(0, 250) : getFallbackImageUrl(courseForm.Field_of_study));
+        ? getFallbackImageUrl(canonicalCategoryName)
+        : (courseForm.urlImg ? courseForm.urlImg.trim().slice(0, 250) : getFallbackImageUrl(canonicalCategoryName));
 
       const payload = {
         name: courseForm.name,
         description: trimmedDesc,
         urlImg: safeBackendImageUrl,
         workload: Number(courseForm.workload),
-        ranking: Number(courseForm.ranking) || 1,
-        fieldOfStudy: courseForm.Field_of_study,
+        ranking: Number(courseForm.ranking) || 0,
+        fieldOfStudy: canonicalCategoryName,
         companyId: school?.id || 1,
         categoryIds: [categoryId],
         userId: directorUser?.id || 1,
@@ -252,9 +287,9 @@ export function DirectorAdmin() {
         setCourses([newCourse, ...courses]);
         setIsNewCourseModalOpen(false);
         setCourseForm({
-          name: '', description: '', urlImg: '', workload: '', Field_of_study: 'Tecnologia', ranking: '1', status: 'ATIVO'
+          name: '', description: '', urlImg: '', workload: '', Field_of_study: 'Tecnologia', ranking: '0', status: 'ATIVO'
         });
-        showToast(`✓ Novo curso "${newCourse.name}" adicionado à ${school.name}!`);
+        showToast(`✓ Novo curso "${newCourse.name}" adicionado à ${school.name} com Ranking Inicial 0!`);
       } else {
         const errText = await response.text();
         let userMsg = errText;
@@ -266,7 +301,12 @@ export function DirectorAdmin() {
             userMsg = errJson.error || errJson.message;
           }
         } catch (e) {}
-        alert('Aviso ao cadastrar curso:\n' + userMsg);
+
+        if (userMsg.toLowerCase().includes('jwt expired') || response.status === 401) {
+          alert('Aviso ao cadastrar curso:\nSua sessão de acesso expirou no servidor. Por favor, faça login novamente para renovar suas credenciais.');
+        } else {
+          alert('Aviso ao cadastrar curso:\n' + userMsg);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -549,59 +589,84 @@ export function DirectorAdmin() {
                       <th>Curso Ofertado</th>
                       <th>Área / Categoria</th>
                       <th>Carga Horária</th>
-                      <th>Ranking Interno</th>
+                      <th>🎯 Ranking Inicial</th>
+                      <th>🖱️ Cliques do Usuário</th>
+                      <th>🚀 Pontos Upados</th>
+                      <th>⭐ Ranking Total</th>
                       <th>Status</th>
                       <th className="th-actions">Ações</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredCourses.length > 0 ? (
-                      filteredCourses.map(c => (
-                        <tr key={c.id}>
-                          <td className="cell-id">#{c.id}</td>
-                          <td className="cell-main">
-                            <div className="course-name-row">
-                              <div className="director-table-thumb">
-                                {getCourseImageUrl(c) ? (
-                                  <img src={getCourseImageUrl(c)} alt={c.name} onError={(e) => { e.target.style.display = 'none'; }} />
-                                ) : (
-                                  <span className="thumb-fallback">📚</span>
-                                )}
+                      filteredCourses.map(c => {
+                        const stats = getCourseStats(c);
+                        return (
+                          <tr key={c.id}>
+                            <td className="cell-id">#{c.id}</td>
+                            <td className="cell-main">
+                              <div className="course-name-row">
+                                <div className="director-table-thumb">
+                                  {getCourseImageUrl(c) ? (
+                                    <img src={getCourseImageUrl(c)} alt={c.name} onError={(e) => { e.target.style.display = 'none'; }} />
+                                  ) : (
+                                    <span className="thumb-fallback">📚</span>
+                                  )}
+                                </div>
+                                <div className="director-name-wrapper">
+                                  <span className="course-title">{c.name}</span>
+                                  <span className="course-desc">{c.description}</span>
+                                </div>
                               </div>
-                              <div className="director-name-wrapper">
-                                <span className="course-title">{c.name}</span>
-                                <span className="course-desc">{c.description}</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td>
-                            <span className="category-tag">{c.Field_of_study}</span>
-                          </td>
-                          <td>
-                            <span className="workload-tag">
-                              <Clock size={13} /> {c.workload} horas
-                            </span>
-                          </td>
-                          <td>
-                            <span className="ranking-tag">
-                              <Star size={13} fill="#f59e0b" color="#f59e0b" />
-                              {c.ranking}º lugar
-                            </span>
-                          </td>
-                          <td>
-                            <span className="status-badge ativo">{c.status}</span>
-                          </td>
-                          <td className="cell-actions">
-                            <button
-                              className="action-btn-del"
-                              title="Remover curso"
-                              onClick={() => handleDeleteCourse(c.id)}
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))
+                            </td>
+                            <td>
+                              <span className="category-tag">{c.Field_of_study}</span>
+                            </td>
+                            <td>
+                              <span className="workload-tag">
+                                <Clock size={13} /> {c.workload} horas
+                              </span>
+                            </td>
+                            {/* RANKING INICIAL (PADRÃO: 0) */}
+                            <td>
+                              <span style={{ color: '#fbbf24', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', padding: '3px 8px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }} title="Ranking inicial de cadastro">
+                                <Target size={12} color="#fbbf24" /> 0 pts
+                              </span>
+                            </td>
+                            {/* CLIQUES DO USUÁRIO (SEPARADO) */}
+                            <td>
+                              <span style={{ color: '#7dd3fc', background: 'rgba(56,189,248,0.12)', border: '1px solid rgba(56,189,248,0.25)', padding: '3px 8px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                🖱️ {stats.clicks} cliques
+                              </span>
+                            </td>
+                            {/* PONTOS UPADOS (SEPARADO) */}
+                            <td>
+                              <span style={{ color: '#c084fc', background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)', padding: '3px 8px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                🚀 {stats.boostedPoints} upados
+                              </span>
+                            </td>
+                            {/* RANKING TOTAL (SOMATÓRIA) */}
+                            <td>
+                              <span className="ranking-tag" title={`Somatória: ${stats.clicks} cliques + ${stats.boostedPoints} upados = ${stats.totalRanking} pts`}>
+                                <Star size={13} fill="#f59e0b" color="#f59e0b" />
+                                <strong>{stats.totalRanking} pts</strong>
+                              </span>
+                            </td>
+                            <td>
+                              <span className="status-badge ativo">{c.status}</span>
+                            </td>
+                            <td className="cell-actions">
+                              <button
+                                className="action-btn-del"
+                                title="Remover curso"
+                                onClick={() => handleDeleteCourse(c.id)}
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
                     ) : (
                       <tr>
                         <td colSpan="7" className="empty-state">
@@ -895,29 +960,13 @@ export function DirectorAdmin() {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Área / Categoria *</label>
-                  <select
+                  <label>Área / Categoria Global *</label>
+                  <CategorySmartInput
                     value={courseForm.Field_of_study}
-                    onChange={(e) => setCourseForm({...courseForm, Field_of_study: e.target.value})}
-                  >
-                    {categories.length > 0 ? (
-                      categories.map(cat => (
-                        <option key={cat.id} value={cat.name}>{cat.name}</option>
-                      ))
-                    ) : (
-                      <>
-                        <option value="Tecnologia">Tecnologia</option>
-                        <option value="Mecânica">Mecânica</option>
-                        <option value="Gastronomia">Gastronomia</option>
-                        <option value="Idiomas">Idiomas</option>
-                        <option value="Saúde">Saúde</option>
-                        <option value="Moda">Moda</option>
-                        <option value="Artes">Artes</option>
-                        <option value="Música">Música</option>
-                        <option value="Educação">Educação</option>
-                      </>
-                    )}
-                  </select>
+                    onChange={(val) => setCourseForm({ ...courseForm, Field_of_study: val })}
+                    onSelectCategory={(cat) => setCourseForm({ ...courseForm, Field_of_study: cat.name })}
+                    placeholder="Pesquise ou digite a categoria..."
+                  />
                 </div>
 
                 <div className="form-group">
@@ -945,14 +994,17 @@ export function DirectorAdmin() {
                 </div>
 
                 <div className="form-group">
-                  <label>Posição Ranking</label>
+                  <label>🎯 Ranking Inicial <span style={{ fontSize: '0.78rem', color: '#fbbf24', fontWeight: 600 }}>(Padrão: 0)</span></label>
                   <input
                     type="number"
-                    min="1"
-                    placeholder="Ex: 1"
+                    min="0"
+                    placeholder="0"
                     value={courseForm.ranking}
                     onChange={(e) => setCourseForm({...courseForm, ranking: e.target.value})}
                   />
+                  <span style={{ fontSize: '0.74rem', color: '#94a3b8', display: 'block', marginTop: '3px' }}>
+                    O curso inicia com 0 e a pontuação somará os <strong>cliques dos alunos</strong> + <strong>pontos upados</strong>.
+                  </span>
                 </div>
               </div>
 

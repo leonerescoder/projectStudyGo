@@ -59,6 +59,7 @@ function App() {
           workload: Number(workload),
           urlImg: urlimg,
           fieldOfStudy: fieldofstudy,
+          ranking: 0,
           companyId: Number(companyId),
           categoryIds: [1, 2]
         })

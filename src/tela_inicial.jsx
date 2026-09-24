@@ -11,6 +11,10 @@ import { RankingSection } from './components/RankingSection/RankingSection';
 import { buscaTodos } from './ApiCourses/ApiCourse';
 import { buscaCategorias } from './API/apiCategorie';
 import { buscaEmpresas } from './API/apiCompany';
+import {
+  enrichCourseWithRanking,
+  RANKING_UPDATE_EVENT
+} from './utils/rankingService';
 
 import './tela_inicial.css';
 
@@ -21,97 +25,313 @@ const mockSchools = {
   4: 'Escola de Design'
 };
 
-const getSchoolName = (id) => mockSchools[id] || `Escola (ID: ${id})`;
+const getSchoolName = (id) =>
+  mockSchools[id] || `Escola (ID: ${id})`;
 
-const courseBelongsToCategory = (course, categoryName) => (
-  course.categories.some(category => category.name?.toLowerCase() === categoryName.toLowerCase()) ||
-  course.category.toLowerCase() === categoryName.toLowerCase()
-);
+const courseBelongsToCategory = (
+  course,
+  categoryName
+) => {
+  const normalizedCategory =
+    categoryName?.toLowerCase() || '';
+
+  const belongsByCategories =
+    Array.isArray(course.categories) &&
+    course.categories.some(
+      (category) =>
+        (category.name || '').toLowerCase() ===
+        normalizedCategory
+    );
+
+  const belongsByField =
+    (course.category || '').toLowerCase() ===
+      normalizedCategory ||
+    (course.fieldOfStudy || '').toLowerCase() ===
+      normalizedCategory;
+
+  return belongsByCategories || belongsByField;
+};
 
 const getVisualType = (name = '') => {
   const n = name.toLowerCase();
+
   if (n.includes('java')) return 'java-cup';
-  if (n.includes('web') || n.includes('front') || n.includes('html')) return 'web-stack';
-  if (n.includes('cloud') || n.includes('nuvem')) return 'cloud-net';
-  if (n.includes('data') || n.includes('sql') || n.includes('banco')) return 'database-cylinder';
-  if (n.includes('design') || n.includes('figma') || n.includes('ui')) return 'ui-design';
+  if (
+    n.includes('web') ||
+    n.includes('front') ||
+    n.includes('html')
+  ) {
+    return 'web-stack';
+  }
+
+  if (
+    n.includes('cloud') ||
+    n.includes('nuvem')
+  ) {
+    return 'cloud-net';
+  }
+
+  if (
+    n.includes('data') ||
+    n.includes('sql') ||
+    n.includes('banco')
+  ) {
+    return 'database-cylinder';
+  }
+
+  if (
+    n.includes('design') ||
+    n.includes('figma') ||
+    n.includes('ui')
+  ) {
+    return 'ui-design';
+  }
+
   return 'code-editor';
 };
 
 export function TelaInicial() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeCategory, setActiveCategory] = useState('Todos');
+  const [activeCategory, setActiveCategory] =
+    useState('Todos');
+
   const [courses, setCourses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [companies, setCompanies] = useState([]);
-  const [isDirectorModalOpen, setIsDirectorModalOpen] = useState(false);
-  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
+
+  const [isDirectorModalOpen, setIsDirectorModalOpen] =
+    useState(false);
+
+  const [isCompanyModalOpen, setIsCompanyModalOpen] =
+    useState(false);
 
   useEffect(() => {
     async function loadCourses() {
       try {
-        const [response, companyData] = await Promise.all([buscaTodos(), buscaEmpresas()]);
-        setCompanies(companyData);
-        // Check if response is an array or wrapped in a property like .value or .data
-        const data = Array.isArray(response) ? response : (response.value || response.data || []);
-        
-        // Ordena por ranking (views) decrescente para determinar posições reais
-        const sorted = [...data].sort((a, b) => (b.ranking || 0) - (a.ranking || 0));
-        const rankPositionMap = {};
-        sorted.forEach((c, i) => { rankPositionMap[c.id] = i + 1; });
+        const [
+          response,
+          companyData
+        ] = await Promise.all([
+          buscaTodos(),
+          buscaEmpresas()
+        ]);
 
-        const mappedCourses = data.map(c => ({
-          id: c.id,
-          title: c.name || 'Curso sem nome',
-          category: c.categories?.map(category => category.name).join(', ') || c.fieldOfStudy || 'Geral',
-          categories: Array.isArray(c.categories) ? c.categories : [],
-          description: c.description || '',
-          school: c.company?.name || companyData.find(company => company.id === c.companyId)?.name || getSchoolName(c.companyId),
-          workload: `${c.workload || 0} horas`,
-          urlImg: c.urlImg,
-          visualType: getVisualType(c.name),
-          rawRanking: c.ranking || 0,
-          rankPosition: rankPositionMap[c.id] || null,
-          // Badge só aparece nos top 3 por posição real (não pelo valor bruto de views)
-          badge: rankPositionMap[c.id] <= 3 ? { type: 'popular', text: 'Mais procurado' } : null
-        }));
+        const companiesList = Array.isArray(companyData)
+          ? companyData
+          : (
+              companyData?.value ||
+              companyData?.data ||
+              []
+            );
+
+        setCompanies(companiesList);
+
+        const rawData = Array.isArray(response)
+          ? response
+          : (
+              response?.value ||
+              response?.data ||
+              []
+            );
+
+        // Enriquece cada curso com informações
+        // de cliques e pontos do ranking.
+        const data = rawData.map((course) =>
+          enrichCourseWithRanking(course)
+        );
+
+        // Ordena os cursos pelo ranking total.
+        const sorted = [...data].sort(
+          (a, b) =>
+            (b.rawRanking || 0) -
+            (a.rawRanking || 0)
+        );
+
+        // Cria o mapa de posições.
+        const rankPositionMap = {};
+
+        sorted.forEach((course, index) => {
+          rankPositionMap[course.id] =
+            index + 1;
+        });
+
+        const mappedCourses = data.map((course) => {
+          const company =
+            course.company ||
+            companiesList.find(
+              (companyItem) =>
+                companyItem.id ===
+                course.companyId
+            );
+
+          const rankPosition =
+            rankPositionMap[course.id] || null;
+
+          return {
+            id: course.id,
+
+            title:
+              course.name ||
+              'Curso sem nome',
+
+            category:
+              course.categories
+                ?.map((category) => category.name)
+                .join(', ') ||
+              course.fieldOfStudy ||
+              'Geral',
+
+            categories: Array.isArray(
+              course.categories
+            )
+              ? course.categories
+              : [],
+
+            description:
+              course.description || '',
+
+            school:
+              company?.name ||
+              getSchoolName(
+                course.companyId
+              ),
+
+            workload: `${
+              course.workload || 0
+            } horas`,
+
+            urlImg: course.urlImg,
+
+            visualType:
+              getVisualType(course.name),
+
+            rawRanking:
+              course.rawRanking || 0,
+
+            clicks:
+              course.clicks || 0,
+
+            boostedPoints:
+              course.boostedPoints || 0,
+
+            rankPosition,
+
+            // Badge somente para os 3 primeiros.
+            badge:
+              rankPosition !== null &&
+              rankPosition <= 3
+                ? {
+                    type: 'popular',
+                    text: 'Mais procurado'
+                  }
+                : null
+          };
+        });
+
         setCourses(mappedCourses);
       } catch (err) {
-        console.error("Erro ao buscar cursos na tela inicial:", err);
+        console.error(
+          'Erro ao buscar cursos na tela inicial:',
+          err
+        );
       }
     }
+
     loadCourses();
+
+    // Atualiza o ranking quando houver
+    // novo clique ou alteração administrativa.
+    const handleRankingUpdate = () => {
+      loadCourses();
+    };
+
+    window.addEventListener(
+      RANKING_UPDATE_EVENT,
+      handleRankingUpdate
+    );
+
+    return () => {
+      window.removeEventListener(
+        RANKING_UPDATE_EVENT,
+        handleRankingUpdate
+      );
+    };
   }, []);
 
   useEffect(() => {
-    buscaCategorias().then(setCategories).catch(err => console.error('Erro ao buscar categorias:', err));
+    buscaCategorias()
+      .then((data) => {
+        setCategories(
+          Array.isArray(data)
+            ? data
+            : (
+                data?.value ||
+                data?.data ||
+                []
+              )
+        );
+      })
+      .catch((err) =>
+        console.error(
+          'Erro ao buscar categorias:',
+          err
+        )
+      );
   }, []);
 
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
-      // Filtro por categoria
+      // Filtro por categoria.
       const matchesCategory =
         activeCategory === 'Todos' ||
-        courseBelongsToCategory(course, activeCategory);
+        courseBelongsToCategory(
+          course,
+          activeCategory
+        );
 
-      // Filtro por busca
-      const query = searchTerm.trim().toLowerCase();
+      // Filtro por busca.
+      const query = searchTerm
+        .trim()
+        .toLowerCase();
+
       const matchesSearch =
         !query ||
-        course.title.toLowerCase().includes(query) ||
-        course.category.toLowerCase().includes(query) ||
-        course.school.toLowerCase().includes(query) ||
-        course.description.toLowerCase().includes(query);
+        (course.title || '')
+          .toLowerCase()
+          .includes(query) ||
+        (course.category || '')
+          .toLowerCase()
+          .includes(query) ||
+        (course.school || '')
+          .toLowerCase()
+          .includes(query) ||
+        (course.description || '')
+          .toLowerCase()
+          .includes(query);
 
-      return matchesCategory && matchesSearch;
+      return (
+        matchesCategory &&
+        matchesSearch
+      );
     });
-  }, [searchTerm, activeCategory, courses]);
+  }, [
+    searchTerm,
+    activeCategory,
+    courses
+  ]);
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    const element = document.getElementById('cursos-em-destaque');
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+
+    const element =
+      document.getElementById(
+        'cursos-em-destaque'
+      );
+
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      element.scrollIntoView({
+        behavior: 'smooth'
+      });
     }
   };
 
@@ -121,12 +341,20 @@ export function TelaInicial() {
   };
 
   const handleCompanyCardClick = () => {
-    document.getElementById('company-registration-banner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document
+      .getElementById(
+        'company-registration-banner'
+      )
+      ?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
   };
 
   return (
     <div id="tela-inicial">
-      {/* 1. Seção Hero Centralizada */}
+
+      {/* 1. Seção Hero */}
       <Hero
         courses={courses}
         searchTerm={searchTerm}
@@ -134,32 +362,64 @@ export function TelaInicial() {
         onSearchSubmit={handleSearchSubmit}
       />
 
-      <button type="button" className="company-invite-card" onClick={handleCompanyCardClick}>
+      {/* Convite para empresas */}
+      <button
+        type="button"
+        className="company-invite-card"
+        onClick={handleCompanyCardClick}
+      >
         <span className="company-invite-card-content">
-          <strong>Cadastre sua empresa no StudyGo</strong>
-          <span>Divulgue seus cursos para novos alunos</span>
+          <strong>
+            Cadastre sua empresa no StudyGo
+          </strong>
+
+          <span>
+            Divulgue seus cursos para novos alunos
+          </span>
         </span>
-        <ArrowDown size={22} aria-hidden="true" />
+
+        <ArrowDown
+          size={22}
+          aria-hidden="true"
+        />
       </button>
 
-      {/* 2. Barra de Estatísticas / Diferenciais */}
+      {/* 2. Estatísticas / Diferenciais */}
       <Features />
 
-      {/* 2.5 Seção de Ranking de Cursos */}
-      <RankingSection courses={courses} />
+      {/* 2.5. Ranking de cursos */}
+      <RankingSection
+        courses={courses}
+      />
 
-      {/* 3. Seção de Cursos em Destaque com Filtros */}
+      {/* 3. Cursos em destaque */}
       <CourseGrid
         courses={filteredCourses}
         categories={categories}
         activeCategory={activeCategory}
-        onSelectCategory={setActiveCategory}
-        onResetFilters={handleResetFilters}
+        onSelectCategory={
+          setActiveCategory
+        }
+        onResetFilters={
+          handleResetFilters
+        }
       />
 
-      {categories.map(category => {
-        const categoryCourses = filteredCourses.filter(course => courseBelongsToCategory(course, category.name));
-        if (!categoryCourses.length) return null;
+      {/* Cursos separados por categoria */}
+      {categories.map((category) => {
+        const categoryCourses =
+          filteredCourses.filter(
+            (course) =>
+              courseBelongsToCategory(
+                course,
+                category.name
+              )
+          );
+
+        if (!categoryCourses.length) {
+          return null;
+        }
+
         return (
           <CourseGrid
             key={category.id}
@@ -168,30 +428,41 @@ export function TelaInicial() {
             categoryName={category.name}
             courses={categoryCourses}
             showCategoryFilter={false}
-            onResetFilters={handleResetFilters}
+            onResetFilters={
+              handleResetFilters
+            }
           />
         );
       })}
 
-      {/* 4. Banner para Empresas (Call to Action) */}
-      <CompanyBanner onRegisterClick={() => setIsDirectorModalOpen(true)} />
+      {/* 4. Banner para empresas */}
+      <CompanyBanner
+        onRegisterClick={() =>
+          setIsDirectorModalOpen(true)
+        }
+      />
 
-      {/* 5. Rodapé Completo */}
+      {/* 5. Rodapé */}
       <Footer />
 
-      {/* Modais */}
-      <DirectorRegistrationModal 
-        isOpen={isDirectorModalOpen} 
-        onClose={() => setIsDirectorModalOpen(false)} 
+      {/* Modal de diretor */}
+      <DirectorRegistrationModal
+        isOpen={isDirectorModalOpen}
+        onClose={() =>
+          setIsDirectorModalOpen(false)
+        }
         onSuccessRegistration={() => {
           setIsDirectorModalOpen(false);
           setIsCompanyModalOpen(true);
         }}
       />
 
+      {/* Modal de empresa */}
       <CompanyRegistrationModal
         isOpen={isCompanyModalOpen}
-        onClose={() => setIsCompanyModalOpen(false)}
+        onClose={() =>
+          setIsCompanyModalOpen(false)
+        }
       />
     </div>
   );

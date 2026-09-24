@@ -30,6 +30,7 @@ SET time_zone = "+00:00";
 CREATE TABLE `categories` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
+  `nome_normalizado` varchar(255) DEFAULT NULL,
   `description` varchar(255) NOT NULL,
   `createdAt` datetime NOT NULL DEFAULT current_timestamp(),
   `updatedAt` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -246,6 +247,19 @@ ALTER TABLE `user_category`
   ADD CONSTRAINT `user_category_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE;
 COMMIT;
 
+-- --------------------------------------------------------
+-- FASE 9 & 10: SCRIPT DE MIGRAÇÃO SEGURO (NÃO-DESTRUTIVO)
+-- --------------------------------------------------------
+-- 1. Adiciona a coluna `nome_normalizado` caso ela ainda não exista
+-- ALTER TABLE `categories` ADD COLUMN IF NOT EXISTS `nome_normalizado` varchar(255) DEFAULT NULL;
+
+-- 2. Preenche os dados legados com a versão normalizada
+-- UPDATE `categories` SET `nome_normalizado` = LOWER(REPLACE(REPLACE(REPLACE(name, ' ', ''), '-', ''), '.', '')) WHERE `nome_normalizado` IS NULL;
+
+-- 3. Cria índice de unicidade para evitar duplicidades normalizadas
+-- ALTER TABLE `categories` ADD UNIQUE KEY `idx_category_nome_normalizado` (`nome_normalizado`);
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
