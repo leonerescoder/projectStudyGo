@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import heroFallback from '../../assets/estudandes.jpg';
+import heroGastronomia from '../../assets/hero-gastronomia.png';
 
 const FEATURED_SLIDES = [
   {
@@ -28,8 +29,9 @@ const FEATURED_SLIDES = [
   {
     id: 'gastronomia',
     eyebrow: 'CURSO EM DESTAQUE',
-    title: 'Técnico em Gastronomia',
-    image: 'https://images.unsplash.com/photo-1580929753603-10519c6e480a?auto=format&fit=crop&w=1600&q=90',
+    title: 'Aprendendo a cozinhar como um adulto funcional',
+    image: heroGastronomia,
+    isCustomBanner: true,
     terms: ['gastronomia', 'culinária', 'culinaria', 'cozinha']
   }
 ];
@@ -94,17 +96,22 @@ export function Hero({ courses = [], searchTerm, onSearchChange, onSearchSubmit 
               src={activeSlide.image}
               alt={activeSlide.title}
               className="hero-banner-image"
+              style={activeSlide.isCustomBanner ? { objectFit: 'cover', background: 'transparent' } : {}}
               onError={(event) => {
                 event.currentTarget.onerror = null;
                 event.currentTarget.src = heroFallback;
               }}
             />
-            <span className="hero-banner-overlay" />
-            <span className="hero-banner-content">
-              <small>{activeSlide.eyebrow}</small>
-              <strong>{relatedCourse?.title || activeSlide.title}</strong>
-              <span>Clique para conhecer o curso</span>
-            </span>
+            {!activeSlide.isCustomBanner && (
+              <>
+                <span className="hero-banner-overlay" />
+                <span className="hero-banner-content">
+                  <small>{activeSlide.eyebrow}</small>
+                  <strong>{relatedCourse?.title || activeSlide.title}</strong>
+                  <span>Clique para conhecer o curso</span>
+                </span>
+              </>
+            )}
           </button>
 
           <button
