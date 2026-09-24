@@ -1,515 +1,803 @@
+/* ============================================================
+   EscolaSelecionada.css
+   Escopado em #escola-selecionada-page
+   Paleta: Sistema Arquivo Acadêmico (tema escuro)
+   Sem branco (#fff/white) em nenhum fundo de seção ou card
+   ============================================================ */
+
+/* ─── Página ─────────────────────────────────────────────── */
 #escola-selecionada-page {
   width: 100%;
   min-height: calc(100vh - 70px);
-    background-color: #ffffff;
-  padding: 2rem;
-  color: var(--color-text-main);
+  background-color: var(--ink);
+  color: var(--text-onDark);
+  font-family: var(--font-main);
+  padding: 2rem 0 4rem;
 }
 
-#escola-selecionada-page .escola-name-professional,
-#escola-selecionada-page h1,
-#escola-selecionada-page h2,
-#escola-selecionada-page h3,
-#escola-selecionada-page .info-value,
-#escola-selecionada-page .text-block-title {
-    color: #0f172a;
+#escola-selecionada-page * {
+  box-sizing: border-box;
 }
 
-#escola-selecionada-page p,
-#escola-selecionada-page .escola-location-prof,
-#escola-selecionada-page .info-label,
-#escola-selecionada-page .text-block-content {
-    color: #475569;
-}
-
-.escola-container {
-  max-width: 1100px;
+#escola-selecionada-page .escola-container {
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 0 1.5rem;
 }
 
-.back-btn {
+/* ─── Botão Voltar ─────────────────────────────────────────*/
+#escola-selecionada-page .es-back-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--color-text-muted);
-  background: none;
-  border: none;
+  color: var(--text-onDark-muted);
   font-size: 0.95rem;
   font-weight: 500;
-  margin-bottom: 2rem;
-  padding: 0.5rem 0;
+  margin-bottom: 1.5rem;
+  padding: 0.4rem 0;
   cursor: pointer;
-  transition: color 0.3s ease, transform 0.3s ease;
+  background: none;
+  border: none;
+  transition: color 0.2s;
+  font-family: var(--font-main);
 }
 
-.back-btn svg {
-  width: 18px;
-  height: 18px;
-  transition: transform 0.3s ease;
+#escola-selecionada-page .es-back-btn:hover {
+  color: var(--text-onDark);
 }
 
-.back-btn:hover {
-  color: #fff;
+/* ─── Spinner ───────────────────────────────────────────── */
+#escola-selecionada-page .es-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--line);
+  border-bottom-color: var(--brass);
+  border-radius: 50%;
+  animation: es-spin 1s linear infinite;
 }
 
-.back-btn:hover svg {
-    transform: translateX(-4px);
+@keyframes es-spin {
+  to { transform: rotate(360deg); }
 }
 
-/* --- Professional Header --- */
-.escola-header-professional {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
-    margin-bottom: 2.5rem;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
-    overflow: hidden;
-    position: relative;
+/* ─── Header / Hero ─────────────────────────────────────── */
+#escola-selecionada-page .escola-header-professional {
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  position: relative;
 }
 
-.escola-cover-professional {
-    height: 160px;
-    background: linear-gradient(135deg, var(--color-accent) 0%, #1a1a2e 100%);
-    position: relative;
-    /* Placeholder for future background image */
-    background-size: cover;
-    background-position: center;
+#escola-selecionada-page .escola-cover-professional {
+  height: 160px;
+  background: linear-gradient(135deg, var(--forest) 0%, var(--ink) 100%);
+  position: relative;
 }
 
-.escola-cover-overlay {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(to bottom, rgba(11, 20, 38, 0) 0%, rgba(11, 20, 38, 0.8) 100%);
+#escola-selecionada-page .escola-cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 0%, var(--ink-2) 100%);
 }
 
-.escola-header-content-professional {
-    padding: 0 3rem 2.5rem;
-    position: relative;
-    display: flex;
+#escola-selecionada-page .escola-header-content-professional {
+  padding: 0 3rem 2.5rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+#escola-selecionada-page .escola-header-main-info {
+  display: flex;
+  align-items: flex-end;
+  gap: 2rem;
+  margin-top: -60px;
+}
+
+/* Logo / Inicial */
+#escola-selecionada-page .escola-logo-professional {
+  width: 120px;
+  height: 120px;
+  border-radius: 16px;
+  background: var(--panel);
+  border: 4px solid var(--brass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brass);
+  font-size: 3.5rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+#escola-selecionada-page .escola-title-area {
+  flex-grow: 1;
+  padding-bottom: 0.5rem;
+}
+
+#escola-selecionada-page .escola-title-top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+#escola-selecionada-page .escola-name-professional {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: var(--text-onDark);
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0;
+}
+
+/* Selo verificado */
+#escola-selecionada-page .school-verified-tag-large {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--forest);
+  border: 1px solid var(--line);
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-onDark);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* Localização + link de mapa */
+#escola-selecionada-page .escola-meta-professional {
+  display: flex;
+  align-items: center;
+}
+
+#escola-selecionada-page .escola-location-prof {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-onDark-muted);
+  font-size: 1.05rem;
+}
+
+#escola-selecionada-page .es-map-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-onDark-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+  cursor: pointer;
+}
+
+#escola-selecionada-page .es-map-link:hover {
+  color: var(--brass);
+}
+
+/* Barra de estatísticas */
+#escola-selecionada-page .escola-stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  background: rgba(28, 51, 41, 0.4);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.4rem 2.5rem;
+}
+
+#escola-selecionada-page .escola-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+#escola-selecionada-page .stat-label {
+  font-size: 0.76rem;
+  color: var(--text-onDark-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+#escola-selecionada-page .stat-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-onDark);
+  font-family: var(--font-display);
+  line-height: 1;
+}
+
+#escola-selecionada-page .stat-value.badge {
+  font-size: 0.95rem;
+  font-family: var(--font-main);
+  padding: 0.4rem 1rem;
+  border-radius: 10px;
+  display: inline-block;
+  align-self: flex-start;
+  font-weight: 700;
+}
+
+#escola-selecionada-page .stat-score-wrapper {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+#escola-selecionada-page .stat-score-number {
+  font-size: 2rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+  line-height: 1;
+}
+
+#escola-selecionada-page .stat-score-max {
+  font-size: 0.9rem;
+  color: var(--text-onDark-muted);
+  font-weight: 600;
+}
+
+#escola-selecionada-page .stat-score-text {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-left: 0.4rem;
+}
+
+#escola-selecionada-page .stat-divider {
+  width: 1px;
+  height: 44px;
+  background: var(--line);
+}
+
+/* ─── Abas ──────────────────────────────────────────────── */
+#escola-selecionada-page .escola-tabs {
+  display: flex;
+  gap: 1rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 2.5rem;
+}
+
+#escola-selecionada-page .filter-btn {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-onDark-muted);
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  font-family: var(--font-main);
+  white-space: nowrap;
+}
+
+#escola-selecionada-page .filter-btn:hover {
+  color: var(--text-onDark);
+}
+
+#escola-selecionada-page .filter-btn.active {
+  color: var(--text-onDark);
+  border-bottom-color: var(--clay);
+}
+
+/* ─── Layout corpo (main + sidebar) ─────────────────────── */
+#escola-selecionada-page .es-body-layout {
+  display: flex;
+  gap: 2.5rem;
+  align-items: flex-start;
+}
+
+#escola-selecionada-page .es-main {
+  flex: 1;
+  min-width: 0;
+}
+
+#escola-selecionada-page .es-mock-badge {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--clay);
+  opacity: 0.8;
+  font-family: var(--font-main);
+  font-style: italic;
+  margin-left: 0.4rem;
+}
+
+/* ─── Seções gerais ─────────────────────────────────────── */
+#escola-selecionada-page .es-section {
+  margin-bottom: 3rem;
+}
+
+#escola-selecionada-page .es-section-title {
+  font-size: 1.55rem;
+  font-family: var(--font-display);
+  color: var(--text-onDark);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.6rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+#escola-selecionada-page .es-body-text {
+  font-size: 1.08rem;
+  line-height: 1.75;
+  color: var(--text-onDark-muted);
+}
+
+/* ─── Info Cards (Dados Gerais) ─────────────────────────── */
+#escola-selecionada-page .info-group-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 0;
+}
+
+#escola-selecionada-page .info-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  padding: 1.2rem;
+  border-radius: 12px;
+  transition: border-color 0.2s;
+}
+
+#escola-selecionada-page .info-card:hover {
+  border-color: rgba(184, 144, 71, 0.35);
+}
+
+#escola-selecionada-page .info-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(184, 144, 71, 0.1);
+  color: var(--brass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+#escola-selecionada-page .info-card-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+#escola-selecionada-page .info-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+#escola-selecionada-page .info-label {
+  font-size: 0.74rem;
+  color: var(--text-onDark-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+#escola-selecionada-page .info-value {
+  font-size: 1rem;
+  color: var(--text-onDark);
+  font-weight: 600;
+  word-break: break-word;
+}
+
+/* ─── Text Blocks (Fundamentos / Métodos) ──────────────── */
+#escola-selecionada-page .text-blocks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+#escola-selecionada-page .text-block {
+  background: var(--ink-2);
+  border-left: 4px solid var(--brass);
+  border-top: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 1.5rem 2rem;
+  border-radius: 4px 12px 12px 4px;
+}
+
+#escola-selecionada-page .text-block-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+#escola-selecionada-page .text-block-header svg {
+  width: 20px;
+  height: 20px;
+  color: var(--brass);
+  flex-shrink: 0;
+}
+
+#escola-selecionada-page .text-block-header h3 {
+  font-size: 1.1rem;
+  color: var(--text-onDark);
+  margin: 0;
+  font-family: var(--font-display);
+}
+
+#escola-selecionada-page .text-block p {
+  color: var(--text-onDark-muted);
+  line-height: 1.7;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* ─── Diferenciais ──────────────────────────────────────── */
+#escola-selecionada-page .es-differentials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 1.25rem;
+}
+
+#escola-selecionada-page .es-diff-card {
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+#escola-selecionada-page .es-diff-card:hover {
+  border-color: var(--brass);
+  transform: translateY(-3px);
+}
+
+#escola-selecionada-page .es-diff-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+#escola-selecionada-page .es-diff-card h4 {
+  font-size: 0.95rem;
+  color: var(--text-onDark);
+  font-family: var(--font-display);
+  margin-bottom: 0.4rem;
+}
+
+#escola-selecionada-page .es-diff-card p {
+  font-size: 0.85rem;
+  color: var(--text-onDark-muted);
+  line-height: 1.5;
+}
+
+/* ─── Cursos ────────────────────────────────────────────── */
+#escola-selecionada-page .courses-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+
+#escola-selecionada-page .course-card-prof {
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.25rem;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+#escola-selecionada-page .course-card-prof:hover {
+  border-color: var(--brass);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+#escola-selecionada-page .course-card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-onDark);
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+  font-family: var(--font-display);
+}
+
+#escola-selecionada-page .course-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+#escola-selecionada-page .course-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--text-onDark-muted);
+  background: rgba(232, 227, 216, 0.05);
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+#escola-selecionada-page .course-card-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--line);
+  padding-top: 0.9rem;
+  margin-top: auto;
+}
+
+#escola-selecionada-page .view-course-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--brass);
+  transition: color 0.2s;
+}
+
+#escola-selecionada-page .arrow-icon {
+  color: var(--brass);
+  transition: transform 0.25s;
+  display: flex;
+  align-items: center;
+}
+
+#escola-selecionada-page .course-card-prof:hover .arrow-icon {
+  transform: translateX(4px);
+}
+
+/* Estado vazio */
+#escola-selecionada-page .empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  background: var(--ink-2);
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  text-align: center;
+}
+
+#escola-selecionada-page .empty-state-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+  color: var(--text-onDark-muted);
+}
+
+#escola-selecionada-page .empty-state-icon svg {
+  width: 30px;
+  height: 30px;
+}
+
+#escola-selecionada-page .no-courses-msg {
+  font-size: 1rem;
+  color: var(--text-onDark-muted);
+  max-width: 380px;
+  line-height: 1.55;
+}
+
+/* ─── Sidebar ───────────────────────────────────────────── */
+#escola-selecionada-page .es-sidebar {
+  width: 300px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+#escola-selecionada-page .es-sidebar-card {
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#escola-selecionada-page .es-sidebar-card h4 {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--text-onDark);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* Pin de localização clicável */
+#escola-selecionada-page .es-sidebar-map-art {
+  height: 130px;
+  background:
+    linear-gradient(135deg, rgba(184, 144, 71, 0.15), transparent 55%),
+    repeating-linear-gradient(125deg, rgba(232, 227, 216, 0.05) 0 1px, transparent 1px 24px),
+    var(--panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+  position: relative;
+  color: var(--brass);
+  text-decoration: none;
+  transition: background 0.25s, color 0.25s;
+}
+
+#escola-selecionada-page .es-sidebar-map-art::after {
+  content: '';
+  position: absolute;
+  width: 92px;
+  height: 92px;
+  border: 1px solid rgba(184, 144, 71, 0.35);
+  border-radius: 50%;
+  transform: scale(0.6);
+  transition: transform 0.25s, border-color 0.25s;
+}
+
+#escola-selecionada-page .es-sidebar-map-art:hover {
+  background:
+    linear-gradient(135deg, rgba(184, 144, 71, 0.24), transparent 55%),
+    repeating-linear-gradient(125deg, rgba(232, 227, 216, 0.07) 0 1px, transparent 1px 24px),
+    var(--panel);
+  color: var(--text-onDark);
+}
+
+#escola-selecionada-page .es-sidebar-map-art:hover::after {
+  transform: scale(1);
+  border-color: rgba(184, 144, 71, 0.55);
+}
+
+#escola-selecionada-page .es-sidebar-card-body {
+  padding: 1.25rem;
+}
+
+#escola-selecionada-page .es-sidebar-address {
+  font-size: 0.9rem;
+  color: var(--text-onDark-muted);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+/* Botão Google Maps */
+#escola-selecionada-page .es-map-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: var(--forest);
+  color: var(--text-onDark);
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+#escola-selecionada-page .es-map-btn:hover {
+  background: var(--brass);
+  color: var(--ink);
+}
+
+/* Lista de contato */
+#escola-selecionada-page .es-contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#escola-selecionada-page .es-contact-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 0.88rem;
+  color: var(--text-onDark-muted);
+  word-break: break-all;
+}
+
+#escola-selecionada-page .es-contact-list li svg {
+  color: var(--brass);
+  flex-shrink: 0;
+}
+
+/* ─── Responsivo ────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  #escola-selecionada-page .es-body-layout {
     flex-direction: column;
-}
+  }
 
-.escola-header-main-info {
-    display: flex;
-    align-items: flex-end;
-    gap: 2rem;
-    margin-top: -60px;
-    margin-bottom: 2rem;
-}
-
-.escola-logo-professional {
-    width: 120px;
-    height: 120px;
-    border-radius: 20px;
-    background: linear-gradient(135deg, #2c6cfb 0%, #1a45c8 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 3.5rem;
-    font-weight: 800;
-    border: 6px solid #0b1426; /* matches background to look cut out */
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    flex-shrink: 0;
-    z-index: 2;
-}
-
-.escola-title-area {
-    flex-grow: 1;
-    padding-bottom: 0.5rem;
-}
-
-.escola-title-top {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 0.5rem;
+  #escola-selecionada-page .es-sidebar {
+    width: 100%;
+    position: static;
+    flex-direction: row;
     flex-wrap: wrap;
-}
+  }
 
-.escola-name-professional {
-    font-size: 2.8rem;
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-}
-
-.school-verified-tag-large {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    padding: 0.4rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #10b981;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-.escola-meta-professional {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-}
-
-.escola-location-prof {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #94a3b8;
-    font-size: 1.1rem;
-}
-
-.escola-location-prof svg {
-    width: 18px;
-    height: 18px;
-    color: #64748b;
-}
-
-/* Stats Bar */
-.escola-stats-bar {
-    display: flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 16px;
-    padding: 1.5rem 2.5rem;
-    gap: 3rem;
-}
-
-.stat-divider {
-    width: 1px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.escola-stat-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.stat-label {
-    font-size: 0.8rem;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 600;
-}
-
-.stat-value {
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: #fff;
-    line-height: 1;
-}
-
-.stat-value.badge {
-    font-size: 1rem;
-    padding: 0.4rem 1rem;
-    border-radius: 12px;
-    display: inline-block;
-    align-self: flex-start;
-}
-
-.stat-score-wrapper {
-    display: flex;
-    align-items: baseline;
-    gap: 0.25rem;
-}
-
-.stat-score-number {
-    font-size: 2rem;
-    font-weight: 800;
-    line-height: 1;
-}
-
-.stat-score-max {
-    font-size: 0.9rem;
-    color: #64748b;
-    font-weight: 600;
-}
-
-.stat-score-text {
-    font-size: 0.85rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-left: 0.5rem;
+  #escola-selecionada-page .es-sidebar-card {
+    flex: 1;
+    min-width: 240px;
+  }
 }
 
 @media (max-width: 860px) {
-    .escola-header-main-info {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-    
-    .escola-title-top {
-        justify-content: center;
-    }
-    
-    .escola-meta-professional {
-        justify-content: center;
-    }
-    
-    .escola-stats-bar {
-        flex-direction: column;
-        gap: 1.5rem;
-        padding: 1.5rem;
-        text-align: center;
-    }
-    
-    .stat-divider {
-        width: 100%;
-        height: 1px;
-    }
-    
-    .stat-value.badge {
-        align-self: center;
-    }
-}
-
-
-/* --- Info Cards --- */
-.info-group-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 3rem;
-}
-
-.info-card {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 1.25rem;
-    border-radius: 16px;
-    transition: transform 0.2s ease, background 0.2s ease;
-}
-
-.info-card:hover {
-    background: rgba(255, 255, 255, 0.04);
-    transform: translateY(-2px);
-}
-
-.info-card-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: rgba(44, 108, 251, 0.1);
-    color: #2c6cfb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.info-card-icon svg {
-    width: 24px;
-    height: 24px;
-}
-
-.info-card-content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.info-label {
-    font-size: 0.8rem;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 600;
-}
-
-.info-value {
-    font-size: 1.1rem;
-    color: #f1f5f9;
-    font-weight: 600;
-}
-
-
-/* --- Text Blocks --- */
-.text-blocks-container {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-}
-
-.text-block {
-    background: rgba(255, 255, 255, 0.01);
-    border-left: 3px solid #2c6cfb;
-    padding: 1.5rem 2rem;
-    border-radius: 0 16px 16px 0;
-}
-
-.text-block-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-}
-
-.text-block-header svg {
-    width: 20px;
-    height: 20px;
-    color: #38bdf8;
-}
-
-.text-block-header h3 {
-    font-size: 1.2rem;
-    color: #f1f5f9;
-    margin: 0;
-}
-
-.text-block p {
-    color: #94a3b8;
-    line-height: 1.7;
-    font-size: 1.05rem;
-    margin: 0;
-}
-
-/* --- Courses Grid --- */
-.courses-list-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 1.5rem;
-}
-
-.course-card-prof {
-    background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 16px;
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 1.5rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.course-card-prof:hover {
-    background: linear-gradient(145deg, rgba(44,108,251,0.08) 0%, rgba(255,255,255,0.02) 100%);
-    border-color: rgba(44, 108, 251, 0.3);
-    transform: translateY(-4px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-}
-
-.course-card-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 0.75rem;
-    line-height: 1.3;
-}
-
-.course-meta-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-    color: #94a3b8;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 0.4rem 0.8rem;
-    border-radius: 8px;
-}
-
-.course-meta-item svg {
-    width: 16px;
-    height: 16px;
-    color: #64748b;
-}
-
-.course-card-action {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    padding-top: 1rem;
-    margin-top: auto;
-}
-
-.view-course-text {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #2c6cfb;
-    transition: color 0.3s ease;
-}
-
-.course-card-prof:hover .view-course-text {
-    color: #60a5fa;
-}
-
-.course-card-prof .arrow-icon {
-    width: 20px;
-    height: 20px;
-    color: #2c6cfb;
-    transition: transform 0.3s ease;
-}
-
-.course-card-prof:hover .arrow-icon {
-    transform: translateX(4px);
-    color: #60a5fa;
-}
-
-/* Empty State */
-.empty-state-container {
-    display: flex;
+  #escola-selecionada-page .escola-header-main-info {
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 4rem 2rem;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px dashed rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
     text-align: center;
-}
+  }
 
-.empty-state-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05);
-    display: flex;
-    align-items: center;
+  #escola-selecionada-page .escola-title-top {
     justify-content: center;
-    margin-bottom: 1.5rem;
-    color: #64748b;
+  }
+
+  #escola-selecionada-page .escola-meta-professional {
+    justify-content: center;
+  }
+
+  #escola-selecionada-page .escola-stats-bar {
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  #escola-selecionada-page .stat-divider {
+    width: 100%;
+    height: 1px;
+  }
+
+  #escola-selecionada-page .stat-value.badge {
+    align-self: center;
+  }
 }
 
-.empty-state-icon svg {
-    width: 32px;
-    height: 32px;
-}
+@media (max-width: 600px) {
+  #escola-selecionada-page .escola-header-content-professional {
+    padding: 0 1.5rem 2rem;
+  }
 
-.no-courses-msg {
-    font-size: 1.1rem;
-    color: #94a3b8;
-    max-width: 400px;
-    line-height: 1.5;
-}
+  #escola-selecionada-page .escola-name-professional {
+    font-size: 1.8rem;
+  }
 
-/* Loading Spinner */
-.loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid rgba(44, 108, 251, 0.1);
-    border-left-color: #2c6cfb;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
+  #escola-selecionada-page .escola-logo-professional {
+    width: 90px;
+    height: 90px;
+    font-size: 2.8rem;
+  }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  #escola-selecionada-page .es-section-title {
+    font-size: 1.3rem;
+  }
 }
