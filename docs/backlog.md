@@ -324,6 +324,20 @@ Este documento registra o histórico de funcionalidades implementadas no StudyGo
 
 ---
 
+## 20. Correção do selo Mais procurado
+
+### Status
+- **Concluído**
+
+### Descrição
+- O selo agora usa a posição real do curso na lista ordenada por popularidade.
+- Apenas os três primeiros cursos recebem “Mais procurado”; a pontuação não é mais confundida com posição.
+
+### Arquivo Modificado
+- `src/pages/CoursesCatalog/CoursesCatalog.jsx`
+
+---
+
 ## 19. Cores dos badges do ranking
 
 ### Status

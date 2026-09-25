@@ -395,8 +395,8 @@ function CoursesCatalog() {
                   <h3>{course.name}</h3>
 
                   {/* Curso entre os primeiros do ranking */}
-                  {course.rawRanking >= 1 &&
-                    course.rawRanking <= 3 && (
+                  {sortBy === 'popular' &&
+                    index < 3 && (
                       <span className="tag tag-popular">
                         <Flame size={12} />
                         Mais procurado
