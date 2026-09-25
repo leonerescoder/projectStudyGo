@@ -50,6 +50,7 @@ import {
   CATEGORIES_UPDATE_EVENT
 } from '../../utils/categoryService';
 import { CategorySmartInput } from '../CategorySmartInput/CategorySmartInput';
+import { SuccessPopup } from '../SuccessPopup/SuccessPopup';
 import './Admin.css';
 
 const QUICK_IMAGE_PRESETS = [
@@ -139,7 +140,9 @@ export function Admin() {
   // Modal State (Inserir Dados)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalEntityType, setModalEntityType] = useState('course'); // 'course' | 'company' | 'category' | 'user'
+  const [submitStatus, setSubmitStatus] = useState('idle'); // 'idle' | 'saving' | 'success'
   const [toastMessage, setToastMessage] = useState(null);
+  const [successPopupData, setSuccessPopupData] = useState(null);
 
   // Boost Points Modal State
   const [boostModalCourse, setBoostModalCourse] = useState(null);
@@ -432,9 +435,10 @@ export function Admin() {
     }
   };
 
-  // Handle Form Submit (Inserir dados no banco)
+  // Handle Form Submit (Inserir dados no banco com feedback de salvo com sucesso)
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
+    if (submitStatus === 'saving' || submitStatus === 'success') return;
 
     if (modalEntityType === 'course') {
       const trimmedName = (courseForm.name || '').trim();
@@ -452,6 +456,7 @@ export function Admin() {
         return;
       }
       try {
+        setSubmitStatus('saving');
         const selectedCompany = companies.find(c => c.name === courseForm.company_name);
         const companyId = selectedCompany ? selectedCompany.id : 1;
 
@@ -505,9 +510,30 @@ export function Admin() {
           }
 
           setCourses([newCourse, ...courses]);
-          showToast(`✓ Curso "${newCourse.name}" cadastrado com sucesso com Ranking Inicial 0 na categoria "${canonicalCategoryName}"!`);
-          setCourseForm({ name: '', description: '', urlImg: '', workload: '', Field_of_study: 'Tecnologia', company_name: directorCompany ? directorCompany.name : 'Senac São Carlos', ranking: '0', status: 'ATIVO' });
+          setSubmitStatus('success');
+          
+          setTimeout(() => {
+            setIsModalOpen(false);
+            setSubmitStatus('idle');
+            setSuccessPopupData({
+              isOpen: true,
+              type: 'course',
+              title: 'Curso Cadastrado com Sucesso!',
+              subtitle: `O curso "${newCourse.name}" foi registrado com sucesso e já está disponível no catálogo com Ranking Inicial 0!`,
+              details: {
+                name: newCourse.name,
+                category: canonicalCategoryName,
+                school: courseForm.company_name || 'Senac São Carlos',
+                ranking: 0,
+                status: courseForm.status || 'ATIVO'
+              },
+              onAction: () => openModal('course'),
+              actionLabel: 'Cadastrar Outro Curso'
+            });
+            setCourseForm({ name: '', description: '', urlImg: '', workload: '', Field_of_study: 'Tecnologia', company_name: directorCompany ? directorCompany.name : 'Senac São Carlos', ranking: '0', status: 'ATIVO' });
+          }, 600);
         } else {
+          setSubmitStatus('idle');
           const errText = await response.text();
           let userMsg = errText;
           try {
@@ -527,7 +553,11 @@ export function Admin() {
           }
           console.error('Erro backend:', errText);
         }
-      } catch (err) { console.error(err); alert('Erro de conexão ao salvar curso no servidor.'); }
+      } catch (err) { 
+        setSubmitStatus('idle');
+        console.error(err); 
+        alert('Erro de conexão ao salvar curso no servidor.'); 
+      }
     }
     else if (modalEntityType === 'company') {
       if (!companyForm.name || !companyForm.cnpj) {
@@ -535,6 +565,7 @@ export function Admin() {
         return;
       }
       try {
+        setSubmitStatus('saving');
         const payload = {
           name: companyForm.name,
           cnpj: companyForm.cnpj,
@@ -549,10 +580,36 @@ export function Admin() {
         if (response.ok) {
           const newCompany = await response.json();
           setCompanies([newCompany, ...companies]);
-          showToast(`✓ Instituição "${newCompany.name}" cadastrada no banco!`);
-          setCompanyForm({ name: '', cnpj: '', foundation: '', places: '', fundaments: '', methods: '', ranking: '1', owner_name: '' });
-        } else { alert('Erro ao inserir instituição no banco.'); }
-      } catch (err) { console.error(err); alert('Erro de conexão.'); }
+          setSubmitStatus('success');
+          
+          setTimeout(() => {
+            setIsModalOpen(false);
+            setSubmitStatus('idle');
+            setSuccessPopupData({
+              isOpen: true,
+              type: 'school',
+              title: 'Escola Cadastrada com Sucesso!',
+              subtitle: `A instituição "${newCompany.name}" foi gravada no banco de dados e está ativa para criação de cursos.`,
+              details: {
+                name: newCompany.name,
+                cnpj: newCompany.cnpj,
+                ranking: newCompany.ranking || 1,
+                status: 'ATIVO'
+              },
+              onAction: () => openModal('company'),
+              actionLabel: 'Cadastrar Outra Escola'
+            });
+            setCompanyForm({ name: '', cnpj: '', foundation: '', places: '', fundaments: '', methods: '', ranking: '1', owner_name: '' });
+          }, 600);
+        } else { 
+          setSubmitStatus('idle');
+          alert('Erro ao inserir instituição no banco.'); 
+        }
+      } catch (err) { 
+        setSubmitStatus('idle');
+        console.error(err); 
+        alert('Erro de conexão.'); 
+      }
     }
     else if (modalEntityType === 'category') {
       if (!categoryForm.name || !categoryForm.name.trim()) {
@@ -560,6 +617,7 @@ export function Admin() {
         return;
       }
       try {
+        setSubmitStatus('saving');
         // FASE 5, 6, 7 e 8: Normaliza, detecta duplicatas e salva ou reaproveita categoria
         const result = await saveOrGetCategory(categoryForm.name, categoryForm.description);
         
@@ -569,15 +627,29 @@ export function Admin() {
         });
         setCourseForm(prev => ({ ...prev, Field_of_study: result.category.name }));
 
-        if (result.reused) {
-          showToast(`ℹ️ Categoria existente "${result.category.name}" (ID: #${result.category.id}) reaproveitada com sucesso!`);
-        } else {
-          showToast(`✓ Nova categoria "${result.category.name}" cadastrada no banco e disponível para todos os diretores!`);
-        }
+        setSubmitStatus('success');
         
-        setCategoryForm({ name: '', description: '' });
-        setIsModalOpen(false);
+        setTimeout(() => {
+          setIsModalOpen(false);
+          setSubmitStatus('idle');
+          setSuccessPopupData({
+            isOpen: true,
+            type: 'category',
+            title: result.reused ? 'Categoria Reaproveitada!' : 'Categoria Cadastrada com Sucesso!',
+            subtitle: result.reused 
+              ? `A categoria global "${result.category.name}" (ID #${result.category.id}) foi identificada e vinculada com sucesso.`
+              : `A nova categoria global "${result.category.name}" foi criada no banco e já está disponível para todos os diretores!`,
+            details: {
+              name: result.category.name,
+              status: 'GLOBAL'
+            },
+            onAction: () => openModal('category'),
+            actionLabel: 'Cadastrar Outra Categoria'
+          });
+          setCategoryForm({ name: '', description: '' });
+        }, 600);
       } catch (err) {
+        setSubmitStatus('idle');
         console.error(err);
         alert('Aviso ao processar categoria:\n' + (err.message || 'Erro de conexão ao salvar categoria.'));
       }
@@ -588,6 +660,7 @@ export function Admin() {
         return;
       }
       try {
+        setSubmitStatus('saving');
         const payload = {
           name: userForm.name,
           cpf: userForm.cpf,
@@ -602,17 +675,39 @@ export function Admin() {
         if (response.ok) {
           const newUser = await response.json();
           setUsers([newUser, ...users]);
-          showToast(`✓ Usuário "${newUser.name}" registrado no banco!`);
-          setUserForm({ name: '', cpf: '', email: '', type: 'DIRECTOR', status: 'ATIVO', birth_date: '', password: '123', company_name: 'Senac São Carlos' });
-        } else { alert('Erro ao inserir usuário no banco.'); }
-      } catch (err) { console.error(err); alert('Erro de conexão.'); }
+          setSubmitStatus('success');
+          
+          setTimeout(() => {
+            setIsModalOpen(false);
+            setSubmitStatus('idle');
+            setSuccessPopupData({
+              isOpen: true,
+              type: 'director',
+              title: 'Usuário Registrado com Sucesso!',
+              subtitle: `O perfil de acesso para "${newUser.name}" foi criado e habilitado como ${newUser.type}.`,
+              details: {
+                name: newUser.name,
+                school: userForm.company_name,
+                status: newUser.status || 'ATIVO'
+              }
+            });
+            setUserForm({ name: '', cpf: '', email: '', type: 'DIRECTOR', status: 'ATIVO', birth_date: '', password: '123', company_name: 'Senac São Carlos' });
+          }, 600);
+        } else { 
+          setSubmitStatus('idle');
+          alert('Erro ao inserir usuário no banco.'); 
+        }
+      } catch (err) { 
+        setSubmitStatus('idle');
+        console.error(err); 
+        alert('Erro de conexão.'); 
+      }
     }
-
-    setIsModalOpen(false);
   };
 
   const openModal = (type) => {
     setModalEntityType(type);
+    setSubmitStatus('idle');
     setIsModalOpen(true);
   };
 
@@ -1480,12 +1575,30 @@ export function Admin() {
                 </div>
 
                 <div className="modal-actions">
-                  <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)}>
+                  <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)} disabled={submitStatus !== 'idle'}>
                     Cancelar
                   </button>
-                  <button type="submit" className="btn-submit">
-                    <Database size={16} />
-                    <span>Gravar Curso no Banco</span>
+                  <button 
+                    type="submit" 
+                    className={`btn-submit ${submitStatus === 'success' ? 'btn-submit-success' : ''}`}
+                    disabled={submitStatus !== 'idle'}
+                  >
+                    {submitStatus === 'saving' ? (
+                      <>
+                        <span className="spinner-mini"></span>
+                        <span>Gravando Curso...</span>
+                      </>
+                    ) : submitStatus === 'success' ? (
+                      <>
+                        <CheckCircle2 size={18} className="btn-success-check-icon" />
+                        <span>✓ Salvo com sucesso!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Database size={16} />
+                        <span>Gravar Curso no Banco</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
@@ -1548,12 +1661,30 @@ export function Admin() {
                 </div>
 
                 <div className="modal-actions">
-                  <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)}>
+                  <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)} disabled={submitStatus !== 'idle'}>
                     Cancelar
                   </button>
-                  <button type="submit" className="btn-submit">
-                    <Database size={16} />
-                    <span>Gravar Escola no Banco</span>
+                  <button 
+                    type="submit" 
+                    className={`btn-submit ${submitStatus === 'success' ? 'btn-submit-success' : ''}`}
+                    disabled={submitStatus !== 'idle'}
+                  >
+                    {submitStatus === 'saving' ? (
+                      <>
+                        <span className="spinner-mini"></span>
+                        <span>Gravando Escola...</span>
+                      </>
+                    ) : submitStatus === 'success' ? (
+                      <>
+                        <CheckCircle2 size={18} className="btn-success-check-icon" />
+                        <span>✓ Salvo com sucesso!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Database size={16} />
+                        <span>Gravar Escola no Banco</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
@@ -1614,12 +1745,30 @@ export function Admin() {
                   </div>
 
                   <div className="modal-actions">
-                    <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)}>
+                    <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)} disabled={submitStatus !== 'idle'}>
                       Cancelar
                     </button>
-                    <button type="submit" className="btn-submit">
-                      <Database size={16} />
-                      <span>{liveMatch?.status === 'EXACT_MATCH' ? 'Reaproveitar / Gravar Categoria' : 'Gravar Categoria no Banco'}</span>
+                    <button 
+                      type="submit" 
+                      className={`btn-submit ${submitStatus === 'success' ? 'btn-submit-success' : ''}`}
+                      disabled={submitStatus !== 'idle'}
+                    >
+                      {submitStatus === 'saving' ? (
+                        <>
+                          <span className="spinner-mini"></span>
+                          <span>Gravando Categoria...</span>
+                        </>
+                      ) : submitStatus === 'success' ? (
+                        <>
+                          <CheckCircle2 size={18} className="btn-success-check-icon" />
+                          <span>✓ Salvo com sucesso!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Database size={16} />
+                          <span>{liveMatch?.status === 'EXACT_MATCH' ? 'Reaproveitar / Gravar Categoria' : 'Gravar Categoria no Banco'}</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </form>
@@ -1690,12 +1839,30 @@ export function Admin() {
                 </div>
 
                 <div className="modal-actions">
-                  <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)}>
+                  <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)} disabled={submitStatus !== 'idle'}>
                     Cancelar
                   </button>
-                  <button type="submit" className="btn-submit">
-                    <Database size={16} />
-                    <span>Gravar Usuário no Banco</span>
+                  <button 
+                    type="submit" 
+                    className={`btn-submit ${submitStatus === 'success' ? 'btn-submit-success' : ''}`}
+                    disabled={submitStatus !== 'idle'}
+                  >
+                    {submitStatus === 'saving' ? (
+                      <>
+                        <span className="spinner-mini"></span>
+                        <span>Registrando Usuário...</span>
+                      </>
+                    ) : submitStatus === 'success' ? (
+                      <>
+                        <CheckCircle2 size={18} className="btn-success-check-icon" />
+                        <span>✓ Salvo com sucesso!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Database size={16} />
+                        <span>Gravar Usuário no Banco</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
@@ -1848,6 +2015,19 @@ export function Admin() {
           </div>
         </div>
       )}
+      {/* ==================================================== */}
+      {/* POP-UP INTUITIVO DE CONFIRMAÇÃO: SALVO COM SUCESSO */}
+      {/* ==================================================== */}
+      <SuccessPopup
+        isOpen={Boolean(successPopupData?.isOpen)}
+        type={successPopupData?.type || 'course'}
+        title={successPopupData?.title}
+        subtitle={successPopupData?.subtitle}
+        details={successPopupData?.details}
+        onClose={() => setSuccessPopupData(null)}
+        onAction={successPopupData?.onAction}
+        actionLabel={successPopupData?.actionLabel}
+      />
     </div>
   );
 }

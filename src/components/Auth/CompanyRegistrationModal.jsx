@@ -15,10 +15,13 @@ import {
 } from 'lucide-react';
 import { BASE_URL } from '../../API/apiClient';
 import { useAuth } from '../../context/AuthContext';
+import { SuccessPopup } from '../SuccessPopup/SuccessPopup';
 import './CompanyRegistrationModal.css';
 
 export function CompanyRegistrationModal({ isOpen, onClose }) {
   const { user, token } = useAuth();
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [savedCompanyDetails, setSavedCompanyDetails] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     cnpj: '',
@@ -135,11 +138,15 @@ export function CompanyRegistrationModal({ isOpen, onClose }) {
       }
 
       setSuccessMessage('Empresa cadastrada com sucesso! Bem-vindo à plataforma.');
+      setSavedCompanyDetails({
+        name: formData.name,
+        cnpj: formData.cnpj,
+        status: 'ATIVO'
+      });
+      setShowSuccessPopup(true);
       setTimeout(() => {
-        onClose();
-        setSuccessMessage('');
         setFormData({ name: '', cnpj: '', email: '', tel: '', urlImg: '', foundation: '', places: '', fundaments: '', methods: '' });
-      }, 3000);
+      }, 500);
       
     } catch (error) {
       setErrorMessage(error.message);
@@ -329,13 +336,44 @@ export function CompanyRegistrationModal({ isOpen, onClose }) {
             </div>
           </div>
 
-          <button type="submit" className="comp-submit-btn" disabled={loading}>
-            <Send size={18} />
-            <span>{loading ? 'Salvando Instituição...' : 'Finalizar Cadastro da Empresa'}</span>
+          <button 
+            type="submit" 
+            className={`comp-submit-btn ${successMessage ? 'comp-submit-btn-success' : ''}`} 
+            disabled={loading || !!successMessage}
+          >
+            {loading ? (
+              <>
+                <span className="spinner-mini"></span>
+                <span>Salvando Instituição...</span>
+              </>
+            ) : successMessage ? (
+              <>
+                <CheckCircle2 size={20} className="btn-success-check-icon" />
+                <span>✓ Salvo com sucesso!</span>
+              </>
+            ) : (
+              <>
+                <Send size={18} />
+                <span>Finalizar Cadastro da Empresa</span>
+              </>
+            )}
           </button>
         </form>
 
       </div>
+
+      <SuccessPopup
+        isOpen={showSuccessPopup}
+        type="school"
+        title="Escola Cadastrada com Sucesso!"
+        subtitle="Sua instituição foi registrada e agora está habilitada para cadastrar cursos na plataforma."
+        details={savedCompanyDetails}
+        onClose={() => {
+          setShowSuccessPopup(false);
+          setSuccessMessage('');
+          onClose();
+        }}
+      />
     </div>
   );
 }

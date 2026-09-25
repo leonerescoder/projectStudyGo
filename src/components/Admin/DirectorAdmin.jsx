@@ -34,6 +34,7 @@ import {
   CATEGORIES_UPDATE_EVENT
 } from '../../utils/categoryService';
 import { CategorySmartInput } from '../CategorySmartInput/CategorySmartInput';
+import { SuccessPopup } from '../SuccessPopup/SuccessPopup';
 import './DirectorAdmin.css';
 
 // Initial Director Profile
@@ -136,6 +137,13 @@ export function DirectorAdmin() {
   const [isEditSchoolModalOpen, setIsEditSchoolModalOpen] = useState(false);
   const [isRegisterDirectorModalOpen, setIsRegisterDirectorModalOpen] = useState(false);
 
+  // Submit Status states for smooth "Salvo com sucesso" button feedback
+  const [courseSubmitStatus, setCourseSubmitStatus] = useState('idle'); // 'idle' | 'saving' | 'success'
+  const [schoolSubmitStatus, setSchoolSubmitStatus] = useState('idle'); // 'idle' | 'saving' | 'success'
+  const [profileSubmitStatus, setProfileSubmitStatus] = useState('idle'); // 'idle' | 'saving' | 'success'
+  const [directorSubmitStatus, setDirectorSubmitStatus] = useState('idle'); // 'idle' | 'saving' | 'success'
+  const [successPopupData, setSuccessPopupData] = useState(null);
+
   // Forms State (Default Ranking is 0)
   const [courseForm, setCourseForm] = useState({
     name: '',
@@ -189,6 +197,8 @@ export function DirectorAdmin() {
   // Handle Profile Update (Cannot change status or type!)
   const handleUpdateProfile = (e) => {
     e.preventDefault();
+    if (profileSubmitStatus === 'saving' || profileSubmitStatus === 'success') return;
+    setProfileSubmitStatus('saving');
 
     // STRICT VALIDATION: Ensure type is ALWAYS DIRECTOR and status is ALWAYS ATIVO
     const updatedUser = {
@@ -204,20 +214,55 @@ export function DirectorAdmin() {
     };
 
     setDirectorUser(updatedUser);
-    showToast('✓ Seus dados pessoais foram atualizados com sucesso no banco de dados!');
+    setProfileSubmitStatus('success');
+    
+    setTimeout(() => {
+      setProfileSubmitStatus('idle');
+      setSuccessPopupData({
+        isOpen: true,
+        type: 'director',
+        title: 'Perfil Salvo com Sucesso!',
+        subtitle: 'Seus dados pessoais e de autenticação foram atualizados com segurança.',
+        details: {
+          name: updatedUser.name,
+          school: school.name,
+          status: 'ATIVO'
+        }
+      });
+    }, 600);
   };
 
   // Handle School Info Update
   const handleUpdateSchool = (e) => {
     e.preventDefault();
+    if (schoolSubmitStatus === 'saving' || schoolSubmitStatus === 'success') return;
+    setSchoolSubmitStatus('saving');
+
     setSchool({ ...editSchoolForm });
-    setIsEditSchoolModalOpen(false);
-    showToast(`✓ Informações da instituição "${editSchoolForm.name}" atualizadas!`);
+    setSchoolSubmitStatus('success');
+    
+    setTimeout(() => {
+      setIsEditSchoolModalOpen(false);
+      setSchoolSubmitStatus('idle');
+      setSuccessPopupData({
+        isOpen: true,
+        type: 'school',
+        title: 'Dados da Escola Salvos!',
+        subtitle: `A apresentação institucional de "${editSchoolForm.name}" foi atualizada com sucesso no banco de dados.`,
+        details: {
+          name: editSchoolForm.name,
+          cnpj: editSchoolForm.cnpj,
+          status: 'ATIVO'
+        }
+      });
+    }, 600);
   };
 
   // Handle Course Creation (Attached only to this director's school)
   const handleCreateCourse = async (e) => {
     e.preventDefault();
+    if (courseSubmitStatus === 'saving' || courseSubmitStatus === 'success') return;
+
     const trimmedName = (courseForm.name || '').trim();
     if (!trimmedName || trimmedName.length < 2) {
       alert('Por favor, preencha o nome do curso com no mínimo 2 caracteres.');
@@ -234,6 +279,7 @@ export function DirectorAdmin() {
     }
 
     try {
+      setCourseSubmitStatus('saving');
       // FASE 7, 12 e 13: Resolve a categoria dinamicamente na base global compartilhada
       let targetCategory = categories.find(
         c => (c.nome_normalizado && c.nome_normalizado === normalizeCategoryName(courseForm.Field_of_study)) ||
@@ -285,12 +331,32 @@ export function DirectorAdmin() {
         }
 
         setCourses([newCourse, ...courses]);
-        setIsNewCourseModalOpen(false);
-        setCourseForm({
-          name: '', description: '', urlImg: '', workload: '', Field_of_study: 'Tecnologia', ranking: '0', status: 'ATIVO'
-        });
-        showToast(`✓ Novo curso "${newCourse.name}" adicionado à ${school.name} com Ranking Inicial 0!`);
+        setCourseSubmitStatus('success');
+        
+        setTimeout(() => {
+          setIsNewCourseModalOpen(false);
+          setCourseSubmitStatus('idle');
+          setSuccessPopupData({
+            isOpen: true,
+            type: 'course',
+            title: 'Curso Cadastrado com Sucesso!',
+            subtitle: `O curso "${newCourse.name}" foi cadastrado e vinculado com sucesso à ${school.name}!`,
+            details: {
+              name: newCourse.name,
+              category: canonicalCategoryName,
+              school: school.name,
+              ranking: 0,
+              status: courseForm.status || 'ATIVO'
+            },
+            onAction: () => setIsNewCourseModalOpen(true),
+            actionLabel: 'Cadastrar Outro Curso'
+          });
+          setCourseForm({
+            name: '', description: '', urlImg: '', workload: '', Field_of_study: 'Tecnologia', ranking: '0', status: 'ATIVO'
+          });
+        }, 600);
       } else {
+        setCourseSubmitStatus('idle');
         const errText = await response.text();
         let userMsg = errText;
         try {
@@ -309,6 +375,7 @@ export function DirectorAdmin() {
         }
       }
     } catch (err) {
+      setCourseSubmitStatus('idle');
       console.error(err);
       alert('Erro de conexão ao criar curso.');
     }
@@ -392,10 +459,12 @@ export function DirectorAdmin() {
   // Handle New Director Registration (Starts as ACTIVE, type DIRECTOR)
   const handleRegisterNewDirector = (e) => {
     e.preventDefault();
+    if (directorSubmitStatus === 'saving' || directorSubmitStatus === 'success') return;
     if (!newDirectorForm.name || !newDirectorForm.email || !newDirectorForm.cpf) {
       alert('Preencha Nome, E-mail e CPF.');
       return;
     }
+    setDirectorSubmitStatus('saving');
 
     const registeredDirector = {
       id: Math.floor(Math.random() * 1000) + 10,
@@ -435,9 +504,24 @@ export function DirectorAdmin() {
       status: 'ATIVO'
     });
     setEditSchoolForm({ ...newSchool });
-    setIsRegisterDirectorModalOpen(false);
+    setDirectorSubmitStatus('success');
 
-    showToast(`✓ Diretor(a) ${registeredDirector.name} cadastrado com sucesso como ATIVO (DIRECTOR)!`);
+    setTimeout(() => {
+      setIsRegisterDirectorModalOpen(false);
+      setDirectorSubmitStatus('idle');
+      setSuccessPopupData({
+        isOpen: true,
+        type: 'director',
+        title: 'Diretor e Escola Cadastrados!',
+        subtitle: `O diretor(a) "${registeredDirector.name}" e a instituição "${newSchool.name}" foram cadastrados com sucesso!`,
+        details: {
+          name: registeredDirector.name,
+          school: newSchool.name,
+          cnpj: newSchool.cnpj,
+          status: 'ATIVO'
+        }
+      });
+    }, 600);
   };
 
   return (
@@ -853,9 +937,27 @@ export function DirectorAdmin() {
                 </div>
 
                 <div className="form-actions-right">
-                  <button type="submit" className="btn-save-profile">
-                    <CheckCircle2 size={18} />
-                    <span>Salvar Alterações Permitidas</span>
+                  <button 
+                    type="submit" 
+                    className={`btn-save-profile ${profileSubmitStatus === 'success' ? 'btn-save-profile-success' : ''}`}
+                    disabled={profileSubmitStatus !== 'idle'}
+                  >
+                    {profileSubmitStatus === 'saving' ? (
+                      <>
+                        <span className="spinner-mini"></span>
+                        <span>Salvando Alterações...</span>
+                      </>
+                    ) : profileSubmitStatus === 'success' ? (
+                      <>
+                        <CheckCircle2 size={18} className="btn-success-check-icon" />
+                        <span>✓ Salvo com sucesso!</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 size={18} />
+                        <span>Salvar Alterações Permitidas</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
@@ -1023,11 +1125,30 @@ export function DirectorAdmin() {
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={() => setIsNewCourseModalOpen(false)}>
+                <button type="button" className="btn-cancel" onClick={() => setIsNewCourseModalOpen(false)} disabled={courseSubmitStatus !== 'idle'}>
                   Cancelar
                 </button>
-                <button type="submit" className="btn-save">
-                  Gravar Curso no Banco
+                <button 
+                  type="submit" 
+                  className={`btn-save ${courseSubmitStatus === 'success' ? 'btn-save-success' : ''}`}
+                  disabled={courseSubmitStatus !== 'idle'}
+                >
+                  {courseSubmitStatus === 'saving' ? (
+                    <>
+                      <span className="spinner-mini"></span>
+                      <span>Gravando Curso...</span>
+                    </>
+                  ) : courseSubmitStatus === 'success' ? (
+                    <>
+                      <CheckCircle2 size={18} className="btn-success-check-icon" />
+                      <span>✓ Salvo com sucesso!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Database size={16} />
+                      <span>Gravar Curso no Banco</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -1114,11 +1235,30 @@ export function DirectorAdmin() {
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={() => setIsEditSchoolModalOpen(false)}>
+                <button type="button" className="btn-cancel" onClick={() => setIsEditSchoolModalOpen(false)} disabled={schoolSubmitStatus !== 'idle'}>
                   Cancelar
                 </button>
-                <button type="submit" className="btn-save">
-                  Salvar Dados da Escola
+                <button 
+                  type="submit" 
+                  className={`btn-save ${schoolSubmitStatus === 'success' ? 'btn-save-success' : ''}`}
+                  disabled={schoolSubmitStatus !== 'idle'}
+                >
+                  {schoolSubmitStatus === 'saving' ? (
+                    <>
+                      <span className="spinner-mini"></span>
+                      <span>Salvando Dados...</span>
+                    </>
+                  ) : schoolSubmitStatus === 'success' ? (
+                    <>
+                      <CheckCircle2 size={18} className="btn-success-check-icon" />
+                      <span>✓ Salvo com sucesso!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Building2 size={16} />
+                      <span>Salvar Dados da Escola</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -1239,17 +1379,49 @@ export function DirectorAdmin() {
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={() => setIsRegisterDirectorModalOpen(false)}>
+                <button type="button" className="btn-cancel" onClick={() => setIsRegisterDirectorModalOpen(false)} disabled={directorSubmitStatus !== 'idle'}>
                   Cancelar
                 </button>
-                <button type="submit" className="btn-save">
-                  Cadastrar e Acessar Painel
+                <button 
+                  type="submit" 
+                  className={`btn-save ${directorSubmitStatus === 'success' ? 'btn-save-success' : ''}`}
+                  disabled={directorSubmitStatus !== 'idle'}
+                >
+                  {directorSubmitStatus === 'saving' ? (
+                    <>
+                      <span className="spinner-mini"></span>
+                      <span>Cadastrando...</span>
+                    </>
+                  ) : directorSubmitStatus === 'success' ? (
+                    <>
+                      <CheckCircle2 size={18} className="btn-success-check-icon" />
+                      <span>✓ Salvo com sucesso!</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus size={16} />
+                      <span>Cadastrar e Acessar Painel</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+      {/* ==================================================== */}
+      {/* POP-UP INTUITIVO DE CONFIRMAÇÃO: SALVO COM SUCESSO */}
+      {/* ==================================================== */}
+      <SuccessPopup
+        isOpen={Boolean(successPopupData?.isOpen)}
+        type={successPopupData?.type || 'course'}
+        title={successPopupData?.title}
+        subtitle={successPopupData?.subtitle}
+        details={successPopupData?.details}
+        onClose={() => setSuccessPopupData(null)}
+        onAction={successPopupData?.onAction}
+        actionLabel={successPopupData?.actionLabel}
+      />
     </div>
   );
 }

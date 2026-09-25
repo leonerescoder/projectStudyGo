@@ -745,12 +745,27 @@
   border: 1px solid rgba(56, 189, 248, 0.4);
   box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-#director-admin-page .btn-save-profile:hover {
+#director-admin-page .btn-save-profile:hover:not(:disabled) {
   transform: translateY(-2px);
   filter: brightness(1.1);
+}
+
+#director-admin-page .btn-save-profile:disabled:not(.btn-save-profile-success) {
+  opacity: 0.75;
+  cursor: not-allowed;
+  transform: none;
+}
+
+#director-admin-page .btn-save-profile.btn-save-profile-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border: 1px solid rgba(110, 231, 183, 0.8) !important;
+  box-shadow: 0 0 24px rgba(16, 185, 129, 0.65), 0 4px 12px rgba(5, 150, 105, 0.4) !important;
+  color: #ffffff !important;
+  transform: scale(1.03);
+  cursor: default;
 }
 
 /* ==========================================================================
@@ -917,6 +932,9 @@
 }
 
 #director-admin-page .btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.65rem 1.4rem;
   border-radius: 10px;
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
@@ -926,6 +944,42 @@
   border: 1px solid rgba(52, 211, 153, 0.3);
   box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
   cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#director-admin-page .btn-save:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.45);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+#director-admin-page .btn-save:disabled:not(.btn-save-success) {
+  opacity: 0.75;
+  cursor: not-allowed;
+  transform: none;
+}
+
+#director-admin-page .btn-save.btn-save-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border: 1px solid rgba(110, 231, 183, 0.8) !important;
+  box-shadow: 0 0 24px rgba(16, 185, 129, 0.65), 0 4px 12px rgba(5, 150, 105, 0.4) !important;
+  color: #ffffff !important;
+  transform: scale(1.03);
+  cursor: default;
+}
+
+#director-admin-page .btn-success-check-icon {
+  animation: checkPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#director-admin-page .spinner-mini {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spinMini 0.7s linear infinite;
+  display: inline-block;
 }
 
 /* ==========================================================================

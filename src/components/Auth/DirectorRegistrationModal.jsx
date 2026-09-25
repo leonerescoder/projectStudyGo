@@ -10,14 +10,18 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
-  UserPlus
+  UserPlus,
+  CheckCircle2
 } from 'lucide-react';
 import { BASE_URL } from '../../API/apiClient';
 import { useAuth } from '../../context/AuthContext';
+import { SuccessPopup } from '../SuccessPopup/SuccessPopup';
 import './DirectorRegistrationModal.css';
 
 export function DirectorRegistrationModal({ isOpen, onClose, onSuccessRegistration }) {
   const { login } = useAuth();
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [savedDirectorDetails, setSavedDirectorDetails] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     cpf: '',
@@ -107,7 +111,12 @@ export function DirectorRegistrationModal({ isOpen, onClose, onSuccessRegistrati
         throw new Error(errorMessage);
       }
 
-      setSuccessMessage('Cadastro concluído! Autenticando para continuar...');
+      setSuccessMessage('Cadastro concluído com sucesso!');
+      setSavedDirectorDetails({
+        name: formData.name,
+        status: 'ATIVO'
+      });
+      setShowSuccessPopup(true);
 
       // Faz o login automático
       const loginResponse = await login(formData.email, formData.password);
@@ -117,14 +126,8 @@ export function DirectorRegistrationModal({ isOpen, onClose, onSuccessRegistrati
       }
 
       setTimeout(() => {
-        setSuccessMessage('');
         setFormData({ name: '', cpf: '', email: '', dateOfBirth: '', password: '' });
-        if (onSuccessRegistration) {
-          onSuccessRegistration();
-        } else {
-          onClose();
-        }
-      }, 1500);
+      }, 500);
 
     } catch (error) {
       setErrorMessage(error.message);
@@ -257,16 +260,48 @@ export function DirectorRegistrationModal({ isOpen, onClose, onSuccessRegistrati
             </div>
           </div>
 
-          <button type="submit" className="dir-submit-btn" disabled={loading}>
-            <UserPlus size={18} />
-            <span>{loading ? 'Cadastrando...' : 'Finalizar Cadastro'}</span>
+          <button 
+            type="submit" 
+            className={`dir-submit-btn ${successMessage ? 'dir-submit-btn-success' : ''}`} 
+            disabled={loading || !!successMessage}
+          >
+            {loading ? (
+              <>
+                <span className="spinner-mini"></span>
+                <span>Cadastrando...</span>
+              </>
+            ) : successMessage ? (
+              <>
+                <CheckCircle2 size={20} className="btn-success-check-icon" />
+                <span>✓ Salvo com sucesso!</span>
+              </>
+            ) : (
+              <>
+                <UserPlus size={18} />
+                <span>Finalizar Cadastro</span>
+              </>
+            )}
           </button>
         </form>
 
       </div>
+
+      <SuccessPopup
+        isOpen={showSuccessPopup}
+        type="director"
+        title="Diretor Cadastrado com Sucesso!"
+        subtitle="Sua conta de Diretor foi criada e autenticada. Você já tem acesso total ao painel administrativo."
+        details={savedDirectorDetails}
+        onClose={() => {
+          setShowSuccessPopup(false);
+          setSuccessMessage('');
+          if (onSuccessRegistration) {
+            onSuccessRegistration();
+          } else {
+            onClose();
+          }
+        }}
+      />
     </div>
   );
 }
-
-// Helper para usar icone no success se a lib não foi importada direto
-import { CheckCircle2 } from 'lucide-react';
