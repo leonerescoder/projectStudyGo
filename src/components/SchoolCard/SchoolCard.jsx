@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { recordSchoolClick } from '../../utils/rankingService';
 import './SchoolCard.css';
 
 const getRankingStyle = (position) => {
@@ -21,6 +22,7 @@ const SchoolCard = ({ school }) => {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
+    recordSchoolClick(school.id);
     navigate(`/escolas/${school.id}`);
   };
 
@@ -72,7 +74,6 @@ const SchoolCard = ({ school }) => {
               {school.ranking > 0 ? school.ranking.toFixed(1) : '—'}
             </span>
             <div className="score-meta">
-              <span className="score-out-of">/10</span>
               <span className="score-label-text" style={{ color: scoreInfo.color }}>
                 {scoreInfo.label}
               </span>

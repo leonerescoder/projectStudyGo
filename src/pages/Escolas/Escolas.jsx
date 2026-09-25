@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SchoolCard, { SchoolCardSkeleton } from '../../components/SchoolCard/SchoolCard';
+import { getSchoolClicks } from '../../utils/rankingService';
 import './Escolas.css';
 
 function Escolas() {
@@ -20,36 +21,53 @@ function Escolas() {
         if (token) {
           headers['Authorization'] = 'Bearer ' + token;
         }
-        
+
         const response = await fetch("https://uc13-projeto.onrender.com/companie", {
           headers
         });
-        
+
         if (!response.ok) {
           throw new Error(`Erro na API (${response.status})`);
         }
 
         const data = await response.json();
         const arrayData = Array.isArray(data) ? data : [];
-        
-        // Ordena por ranking (do maior pro menor)
-        const sortedData = [...arrayData].sort((a, b) => (b.ranking || 0) - (a.ranking || 0));
-        
-        // Calcula o maior ranking da lista
-        const maxRanking = sortedData.length > 0 ? (sortedData[0].ranking || 0) : 0;
-        
+
+        // Aplica o incremento de 0.1 a cada clique gravado no localStorage sem limite de avaliação
+        const arrayDataWithClicks = arrayData.map(companie => {
+          const clicks = getSchoolClicks(companie.id);
+          const baseRanking = companie.ranking || 0;
+          let finalRanking = baseRanking + (clicks * 0.1);
+          
+          // Arredonda para 1 casa decimal (ex: 8.5) para evitar dízimas nas notas
+          finalRanking = parseFloat(finalRanking.toFixed(1));
+          
+          return { ...companie, ranking: finalRanking };
+        });
+
+        // Ordena por ranking (do maior pro menor) e utiliza ordem alfabética como critério de desempate
+        const sortedData = [...arrayDataWithClicks].sort((a, b) => {
+          const rankA = a.ranking || 0;
+          const rankB = b.ranking || 0;
+          if (rankA !== rankB) return rankB - rankA;
+          return (a.name || '').localeCompare(b.name || '');
+        });
+
         // Map backend data to frontend card format
         const mappedData = sortedData.map((companie, index) => {
+          const score = companie.ranking || 0;
+          
           return {
             id: companie.id,
             name: companie.name,
             places: companie.places || "Não informado",
-            ranking: companie.ranking || 0,
+            ranking: score,
             rankingPosition: index + 1,
             coursesCount: Array.isArray(companie.courses) ? companie.courses.length : 0,
             foundation: companie.foundation || null,
             urlImg: companie.urlImg || "",
-            createdAt: companie.foundation || new Date().toISOString()
+            // Usar uma data fixa (epoch) caso falte "foundation"
+            createdAt: companie.foundation || new Date(0).toISOString()
           };
         });
 
@@ -66,17 +84,19 @@ function Escolas() {
   }, []);
 
   // Filter and Sort logic
-  const filteredSchools = escolas.filter(school => 
+  const filteredSchools = escolas.filter(school =>
     school.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     school.places.toLowerCase().includes(searchQuery.toLowerCase())
   ).sort((a, b) => {
     if (activeFilter === 'ranking') {
-      return a.rankingPosition - b.rankingPosition;
+      return a.rankingPosition - b.rankingPosition || a.name.localeCompare(b.name);
     }
     if (activeFilter === 'recentes') {
-      return new Date(b.createdAt) - new Date(a.createdAt);
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return dateB - dateA || a.name.localeCompare(b.name);
     }
-    return 0; // 'todas' default sort
+    return a.name.localeCompare(b.name); // 'todas' default sort: alfabético
   });
 
   return (
@@ -87,16 +107,16 @@ function Escolas() {
             <h2 className="escolas-title">Escolas Parceiras</h2>
             <p className="escolas-subtitle">Encontre as melhores instituições de ensino para o seu desenvolvimento.</p>
           </div>
-          
+
           <div className="escolas-controls">
             <div className="search-bar">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
-              <input 
-                type="text" 
-                placeholder="Pesquisar escolas..." 
+              <input
+                type="text"
+                placeholder="Pesquisar escolas..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -113,19 +133,19 @@ function Escolas() {
         </header>
 
         <div className="escolas-filters">
-          <button 
+          <button
             className={`filter-btn ${activeFilter === 'todas' ? 'active' : ''}`}
             onClick={() => setActiveFilter('todas')}
           >
             Todas
           </button>
-          <button 
+          <button
             className={`filter-btn ${activeFilter === 'ranking' ? 'active' : ''}`}
             onClick={() => setActiveFilter('ranking')}
           >
             Ranking
           </button>
-          <button 
+          <button
             className={`filter-btn ${activeFilter === 'recentes' ? 'active' : ''}`}
             onClick={() => setActiveFilter('recentes')}
           >

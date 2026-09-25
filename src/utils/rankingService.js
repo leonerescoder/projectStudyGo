@@ -205,3 +205,38 @@ export function resetCourseStats(courseId) {
     console.error('Error resetting course stats:', e);
   }
 }
+
+/**
+ * Get total organic clicks registered for a school
+ * @param {number|string} schoolId 
+ * @returns {number}
+ */
+export function getSchoolClicks(schoolId) {
+  if (!schoolId) return 0;
+  try {
+    const val = localStorage.getItem(`studygo_school_clicks_${schoolId}`);
+    return val ? parseInt(val, 10) || 0 : 0;
+  } catch (e) {
+    console.error('Error reading school clicks:', e);
+    return 0;
+  }
+}
+
+/**
+ * Automatically record a user click on a school
+ * @param {number|string} schoolId 
+ * @returns {number} new clicks count
+ */
+export function recordSchoolClick(schoolId) {
+  if (!schoolId) return 0;
+  try {
+    const currentClicks = getSchoolClicks(schoolId);
+    const newClicks = currentClicks + 1;
+    localStorage.setItem(`studygo_school_clicks_${schoolId}`, newClicks.toString());
+    return newClicks;
+  } catch (e) {
+    console.error('Error saving school click:', e);
+    return 0;
+  }
+}
+

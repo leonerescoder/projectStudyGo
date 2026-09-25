@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { recordCourseClick } from '../../utils/rankingService';
+import { recordCourseClick, getSchoolClicks } from '../../utils/rankingService';
 import './EscolaSelecionada.css';
 
 /* ─── Helpers ─────────────────────────────────────────────── */
@@ -112,14 +112,37 @@ function EscolaSelecionada() {
           if (listResponse.ok) {
             const listData = await listResponse.json();
             const arrayData = Array.isArray(listData) ? listData : [];
-            const sortedData = [...arrayData].sort((a, b) => (b.ranking || 0) - (a.ranking || 0));
+            
+            // Recalcula ranking com os cliques locais
+            const arrayDataWithClicks = arrayData.map(c => {
+              const clicks = getSchoolClicks(c.id);
+              const baseRanking = c.ranking || 0;
+              let computedRanking = baseRanking + (clicks * 0.1);
+              computedRanking = parseFloat(computedRanking.toFixed(1));
+              return { ...c, ranking: computedRanking };
+            });
+
+            // Ordena usando a mesma lógica
+            const sortedData = [...arrayDataWithClicks].sort((a, b) => {
+              const rankA = a.ranking || 0;
+              const rankB = b.ranking || 0;
+              if (rankA !== rankB) return rankB - rankA;
+              return (a.name || '').localeCompare(b.name || '');
+            });
+
             const index = sortedData.findIndex(c => String(c.id) === String(id));
-            if (index !== -1) finalRankingPosition = index + 1;
-            const maxRanking = sortedData.length > 0 ? (sortedData[0].ranking || 0) : 0;
-            finalScore = maxRanking === 0 ? 0 : ((companieData.ranking || 0) / maxRanking) * 10;
+            if (index !== -1) {
+              finalRankingPosition = index + 1;
+              finalScore = sortedData[index].ranking;
+            } else {
+              const clicks = getSchoolClicks(id);
+              finalScore = parseFloat(((companieData.ranking || 0) + (clicks * 0.1)).toFixed(1));
+            }
           }
         } catch (e) {
           console.error('Erro ao calcular ranking:', e);
+          const clicks = getSchoolClicks(id);
+          finalScore = parseFloat(((companieData.ranking || 0) + (clicks * 0.1)).toFixed(1));
         }
 
         if (companieData) {
@@ -252,7 +275,6 @@ function EscolaSelecionada() {
                   <span className="stat-score-number" style={{ color: scoreInfo.color }}>
                     {school.score > 0 ? school.score.toFixed(1) : '—'}
                   </span>
-                  <span className="stat-score-max">/10</span>
                   <span className="stat-score-text" style={{ color: scoreInfo.color }}>
                     {scoreInfo.label}
                   </span>
