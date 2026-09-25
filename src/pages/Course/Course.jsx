@@ -263,6 +263,24 @@ function Course() {
             {course.name}
           </h1>
 
+          {/* Instituição responsável pelo curso */}
+          <button
+            className="school-info-btn"
+            onClick={() =>
+              course.companyId &&
+              navigate(`/escolas/${course.companyId}`)
+            }
+          >
+            <Building size={20} />
+
+            {companyName}
+
+            <ChevronRight
+              size={20}
+              className="chevron"
+            />
+          </button>
+
           {/* Categoria */}
           <div className="category-info">
             <div className="category-icon">
@@ -286,24 +304,6 @@ function Course() {
               'Descrição não disponível.'}
           </p>
 
-          {/* Escola */}
-          <button
-            className="school-info-btn"
-            onClick={() =>
-              course.companyId &&
-              navigate(`/escolas/${course.companyId}`)
-            }
-          >
-            <Building size={20} />
-
-            Ver mais informações da escola —{' '}
-            {companyName}
-
-            <ChevronRight
-              size={20}
-              className="chevron"
-            />
-          </button>
         </div>
       </div>
 

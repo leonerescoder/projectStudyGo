@@ -280,29 +280,59 @@ Este documento registra o histórico de funcionalidades implementadas no StudyGo
 
 ---
 
-## 16. Imagem da instituição na tela de detalhes
+## 16. Dados da instituição nas telas relacionadas
 
 ### Status
 - **Concluído**
 
 ### Descrição
-- A tela de detalhes preserva o campo `urlImg` retornado pela API da instituição.
-- O logo do cabeçalho exibe a imagem cadastrada no banco, mantendo a inicial do nome como fallback quando não houver URL.
+- A tela de detalhes da instituição exibe a imagem cadastrada em `urlImg`, usando a inicial como fallback.
+- O contato exibe `tel` e `email` vindos da API, sem o site mockado.
+- A tela de detalhes do curso exibe a escola relacionada logo abaixo do nome e mantém o acesso para a instituição.
 
 ### Arquivos Modificados
 - `src/pages/Escolas/EscolaSelecionada.jsx`
 - `src/pages/Escolas/EscolaSelecionada.css`
+- `src/pages/Course/Course.jsx`
 
 ---
 
-## 17. Contato real da instituição
+## 17. Nome do curso no ranking
 
 ### Status
 - **Concluído**
 
 ### Descrição
-- A seção de contato da tela de detalhes agora exibe `tel` e `email` vindos da API.
-- Removidos os contatos ilustrativos e a informação de site da interface.
+- Os cards do ranking agora exibem o nome do curso no lugar da categoria.
+
+### Arquivo Modificado
+- `src/components/RankingSection/RankingSection.jsx`
+
+---
+
+## 18. Posição do ranking no topo dos cards
+
+### Status
+- **Concluído**
+
+### Descrição
+- A posição de cada curso agora aparece no topo da imagem em um badge azul com troféu, seguindo a referência visual.
 
 ### Arquivos Modificados
-- `src/pages/Escolas/EscolaSelecionada.jsx`
+- `src/components/RankingSection/RankingSection.jsx`
+- `src/components/RankingSection/RankingSection.css`
+
+---
+
+## 19. Cores dos badges do ranking
+
+### Status
+- **Concluído**
+
+### Descrição
+- Os badges dos três primeiros colocados permanecem azuis.
+- Os badges das posições seguintes ficam brancos e sem troféu.
+
+### Arquivos Modificados
+- `src/components/RankingSection/RankingSection.jsx`
+- `src/components/RankingSection/RankingSection.css`

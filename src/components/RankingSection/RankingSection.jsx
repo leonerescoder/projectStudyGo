@@ -15,30 +15,12 @@ export function RankingSection({ courses }) {
     .slice(0, 5);
 
   const renderMedal = (index) => {
-    const isTop3 = index < 3;
-    const colors = ['#fbbf24', '#cbd5e1', '#d97706'];
-
-    if (isTop3) {
-      return (
-        <div
-          className={`ranking-medal top-${index + 1}`}
-          style={{ '--medal-color': colors[index] }}
-        >
-          <svg
-            className="medal-icon"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
-            <path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z" />
-          </svg>
-          <span className="medal-number">{index + 1}</span>
-        </div>
-      );
-    }
+    const isTopThree = index < 3;
 
     return (
-      <div className="ranking-badge-simple">
-        {index + 1}
+      <div className={`ranking-position-badge ${isTopThree ? 'top-three' : 'other-position'}`}>
+        {isTopThree && <Trophy size={16} />}
+        <span>{index + 1}º</span>
       </div>
     );
   };
@@ -104,7 +86,7 @@ export function RankingSection({ courses }) {
                   </h3>
 
                   <p className="ranking-card-category">
-                    {course.category}
+                    {course.title}
                   </p>
 
                   <div

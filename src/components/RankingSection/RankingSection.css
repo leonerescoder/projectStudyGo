@@ -132,7 +132,38 @@
   opacity: 0.5;
 }
 
-/* Ranking Medals */
+/* Ranking position */
+.ranking-position-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  height: 36px;
+  min-width: 58px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #ffffff;
+  border-radius: 18px;
+  color: #1d4ed8;
+  font-size: 0.95rem;
+  font-weight: 800;
+  z-index: 2;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.35);
+}
+
+.ranking-position-badge.top-three {
+  background: #1d73e8;
+  color: #ffffff;
+}
+
+.ranking-position-badge svg {
+  color: #fbbf24;
+  stroke-width: 2.5;
+}
+
+/* Kept for compatibility with existing ranking markup */
 .ranking-medal {
   position: absolute;
   top: 8px;
