@@ -41,12 +41,6 @@ const MOCK_DIFFERENTIALS = [
   { icon: '🏆', title: 'Certificação Reconhecida', desc: 'Diplomas com reconhecimento nacional e international.' },
 ];
 
-const MOCK_CONTACT = (name) => ({
-  phone:   '(11) 4002-8922',
-  email:   `contato@${name.toLowerCase().replace(/\s+/g, '')}.edu.br`,
-  website: `www.${name.toLowerCase().replace(/\s+/g, '')}.edu.br`,
-});
-
 /* ─── SVG Icons (inline, sem dependência extra) ──────────── */
 const IconBack = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
@@ -81,12 +75,6 @@ const IconPhone = () => (
 const IconMail = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
-  </svg>
-);
-const IconGlobe = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
-    <circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" />
-    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
   </svg>
 );
 const IconExternal = () => (
@@ -138,6 +126,9 @@ function EscolaSelecionada() {
           setSchool({
             id: companieData.id,
             name: companieData.name,
+            urlImg: companieData.urlImg || '',
+            tel: companieData.tel || 'Não informado',
+            email: companieData.email || 'Não informado',
             cnpj: companieData.cnpj || 'Não informado',
             foundedIn: companieData.foundation || 'Não informada',
             places: companieData.places || 'Não informado',
@@ -190,7 +181,6 @@ function EscolaSelecionada() {
   }
 
   const scoreInfo   = getScoreLabel(school.score);
-  const mockContact = MOCK_CONTACT(school.name);
   const mapsUrl     = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(school.places + ' ' + school.name)}`;
 
   return (
@@ -214,7 +204,11 @@ function EscolaSelecionada() {
             <div className="escola-header-main-info">
               {/* Logo / Inicial */}
               <div className="escola-logo-professional">
-                {school.name ? school.name.charAt(0) : '?'}
+                {school.urlImg ? (
+                  <img src={school.urlImg} alt={`Logo ${school.name}`} className="escola-logo-img" />
+                ) : (
+                  school.name ? school.name.charAt(0) : '?'
+                )}
               </div>
 
               <div className="escola-title-area">
@@ -454,14 +448,13 @@ function EscolaSelecionada() {
               </div>
             </div>
 
-            {/* Contato (mock) */}
+            {/* Contato */}
             <div className="es-sidebar-card">
               <div className="es-sidebar-card-body">
-                <h4>Fale com a Instituição <span className="es-mock-badge">ilustrativo*</span></h4>
+                <h4>Fale com a Instituição</h4>
                 <ul className="es-contact-list">
-                  <li><IconPhone /><span>{mockContact.phone}</span></li>
-                  <li><IconMail /><span>{mockContact.email}</span></li>
-                  <li><IconGlobe /><span>{mockContact.website}</span></li>
+                  <li><IconPhone /><span>{school.tel}</span></li>
+                  <li><IconMail /><span>{school.email}</span></li>
                 </ul>
               </div>
             </div>

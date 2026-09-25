@@ -277,3 +277,32 @@ Este documento registra o histórico de funcionalidades implementadas no StudyGo
 - `src/components/Navbar/Navbar.jsx` (Busca de categorias com Bearer token)
 - `src/pages/Escolas/Escolas.jsx` (Busca de empresas parceiras com Bearer token)
 - `src/pages/Escolas/EscolaSelecionada.jsx` (Busca de detalhes da instituição com Bearer token)
+
+---
+
+## 16. Imagem da instituição na tela de detalhes
+
+### Status
+- **Concluído**
+
+### Descrição
+- A tela de detalhes preserva o campo `urlImg` retornado pela API da instituição.
+- O logo do cabeçalho exibe a imagem cadastrada no banco, mantendo a inicial do nome como fallback quando não houver URL.
+
+### Arquivos Modificados
+- `src/pages/Escolas/EscolaSelecionada.jsx`
+- `src/pages/Escolas/EscolaSelecionada.css`
+
+---
+
+## 17. Contato real da instituição
+
+### Status
+- **Concluído**
+
+### Descrição
+- A seção de contato da tela de detalhes agora exibe `tel` e `email` vindos da API.
+- Removidos os contatos ilustrativos e a informação de site da interface.
+
+### Arquivos Modificados
+- `src/pages/Escolas/EscolaSelecionada.jsx`
