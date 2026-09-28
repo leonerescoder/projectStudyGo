@@ -913,19 +913,21 @@ export function Admin() {
             </div>
 
             <div className="actions-cluster">
-              <button
-                className="btn-insert-database"
-                onClick={() => {
-                  if (activeTab === 'courses') openModal('course');
-                  else if (activeTab === 'companies') openModal('company');
-                  else if (activeTab === 'categories') openModal('category');
-                  else if (activeTab === 'users' && userRole === 'ADMIN') openModal('user');
-                  else openModal('course');
-                }}
-              >
-                <Plus size={18} />
-                <span>+ Inserir no Banco</span>
-              </button>
+              {!(activeTab === 'companies' && userRole !== 'ADMIN') && (
+                <button
+                  className="btn-insert-database"
+                  onClick={() => {
+                    if (activeTab === 'courses') openModal('course');
+                    else if (activeTab === 'companies' && userRole === 'ADMIN') openModal('company');
+                    else if (activeTab === 'categories') openModal('category');
+                    else if (activeTab === 'users' && userRole === 'ADMIN') openModal('user');
+                    else openModal('course');
+                  }}
+                >
+                  <Plus size={18} />
+                  <span>Adicionar</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -1310,8 +1312,12 @@ export function Admin() {
               <div className="modal-title-group">
                 <Database className="modal-icon" size={22} />
                 <div>
-                  <h2>Inserir Dados no Banco</h2>
-                  <p>Preencha os campos para salvar o novo registro na base de dados.</p>
+                  <h2>
+                    {modalEntityType === 'course' ? 'Adicionar um novo curso' : 
+                     modalEntityType === 'category' ? 'Adicionar uma nova categoria' : 
+                     'Inserir Dados no Banco'}
+                  </h2>
+                  <p>Preencha os campos para salvar o novo registro.</p>
                 </div>
               </div>
               <button className="modal-close-btn" onClick={() => setIsModalOpen(false)}>
@@ -1330,14 +1336,16 @@ export function Admin() {
                 <span>Curso</span>
               </button>
 
-              <button
-                type="button"
-                className={`entity-tab ${modalEntityType === 'company' ? 'active' : ''}`}
-                onClick={() => setModalEntityType('company')}
-              >
-                <Building2 size={16} />
-                <span>Escola/Empresa</span>
-              </button>
+              {userRole === 'ADMIN' && (
+                <button
+                  type="button"
+                  className={`entity-tab ${modalEntityType === 'company' ? 'active' : ''}`}
+                  onClick={() => setModalEntityType('company')}
+                >
+                  <Building2 size={16} />
+                  <span>Escola/Empresa</span>
+                </button>
+              )}
 
               <button
                 type="button"

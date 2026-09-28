@@ -59,7 +59,7 @@
    BANNER & ROLE SWITCHER
    ========================================================================== */
 #admin-page .activity-banner {
-  background: linear-gradient(135deg, rgba(26, 47, 94, 0.7) 0%, rgba(15, 29, 62, 0.9) 100%);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.98) 100%);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(56, 189, 248, 0.2);
@@ -328,8 +328,8 @@
 }
 
 #admin-page .role-switcher-card {
-  background: rgba(11, 20, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(11, 20, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 16px;
   padding: 1.25rem;
   display: flex;
@@ -530,9 +530,9 @@
 }
 
 #admin-page .stat-card {
-  background: rgba(18, 33, 67, 0.5);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   padding: 1.25rem 1.4rem;
   display: flex;
@@ -606,9 +606,9 @@
    MAIN DATA & TABLE CONTENT CARD
    ========================================================================== */
 #admin-page .admin-content-card {
-  background: rgba(15, 29, 62, 0.7);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(11, 19, 36, 0.98);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
   padding: 1.75rem;
   box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
@@ -637,10 +637,9 @@
   gap: 0.5rem;
   padding: 0.65rem 1.2rem;
   border-radius: 10px;
-  color: #94a3b8;
-  font-size: 0.88rem;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
   border: 1px solid transparent;
   transition: all 0.2s ease;
 }

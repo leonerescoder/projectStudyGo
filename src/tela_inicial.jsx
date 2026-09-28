@@ -7,6 +7,7 @@ import { Footer } from './components/Footer/Footer';
 import { CompanyBanner } from './components/CompanyBanner/CompanyBanner';
 import { DirectorRegistrationModal } from './components/Auth/DirectorRegistrationModal';
 import { CompanyRegistrationModal } from './components/Auth/CompanyRegistrationModal';
+import { PlansModal } from './components/PlansModal/PlansModal';
 import { RankingSection } from './components/RankingSection/RankingSection';
 import { buscaTodos } from './ApiCourses/ApiCourse';
 import { buscaCategorias } from './API/apiCategorie';
@@ -103,6 +104,9 @@ export function TelaInicial() {
     useState(false);
 
   const [isCompanyModalOpen, setIsCompanyModalOpen] =
+    useState(false);
+
+  const [isPlansModalOpen, setIsPlansModalOpen] = 
     useState(false);
 
   useEffect(() => {
@@ -433,12 +437,22 @@ export function TelaInicial() {
       {/* 4. Banner para empresas */}
       <CompanyBanner
         onRegisterClick={() =>
-          setIsDirectorModalOpen(true)
+          setIsPlansModalOpen(true)
         }
       />
 
       {/* 5. Rodapé */}
       <Footer />
+
+      {/* Modal de Planos */}
+      <PlansModal 
+        isOpen={isPlansModalOpen}
+        onClose={() => setIsPlansModalOpen(false)}
+        onPlanSelect={(plan) => {
+          setIsPlansModalOpen(false);
+          setIsDirectorModalOpen(true);
+        }}
+      />
 
       {/* Modal de diretor */}
       <DirectorRegistrationModal
