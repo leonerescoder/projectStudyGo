@@ -617,13 +617,38 @@ export function DirectorAdmin() {
             </div>
 
             {activeTab === 'courses' && (
-              <button
-                className="btn-add-course"
-                onClick={() => setIsNewCourseModalOpen(true)}
-              >
-                <Plus size={18} />
-                <span>+ Inserir Novo Curso</span>
-              </button>
+              <div className="courses-action-area">
+                {localStorage.getItem('studygo_payment_status') === 'pending' ? (
+                  <div className="payment-pending-banner" style={{ background: '#fef2f2', border: '1px solid #f87171', padding: '12px 16px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#b91c1c' }}>
+                      <AlertCircle size={20} />
+                      <div>
+                        <strong>Pagamento Pendente</strong>
+                        <div style={{ fontSize: '0.85rem', marginTop: '2px' }}>Conclua o pagamento do seu plano Premium para liberar o cadastro de cursos.</div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        localStorage.setItem('studygo_payment_status', 'paid');
+                        window.location.reload();
+                      }}
+                      style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
+                    >
+                      Simular Pagamento
+                    </button>
+                  </div>
+                ) : null}
+
+                <button
+                  className="btn-add-course"
+                  onClick={() => setIsNewCourseModalOpen(true)}
+                  disabled={localStorage.getItem('studygo_payment_status') === 'pending'}
+                  style={{ opacity: localStorage.getItem('studygo_payment_status') === 'pending' ? 0.5 : 1, cursor: localStorage.getItem('studygo_payment_status') === 'pending' ? 'not-allowed' : 'pointer' }}
+                >
+                  {localStorage.getItem('studygo_payment_status') === 'pending' ? <Lock size={18} /> : <Plus size={18} />}
+                  <span>{localStorage.getItem('studygo_payment_status') === 'pending' ? 'Cadastro Bloqueado' : '+ Inserir Novo Curso'}</span>
+                </button>
+              </div>
             )}
 
             {activeTab === 'school' && (

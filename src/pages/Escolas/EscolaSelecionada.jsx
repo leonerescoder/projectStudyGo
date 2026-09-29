@@ -14,8 +14,8 @@ const getRankingStyle = (position) => {
 const getScoreLabel = (score) => {
   if (score >= 9) return { label: 'Excelente', color: '#10b981' };
   if (score >= 7) return { label: 'Muito Bom', color: '#60a5fa' };
-  if (score >= 5) return { label: 'Bom',       color: '#f59e0b' };
-  if (score > 0)  return { label: 'Regular',   color: '#94a3b8' };
+  if (score >= 5) return { label: 'Bom', color: '#f59e0b' };
+  if (score > 0) return { label: 'Regular', color: '#94a3b8' };
   return { label: 'Sem score', color: '#64748b' };
 };
 
@@ -112,7 +112,7 @@ function EscolaSelecionada() {
           if (listResponse.ok) {
             const listData = await listResponse.json();
             const arrayData = Array.isArray(listData) ? listData : [];
-            
+
             // Recalcula ranking com os cliques locais
             const arrayDataWithClicks = arrayData.map(c => {
               const clicks = getSchoolClicks(c.id);
@@ -203,8 +203,8 @@ function EscolaSelecionada() {
     );
   }
 
-  const scoreInfo   = getScoreLabel(school.score);
-  const mapsUrl     = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(school.places + ' ' + school.name)}`;
+  const scoreInfo = getScoreLabel(school.score);
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(school.places + ' ' + school.name)}`;
 
   return (
     <div id="escola-selecionada-page">
@@ -295,7 +295,7 @@ function EscolaSelecionada() {
         ══════════════════════════════════════ */}
         <div className="escola-tabs">
           {[
-            { key: 'sobre',  label: 'Sobre a Instituição' },
+            { key: 'sobre', label: 'Sobre a Instituição' },
             { key: 'cursos', label: `Cursos (${school.courses?.length || 0})` },
           ].map(tab => (
             <button

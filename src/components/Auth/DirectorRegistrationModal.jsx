@@ -18,7 +18,7 @@ import { useAuth } from '../../context/AuthContext';
 import { SuccessPopup } from '../SuccessPopup/SuccessPopup';
 import './DirectorRegistrationModal.css';
 
-export function DirectorRegistrationModal({ isOpen, onClose, onSuccessRegistration }) {
+export function DirectorRegistrationModal({ isOpen, onClose, onSuccessRegistration, selectedPlan }) {
   const { login } = useAuth();
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [savedDirectorDetails, setSavedDirectorDetails] = useState(null);
@@ -114,7 +114,7 @@ export function DirectorRegistrationModal({ isOpen, onClose, onSuccessRegistrati
       setSuccessMessage('Cadastro concluído com sucesso!');
       setSavedDirectorDetails({
         name: formData.name,
-        status: 'ATIVO'
+        status: (selectedPlan && selectedPlan !== 'gratis') ? 'PENDENTE' : 'ATIVO'
       });
       setShowSuccessPopup(true);
 

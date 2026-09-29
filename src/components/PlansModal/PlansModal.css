@@ -474,3 +474,53 @@
     font-size: 2.5rem;
   }
 }
+
+/* Annual info badge (replaces toggle) */
+.plans-annual-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.annual-tag {
+  background: #eef2ff;
+  color: #3b5bdb;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.annual-desc {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+/* Annual total price text below plan price */
+.plan-annual-total {
+  font-size: 0.8rem;
+  color: #32bcad;
+  font-weight: 600;
+  margin-top: -8px;
+  margin-bottom: 4px;
+  text-align: center;
+  background: rgba(50, 188, 173, 0.08);
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+
+/* PIX-only payment display */
+.payment-methods {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pix-desc {
+  font-size: 0.8rem;
+  color: #64748b;
+}

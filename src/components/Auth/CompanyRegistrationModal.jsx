@@ -18,7 +18,7 @@ import { useAuth } from '../../context/AuthContext';
 import { SuccessPopup } from '../SuccessPopup/SuccessPopup';
 import './CompanyRegistrationModal.css';
 
-export function CompanyRegistrationModal({ isOpen, onClose }) {
+export function CompanyRegistrationModal({ isOpen, onClose, onSuccessRegistration, selectedPlan }) {
   const { user, token } = useAuth();
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [savedCompanyDetails, setSavedCompanyDetails] = useState(null);
@@ -141,7 +141,7 @@ export function CompanyRegistrationModal({ isOpen, onClose }) {
       setSavedCompanyDetails({
         name: formData.name,
         cnpj: formData.cnpj,
-        status: 'ATIVO'
+        status: (selectedPlan && selectedPlan !== 'gratis') ? 'PENDENTE' : 'ATIVO'
       });
       setShowSuccessPopup(true);
       setTimeout(() => {
@@ -371,7 +371,11 @@ export function CompanyRegistrationModal({ isOpen, onClose }) {
         onClose={() => {
           setShowSuccessPopup(false);
           setSuccessMessage('');
-          onClose();
+          if (onSuccessRegistration) {
+            onSuccessRegistration();
+          } else {
+            onClose();
+          }
         }}
       />
     </div>

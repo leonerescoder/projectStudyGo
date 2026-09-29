@@ -8,6 +8,7 @@ import { CompanyBanner } from './components/CompanyBanner/CompanyBanner';
 import { DirectorRegistrationModal } from './components/Auth/DirectorRegistrationModal';
 import { CompanyRegistrationModal } from './components/Auth/CompanyRegistrationModal';
 import { PlansModal } from './components/PlansModal/PlansModal';
+import { PaymentModal } from './components/Payment/PaymentModal';
 import { RankingSection } from './components/RankingSection/RankingSection';
 import { buscaTodos } from './ApiCourses/ApiCourse';
 import { buscaCategorias } from './API/apiCategorie';
@@ -108,6 +109,11 @@ export function TelaInicial() {
 
   const [isPlansModalOpen, setIsPlansModalOpen] = 
     useState(false);
+
+  const [isPaymentModalOpen, setIsPaymentModalOpen] =
+    useState(false);
+
+  const [selectedPlan, setSelectedPlan] = useState(null);
 
   useEffect(() => {
     async function loadCourses() {
@@ -449,6 +455,7 @@ export function TelaInicial() {
         isOpen={isPlansModalOpen}
         onClose={() => setIsPlansModalOpen(false)}
         onPlanSelect={(plan) => {
+          setSelectedPlan(plan);
           setIsPlansModalOpen(false);
           setIsDirectorModalOpen(true);
         }}
@@ -457,6 +464,7 @@ export function TelaInicial() {
       {/* Modal de diretor */}
       <DirectorRegistrationModal
         isOpen={isDirectorModalOpen}
+        selectedPlan={selectedPlan}
         onClose={() =>
           setIsDirectorModalOpen(false)
         }
@@ -469,9 +477,32 @@ export function TelaInicial() {
       {/* Modal de empresa */}
       <CompanyRegistrationModal
         isOpen={isCompanyModalOpen}
+        selectedPlan={selectedPlan}
         onClose={() =>
           setIsCompanyModalOpen(false)
         }
+        onSuccessRegistration={() => {
+          setIsCompanyModalOpen(false);
+          if (selectedPlan && selectedPlan !== 'gratis') {
+            localStorage.setItem('studygo_payment_status', 'pending');
+            setIsPaymentModalOpen(true);
+          } else {
+            localStorage.setItem('studygo_payment_status', 'paid');
+          }
+        }}
+      />
+
+      {/* Modal de Pagamento PIX */}
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        planData={selectedPlan === 'premium' ? {
+          name: 'Premium',
+          price: 'R$ 49,90',
+          period: '/mês',
+          total: 'R$ 598,80',
+          billing: 'anual'
+        } : null}
       />
     </div>
   );
