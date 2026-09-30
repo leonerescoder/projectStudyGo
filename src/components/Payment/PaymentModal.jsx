@@ -64,6 +64,20 @@ export function PaymentModal({ isOpen, onClose, planData }) {
     return () => clearInterval(interval);
   }, [isOpen]);
 
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'studygo_payment_status' && e.newValue === 'paid') {
+        setPaymentStep(2);
+        setTimeout(() => {
+          window.location.href = '/admin';
+        }, 2000);
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(PIX_KEY).then(() => {
       setCopied(true);
@@ -92,7 +106,7 @@ export function PaymentModal({ isOpen, onClose, planData }) {
               <Zap size={14} />
               <span>PIX Instantâneo</span>
             </div>
-            <h2 className="pix-title">{paymentStep === 0 ? 'Finalizar assinatura' : 'Ambiente Bancário (Simulação)'}</h2>
+            <h2 className="pix-title">{paymentStep === 0 ? 'Finalizar assinatura' : 'Ambiente Bancário'}</h2>
             <p className="pix-subtitle">
               {paymentStep === 0 ? 'Conclua o pagamento via PIX para ativar sua conta imediatamente.' : 'Confirme os dados para efetivar a transação.'}
             </p>
@@ -102,7 +116,19 @@ export function PaymentModal({ isOpen, onClose, planData }) {
           </button>
         </div>
 
-        {paymentStep === 0 ? (
+        {paymentStep === 2 ? (
+          <div className="pix-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', gap: '20px', textAlign: 'center' }}>
+            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(50,188,173,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#32bcad' }}>
+              <CheckCircle2 size={40} />
+            </div>
+            <div style={{ color: '#fff' }}>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>Pagamento Confirmado!</h3>
+              <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem' }}>
+                Redirecionando para o painel de administração...
+              </p>
+            </div>
+          </div>
+        ) : paymentStep === 0 ? (
           <>
             <div className="pix-body">
           {/* Left: QR Code + Chave */}
@@ -260,35 +286,28 @@ export function PaymentModal({ isOpen, onClose, planData }) {
             Após o pagamento, aguarde até <strong>5 minutos</strong> para ativação automática.
             Dúvidas? <a href="mailto:suporte@studygo.com.br">suporte@studygo.com.br</a>
           </span>
-          <button className="pix-confirm-btn" onClick={() => setPaymentStep(1)}>
+          <button className="pix-confirm-btn" onClick={() => {
+            setPaymentStep(1);
+            localStorage.setItem('studygo_payment_status', 'pending');
+            window.open('/bank-auth', '_blank');
+          }}>
             Realizar Pagamento
           </button>
         </div>
         </>
-        ) : (
+        ) : paymentStep === 1 ? (
           <div className="pix-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', gap: '20px', textAlign: 'center' }}>
-            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(50,188,173,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#32bcad' }}>
-              <ShieldCheck size={40} />
+            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(245,158,11,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b' }}>
+              <Clock size={40} />
             </div>
             <div style={{ color: '#fff' }}>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>Confirmar Transferência PIX</h3>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>Aguardando Pagamento</h3>
               <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem' }}>
-                Você está prestes a transferir <strong>{plan.total}</strong> para StudyGo Plataforma Educacional.
+                Conclua o pagamento na nova aba que foi aberta no seu navegador.
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '16px', marginTop: '20px' }}>
-              <button className="pix-confirm-btn" style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', boxShadow: 'none' }} onClick={() => setPaymentStep(0)}>
-                Voltar
-              </button>
-              <button className="pix-confirm-btn" onClick={() => {
-                localStorage.setItem('studygo_payment_status', 'paid');
-                window.location.href = '/admin';
-              }}>
-                Confirmar Pagamento
-              </button>
-            </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

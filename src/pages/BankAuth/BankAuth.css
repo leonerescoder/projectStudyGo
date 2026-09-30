@@ -1,0 +1,73 @@
+.bank-auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f4f8;
+  font-family: 'Inter', sans-serif;
+}
+
+.bank-auth-card {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.bank-auth-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(50,188,173,0.15);
+  color: #32bcad;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.bank-auth-card h2 {
+  color: #1a202c;
+  margin-bottom: 12px;
+  font-size: 1.5rem;
+}
+
+.bank-auth-card p {
+  color: #4a5568;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.bank-auth-details {
+  background: #f7fafc;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  border: 1px solid #e2e8f0;
+}
+
+.bank-auth-details p {
+  margin: 0;
+  color: #2d3748;
+  font-size: 1.1rem;
+}
+
+.bank-confirm-btn {
+  background: #32bcad;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.3s;
+}
+
+.bank-confirm-btn:hover {
+  background: #28a092;
+}

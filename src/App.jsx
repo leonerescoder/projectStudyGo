@@ -6,6 +6,7 @@ import CoursesCatalog from './pages/CoursesCatalog/CoursesCatalog';
 import Escolas from './pages/Escolas/Escolas';
 import EscolaSelecionada from './pages/Escolas/EscolaSelecionada';
 import Admin from './components/Admin';
+import BankAuth from './pages/BankAuth/BankAuth';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginModal } from './components/Auth/LoginModal';
 
@@ -26,6 +27,7 @@ function App() {
         <Route path="/escolas" element={<Escolas />} />
         <Route path="/escolas/:id" element={<EscolaSelecionada />} />
         <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+        <Route path="/bank-auth" element={<BankAuth />} />
       </Routes>
       <LoginModal />
     </AuthProvider>
