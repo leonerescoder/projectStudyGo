@@ -127,17 +127,7 @@ export const INITIAL_COMPANIES = [
   }
 ];
 
-export const INITIAL_CATEGORIES = [
-  { id: 1, name: 'Tecnologia', nome_normalizado: 'tecnologia', description: 'Programação, Redes, Cloud, Inteligência Artificial e Dados' },
-  { id: 2, name: 'Mecânica', nome_normalizado: 'mecanica', description: 'Manutenção automotiva, robótica e processos industriais' },
-  { id: 3, name: 'Gastronomia', nome_normalizado: 'gastronomia', description: 'Culinária, panificação, confeitaria e enologia' },
-  { id: 4, name: 'Idiomas', nome_normalizado: 'idiomas', description: 'Inglês, Espanhol, Francês e comunicação internacional' },
-  { id: 5, name: 'Saúde', nome_normalizado: 'saude', description: 'Enfermagem, nutrição, bem-estar e primeiros socorros' },
-  { id: 6, name: 'Moda', nome_normalizado: 'moda', description: 'Design de moda, costura, modelagem e tendências' },
-  { id: 7, name: 'Artes', nome_normalizado: 'artes', description: 'Pintura, ilustração digital, escultura e história da arte' },
-  { id: 8, name: 'Música', nome_normalizado: 'musica', description: 'Teoria musical, instrumentos, produção de áudio' },
-  { id: 9, name: 'Educação', nome_normalizado: 'educacao', description: 'Pedagogia, metodologias ativas e gestão escolar' }
-];
+export const INITIAL_CATEGORIES = [];
 
 export const INITIAL_USERS = [
   {
