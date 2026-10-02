@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { GraduationCap } from 'lucide-react';
+import { GraduationCap, Mail, MapPin, Headphones } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -14,7 +14,7 @@ export function Footer() {
               <span className="brand-name-text">StudyGo</span>
             </div>
             <p className="footer-description-text">
-              A maior plataforma de descoberta, comparação e ranqueamento de cursos e instituições de ensino do Brasil.
+              Plataforma de descoberta, comparação e ranqueamento de cursos e instituições de ensino do Brasil.
             </p>
           </div>
 
@@ -24,8 +24,8 @@ export function Footer() {
             <ul className="footer-links-list">
               <li><Link to="/">Início</Link></li>
               <li><Link to="/escolas">Escolas Parceiras</Link></li>
-              <li><a href="#cursos-em-destaque">Cursos em Destaque</a></li>
-              <li><Link to="/categorias">Categorias</Link></li>
+              <li><Link to="/cursos">Cursos em Destaque</Link></li>
+              <li><Link to="/cursos">Categorias</Link></li>
             </ul>
           </div>
 
@@ -33,10 +33,10 @@ export function Footer() {
           <div className="footer-col">
             <h4 className="footer-col-title">Institucional</h4>
             <ul className="footer-links-list">
-              <li><a href="#sobre">Sobre nós</a></li>
-              <li><a href="#empresas">Para Escolas / Empresas</a></li>
-              <li><a href="#termos">Termos de Uso</a></li>
-              <li><a href="#privacidade">Privacidade</a></li>
+              <li><Link to="/">Sobre nós</Link></li>
+              <li><Link to="/#company-registration-banner">Para Escolas / Empresas</Link></li>
+              <li><Link to="/">Termos de Uso</Link></li>
+              <li><Link to="/">Privacidade</Link></li>
             </ul>
           </div>
 
@@ -44,16 +44,25 @@ export function Footer() {
           <div className="footer-col">
             <h4 className="footer-col-title">Contato &amp; Suporte</h4>
             <ul className="footer-links-list contact-list">
-              <li><span>Central de Ajuda</span></li>
-              <li><span>contato@educafind.com.br</span></li>
-              <li><span>São Paulo - SP, Brasil</span></li>
+              <li>
+                <Headphones size={15} />
+                <span>Central de Ajuda</span>
+              </li>
+              <li>
+                <Mail size={15} />
+                <a href="mailto:contato@studygo.com.br">contato@studygo.com.br</a>
+              </li>
+              <li>
+                <MapPin size={15} />
+                <span>São Paulo - SP, Brasil</span>
+              </li>
             </ul>
           </div>
         </div>
 
         {/* Linha Inferior de Copyright */}
         <div className="footer-bottom-bar">
-          <span className="copy-text">© 2026 StudyGo. Desenvolvido em React moderno.</span>
+          <span className="copy-text">© 2026 StudyGo. Todos os direitos reservados.</span>
           <span className="tagline-text">Conectando seu potencial ao futuro da educação.</span>
         </div>
       </div>

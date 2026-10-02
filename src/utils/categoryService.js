@@ -187,7 +187,7 @@ export async function getGlobalCategories() {
     if (response.ok) {
       const data = await response.json();
       const rawList = Array.isArray(data) ? data : (data.value || data.data || []);
-      
+
       if (rawList.length > 0) {
         // Enriquecer todas com nome_normalizado
         const enriched = rawList.map(cat => ({
@@ -221,7 +221,7 @@ export async function getGlobalCategories() {
         }));
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 
   return INITIAL_CATEGORIES.map(c => ({
     ...c,
@@ -277,7 +277,7 @@ export async function saveOrGetCategory(name, description = '') {
     const updatedList = [...existingList.filter(c => c.id !== enriched.id), enriched];
     try {
       localStorage.setItem(CATEGORIES_CACHE_KEY, JSON.stringify(updatedList));
-    } catch (e) {}
+    } catch (e) { }
 
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent(CATEGORIES_UPDATE_EVENT, { detail: enriched }));

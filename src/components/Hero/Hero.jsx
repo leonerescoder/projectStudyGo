@@ -139,7 +139,7 @@ export function Hero({ courses = [], searchTerm, onSearchChange, onSearchSubmit 
 
         {/* Subtítulo */}
         <p className="hero-subtitle" style={{ color: '#e2e8f0', marginBottom: '2.5rem' }}>
-          Mais de 100 escolas e milhares de cursos em um só lugar.
+          Escolas e cursos em um só lugar — encontre o que é certo para você.
         </p>
 
         {/* Barra de Busca */}

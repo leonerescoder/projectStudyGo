@@ -215,7 +215,7 @@ export function DirectorAdmin() {
 
     setDirectorUser(updatedUser);
     setProfileSubmitStatus('success');
-    
+
     setTimeout(() => {
       setProfileSubmitStatus('idle');
       setSuccessPopupData({
@@ -240,7 +240,7 @@ export function DirectorAdmin() {
 
     setSchool({ ...editSchoolForm });
     setSchoolSubmitStatus('success');
-    
+
     setTimeout(() => {
       setIsEditSchoolModalOpen(false);
       setSchoolSubmitStatus('idle');
@@ -283,7 +283,7 @@ export function DirectorAdmin() {
       // FASE 7, 12 e 13: Resolve a categoria dinamicamente na base global compartilhada
       let targetCategory = categories.find(
         c => (c.nome_normalizado && c.nome_normalizado === normalizeCategoryName(courseForm.Field_of_study)) ||
-             c.name?.toLowerCase() === courseForm.Field_of_study?.toLowerCase()
+          c.name?.toLowerCase() === courseForm.Field_of_study?.toLowerCase()
       );
 
       if (!targetCategory && courseForm.Field_of_study && courseForm.Field_of_study.trim()) {
@@ -323,7 +323,7 @@ export function DirectorAdmin() {
       const response = await apiFetch('/course', { method: 'POST', body: JSON.stringify(payload) });
       if (response.ok) {
         const newCourse = await response.json();
-        
+
         if (isBase64Upload) {
           saveLocalCourseImage(newCourse.id, courseForm.urlImg);
           saveLocalCourseImage(newCourse.name, courseForm.urlImg);
@@ -332,7 +332,7 @@ export function DirectorAdmin() {
 
         setCourses([newCourse, ...courses]);
         setCourseSubmitStatus('success');
-        
+
         setTimeout(() => {
           setIsNewCourseModalOpen(false);
           setCourseSubmitStatus('idle');
@@ -366,7 +366,7 @@ export function DirectorAdmin() {
           } else if (errJson.error || errJson.message) {
             userMsg = errJson.error || errJson.message;
           }
-        } catch (e) {}
+        } catch (e) { }
 
         if (userMsg.toLowerCase().includes('jwt expired') || response.status === 401) {
           alert('Aviso ao cadastrar curso:\nSua sessão de acesso expirou no servidor. Por favor, faça login novamente para renovar suas credenciais.');
@@ -389,7 +389,7 @@ export function DirectorAdmin() {
         e.target.value = '';
         return;
       }
-      
+
       const MAX_SIZE_MB = 2;
       const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
       if (file.size > MAX_SIZE_BYTES) {
@@ -854,7 +854,7 @@ export function DirectorAdmin() {
                     <input
                       type="text"
                       value={profileForm.name}
-                      onChange={(e) => setProfileForm({...profileForm, name: e.target.value})}
+                      onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
                       required
                     />
                   </div>
@@ -864,7 +864,7 @@ export function DirectorAdmin() {
                     <input
                       type="email"
                       value={profileForm.email}
-                      onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
+                      onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
                       required
                     />
                   </div>
@@ -876,7 +876,7 @@ export function DirectorAdmin() {
                     <input
                       type="text"
                       value={profileForm.cpf}
-                      onChange={(e) => setProfileForm({...profileForm, cpf: e.target.value})}
+                      onChange={(e) => setProfileForm({ ...profileForm, cpf: e.target.value })}
                       required
                     />
                   </div>
@@ -886,7 +886,7 @@ export function DirectorAdmin() {
                     <input
                       type="date"
                       value={profileForm.birth_date}
-                      onChange={(e) => setProfileForm({...profileForm, birth_date: e.target.value})}
+                      onChange={(e) => setProfileForm({ ...profileForm, birth_date: e.target.value })}
                     />
                   </div>
                 </div>
@@ -897,7 +897,7 @@ export function DirectorAdmin() {
                     <input
                       type="password"
                       value={profileForm.password}
-                      onChange={(e) => setProfileForm({...profileForm, password: e.target.value})}
+                      onChange={(e) => setProfileForm({ ...profileForm, password: e.target.value })}
                     />
                   </div>
 
@@ -962,8 +962,8 @@ export function DirectorAdmin() {
                 </div>
 
                 <div className="form-actions-right">
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className={`btn-save-profile ${profileSubmitStatus === 'success' ? 'btn-save-profile-success' : ''}`}
                     disabled={profileSubmitStatus !== 'idle'}
                   >
@@ -1037,7 +1037,7 @@ export function DirectorAdmin() {
                   minLength={2}
                   placeholder="Ex: IA, UX, Programação Web..."
                   value={courseForm.name}
-                  onChange={(e) => setCourseForm({...courseForm, name: e.target.value})}
+                  onChange={(e) => setCourseForm({ ...courseForm, name: e.target.value })}
                   required
                 />
               </div>
@@ -1057,7 +1057,7 @@ export function DirectorAdmin() {
                     type="text"
                     placeholder="https://exemplo.com/imagem.jpg ou faça upload"
                     value={courseForm.urlImg}
-                    onChange={(e) => setCourseForm({...courseForm, urlImg: e.target.value})}
+                    onChange={(e) => setCourseForm({ ...courseForm, urlImg: e.target.value })}
                   />
                   <label className="btn-upload-file">
                     <Upload size={14} />
@@ -1102,7 +1102,7 @@ export function DirectorAdmin() {
                     type="number"
                     placeholder="Ex: 80"
                     value={courseForm.workload}
-                    onChange={(e) => setCourseForm({...courseForm, workload: e.target.value})}
+                    onChange={(e) => setCourseForm({ ...courseForm, workload: e.target.value })}
                     required
                   />
                 </div>
@@ -1127,7 +1127,7 @@ export function DirectorAdmin() {
                     min="0"
                     placeholder="0"
                     value={courseForm.ranking}
-                    onChange={(e) => setCourseForm({...courseForm, ranking: e.target.value})}
+                    onChange={(e) => setCourseForm({ ...courseForm, ranking: e.target.value })}
                   />
                   <span style={{ fontSize: '0.74rem', color: '#94a3b8', display: 'block', marginTop: '3px' }}>
                     O curso inicia com 0 e a pontuação somará os <strong>cliques dos alunos</strong> + <strong>pontos upados</strong>.
@@ -1145,7 +1145,7 @@ export function DirectorAdmin() {
                   minLength={10}
                   placeholder="Objetivos do curso, metodologia e mercado de atuação (mín. 10 caracteres)..."
                   value={courseForm.description}
-                  onChange={(e) => setCourseForm({...courseForm, description: e.target.value})}
+                  onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })}
                 ></textarea>
               </div>
 
@@ -1153,8 +1153,8 @@ export function DirectorAdmin() {
                 <button type="button" className="btn-cancel" onClick={() => setIsNewCourseModalOpen(false)} disabled={courseSubmitStatus !== 'idle'}>
                   Cancelar
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className={`btn-save ${courseSubmitStatus === 'success' ? 'btn-save-success' : ''}`}
                   disabled={courseSubmitStatus !== 'idle'}
                 >
@@ -1206,7 +1206,7 @@ export function DirectorAdmin() {
                 <input
                   type="text"
                   value={editSchoolForm.name}
-                  onChange={(e) => setEditSchoolForm({...editSchoolForm, name: e.target.value})}
+                  onChange={(e) => setEditSchoolForm({ ...editSchoolForm, name: e.target.value })}
                   required
                 />
               </div>
@@ -1217,7 +1217,7 @@ export function DirectorAdmin() {
                   <input
                     type="text"
                     value={editSchoolForm.cnpj}
-                    onChange={(e) => setEditSchoolForm({...editSchoolForm, cnpj: e.target.value})}
+                    onChange={(e) => setEditSchoolForm({ ...editSchoolForm, cnpj: e.target.value })}
                     required
                   />
                 </div>
@@ -1227,7 +1227,7 @@ export function DirectorAdmin() {
                   <input
                     type="date"
                     value={editSchoolForm.foundation}
-                    onChange={(e) => setEditSchoolForm({...editSchoolForm, foundation: e.target.value})}
+                    onChange={(e) => setEditSchoolForm({ ...editSchoolForm, foundation: e.target.value })}
                   />
                 </div>
               </div>
@@ -1237,7 +1237,7 @@ export function DirectorAdmin() {
                 <input
                   type="text"
                   value={editSchoolForm.places}
-                  onChange={(e) => setEditSchoolForm({...editSchoolForm, places: e.target.value})}
+                  onChange={(e) => setEditSchoolForm({ ...editSchoolForm, places: e.target.value })}
                 />
               </div>
 
@@ -1246,7 +1246,7 @@ export function DirectorAdmin() {
                 <textarea
                   rows="2"
                   value={editSchoolForm.fundaments}
-                  onChange={(e) => setEditSchoolForm({...editSchoolForm, fundaments: e.target.value})}
+                  onChange={(e) => setEditSchoolForm({ ...editSchoolForm, fundaments: e.target.value })}
                 ></textarea>
               </div>
 
@@ -1255,7 +1255,7 @@ export function DirectorAdmin() {
                 <textarea
                   rows="2"
                   value={editSchoolForm.methods}
-                  onChange={(e) => setEditSchoolForm({...editSchoolForm, methods: e.target.value})}
+                  onChange={(e) => setEditSchoolForm({ ...editSchoolForm, methods: e.target.value })}
                 ></textarea>
               </div>
 
@@ -1263,8 +1263,8 @@ export function DirectorAdmin() {
                 <button type="button" className="btn-cancel" onClick={() => setIsEditSchoolModalOpen(false)} disabled={schoolSubmitStatus !== 'idle'}>
                   Cancelar
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className={`btn-save ${schoolSubmitStatus === 'success' ? 'btn-save-success' : ''}`}
                   disabled={schoolSubmitStatus !== 'idle'}
                 >
@@ -1318,7 +1318,7 @@ export function DirectorAdmin() {
                     type="text"
                     placeholder="Ex: Dra. Juliana Costa"
                     value={newDirectorForm.name}
-                    onChange={(e) => setNewDirectorForm({...newDirectorForm, name: e.target.value})}
+                    onChange={(e) => setNewDirectorForm({ ...newDirectorForm, name: e.target.value })}
                     required
                   />
                 </div>
@@ -1329,7 +1329,7 @@ export function DirectorAdmin() {
                     type="email"
                     placeholder="diretoria@escola.com"
                     value={newDirectorForm.email}
-                    onChange={(e) => setNewDirectorForm({...newDirectorForm, email: e.target.value})}
+                    onChange={(e) => setNewDirectorForm({ ...newDirectorForm, email: e.target.value })}
                     required
                   />
                 </div>
@@ -1342,7 +1342,7 @@ export function DirectorAdmin() {
                     type="text"
                     placeholder="000.000.000-00"
                     value={newDirectorForm.cpf}
-                    onChange={(e) => setNewDirectorForm({...newDirectorForm, cpf: e.target.value})}
+                    onChange={(e) => setNewDirectorForm({ ...newDirectorForm, cpf: e.target.value })}
                     required
                   />
                 </div>
@@ -1353,7 +1353,7 @@ export function DirectorAdmin() {
                     type="password"
                     placeholder="Senha de acesso"
                     value={newDirectorForm.password}
-                    onChange={(e) => setNewDirectorForm({...newDirectorForm, password: e.target.value})}
+                    onChange={(e) => setNewDirectorForm({ ...newDirectorForm, password: e.target.value })}
                   />
                 </div>
               </div>
@@ -1364,7 +1364,7 @@ export function DirectorAdmin() {
                   type="text"
                   placeholder="Ex: Instituto Tecnológico Avançado"
                   value={newDirectorForm.school_name}
-                  onChange={(e) => setNewDirectorForm({...newDirectorForm, school_name: e.target.value})}
+                  onChange={(e) => setNewDirectorForm({ ...newDirectorForm, school_name: e.target.value })}
                   required
                 />
               </div>
@@ -1376,7 +1376,7 @@ export function DirectorAdmin() {
                     type="text"
                     placeholder="00.000.000/0001-00"
                     value={newDirectorForm.school_cnpj}
-                    onChange={(e) => setNewDirectorForm({...newDirectorForm, school_cnpj: e.target.value})}
+                    onChange={(e) => setNewDirectorForm({ ...newDirectorForm, school_cnpj: e.target.value })}
                   />
                 </div>
 
@@ -1386,7 +1386,7 @@ export function DirectorAdmin() {
                     type="text"
                     placeholder="São Paulo, SP"
                     value={newDirectorForm.places}
-                    onChange={(e) => setNewDirectorForm({...newDirectorForm, places: e.target.value})}
+                    onChange={(e) => setNewDirectorForm({ ...newDirectorForm, places: e.target.value })}
                   />
                 </div>
               </div>
@@ -1407,8 +1407,8 @@ export function DirectorAdmin() {
                 <button type="button" className="btn-cancel" onClick={() => setIsRegisterDirectorModalOpen(false)} disabled={directorSubmitStatus !== 'idle'}>
                   Cancelar
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className={`btn-save ${directorSubmitStatus === 'success' ? 'btn-save-success' : ''}`}
                   disabled={directorSubmitStatus !== 'idle'}
                 >

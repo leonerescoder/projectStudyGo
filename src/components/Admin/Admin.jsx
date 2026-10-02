@@ -463,7 +463,7 @@ export function Admin() {
         // FASE 7 & 12: Resolve o ID real da categoria (Reutiliza existente ou cria inédita no banco)
         let targetCategory = categories.find(
           c => (c.nome_normalizado && c.nome_normalizado === normalizeCategoryName(courseForm.Field_of_study)) ||
-               c.name?.toLowerCase() === courseForm.Field_of_study?.toLowerCase()
+            c.name?.toLowerCase() === courseForm.Field_of_study?.toLowerCase()
         );
 
         if (!targetCategory && courseForm.Field_of_study && courseForm.Field_of_study.trim()) {
@@ -511,7 +511,7 @@ export function Admin() {
 
           setCourses([newCourse, ...courses]);
           setSubmitStatus('success');
-          
+
           setTimeout(() => {
             setIsModalOpen(false);
             setSubmitStatus('idle');
@@ -553,10 +553,10 @@ export function Admin() {
           }
           console.error('Erro backend:', errText);
         }
-      } catch (err) { 
+      } catch (err) {
         setSubmitStatus('idle');
-        console.error(err); 
-        alert('Erro de conexão ao salvar curso no servidor.'); 
+        console.error(err);
+        alert('Erro de conexão ao salvar curso no servidor.');
       }
     }
     else if (modalEntityType === 'company') {
@@ -581,7 +581,7 @@ export function Admin() {
           const newCompany = await response.json();
           setCompanies([newCompany, ...companies]);
           setSubmitStatus('success');
-          
+
           setTimeout(() => {
             setIsModalOpen(false);
             setSubmitStatus('idle');
@@ -601,14 +601,14 @@ export function Admin() {
             });
             setCompanyForm({ name: '', cnpj: '', foundation: '', places: '', fundaments: '', methods: '', ranking: '1', owner_name: '' });
           }, 600);
-        } else { 
+        } else {
           setSubmitStatus('idle');
-          alert('Erro ao inserir instituição no banco.'); 
+          alert('Erro ao inserir instituição no banco.');
         }
-      } catch (err) { 
+      } catch (err) {
         setSubmitStatus('idle');
-        console.error(err); 
-        alert('Erro de conexão.'); 
+        console.error(err);
+        alert('Erro de conexão.');
       }
     }
     else if (modalEntityType === 'category') {
@@ -620,7 +620,7 @@ export function Admin() {
         setSubmitStatus('saving');
         // FASE 5, 6, 7 e 8: Normaliza, detecta duplicatas e salva ou reaproveita categoria
         const result = await saveOrGetCategory(categoryForm.name, categoryForm.description);
-        
+
         setCategories(prev => {
           const exists = prev.some(c => c.id === result.category.id);
           return exists ? prev : [...prev, result.category];
@@ -628,7 +628,7 @@ export function Admin() {
         setCourseForm(prev => ({ ...prev, Field_of_study: result.category.name }));
 
         setSubmitStatus('success');
-        
+
         setTimeout(() => {
           setIsModalOpen(false);
           setSubmitStatus('idle');
@@ -636,7 +636,7 @@ export function Admin() {
             isOpen: true,
             type: 'category',
             title: result.reused ? 'Categoria Reaproveitada!' : 'Categoria Cadastrada com Sucesso!',
-            subtitle: result.reused 
+            subtitle: result.reused
               ? `A categoria global "${result.category.name}" (ID #${result.category.id}) foi identificada e vinculada com sucesso.`
               : `A nova categoria global "${result.category.name}" foi criada no banco e já está disponível para todos os diretores!`,
             details: {
@@ -676,7 +676,7 @@ export function Admin() {
           const newUser = await response.json();
           setUsers([newUser, ...users]);
           setSubmitStatus('success');
-          
+
           setTimeout(() => {
             setIsModalOpen(false);
             setSubmitStatus('idle');
@@ -693,14 +693,14 @@ export function Admin() {
             });
             setUserForm({ name: '', cpf: '', email: '', type: 'DIRECTOR', status: 'ATIVO', birth_date: '', password: '123', company_name: 'Senac São Carlos' });
           }, 600);
-        } else { 
+        } else {
           setSubmitStatus('idle');
-          alert('Erro ao inserir usuário no banco.'); 
+          alert('Erro ao inserir usuário no banco.');
         }
-      } catch (err) { 
+      } catch (err) {
         setSubmitStatus('idle');
-        console.error(err); 
-        alert('Erro de conexão.'); 
+        console.error(err);
+        alert('Erro de conexão.');
       }
     }
   };
@@ -1313,9 +1313,9 @@ export function Admin() {
                 <Database className="modal-icon" size={22} />
                 <div>
                   <h2>
-                    {modalEntityType === 'course' ? 'Adicionar um novo curso' : 
-                     modalEntityType === 'category' ? 'Adicionar uma nova categoria' : 
-                     'Inserir Dados no Banco'}
+                    {modalEntityType === 'course' ? 'Adicionar um novo curso' :
+                      modalEntityType === 'category' ? 'Adicionar uma nova categoria' :
+                        'Inserir Dados no Banco'}
                   </h2>
                   <p>Preencha os campos para salvar o novo registro.</p>
                 </div>
@@ -1586,8 +1586,8 @@ export function Admin() {
                   <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)} disabled={submitStatus !== 'idle'}>
                     Cancelar
                   </button>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className={`btn-submit ${submitStatus === 'success' ? 'btn-submit-success' : ''}`}
                     disabled={submitStatus !== 'idle'}
                   >
@@ -1672,8 +1672,8 @@ export function Admin() {
                   <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)} disabled={submitStatus !== 'idle'}>
                     Cancelar
                   </button>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className={`btn-submit ${submitStatus === 'success' ? 'btn-submit-success' : ''}`}
                     disabled={submitStatus !== 'idle'}
                   >
@@ -1756,8 +1756,8 @@ export function Admin() {
                     <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)} disabled={submitStatus !== 'idle'}>
                       Cancelar
                     </button>
-                    <button 
-                      type="submit" 
+                    <button
+                      type="submit"
                       className={`btn-submit ${submitStatus === 'success' ? 'btn-submit-success' : ''}`}
                       disabled={submitStatus !== 'idle'}
                     >
@@ -1850,8 +1850,8 @@ export function Admin() {
                   <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)} disabled={submitStatus !== 'idle'}>
                     Cancelar
                   </button>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className={`btn-submit ${submitStatus === 'success' ? 'btn-submit-success' : ''}`}
                     disabled={submitStatus !== 'idle'}
                   >

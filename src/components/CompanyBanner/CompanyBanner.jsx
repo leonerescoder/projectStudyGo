@@ -20,7 +20,7 @@ export function CompanyBanner({ onRegisterClick }) {
             </div>
             <div className="company-banner-titles">
               <h3>Sua empresa no StudyGo</h3>
-              <p>Encontre alunos e divulgue seus cursos para milhares de estudantes.</p>
+              <p>Publique seus cursos e conecte-se com alunos em crescimento na plataforma.</p>
             </div>
           </div>
           <button 

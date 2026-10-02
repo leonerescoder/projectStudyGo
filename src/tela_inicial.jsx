@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Building2, CheckCircle2 } from 'lucide-react';
+
 import { Hero } from './components/Hero/Hero';
 import { Features } from './components/Features/Features';
 import { CourseGrid } from './components/CourseGrid/CourseGrid';
@@ -47,9 +47,9 @@ const courseBelongsToCategory = (
 
   const belongsByField =
     (course.category || '').toLowerCase() ===
-      normalizedCategory ||
+    normalizedCategory ||
     (course.fieldOfStudy || '').toLowerCase() ===
-      normalizedCategory;
+    normalizedCategory;
 
   return belongsByCategories || belongsByField;
 };
@@ -107,7 +107,7 @@ export function TelaInicial() {
   const [isCompanyModalOpen, setIsCompanyModalOpen] =
     useState(false);
 
-  const [isPlansModalOpen, setIsPlansModalOpen] = 
+  const [isPlansModalOpen, setIsPlansModalOpen] =
     useState(false);
 
   const [isPaymentModalOpen, setIsPaymentModalOpen] =
@@ -129,20 +129,20 @@ export function TelaInicial() {
         const companiesList = Array.isArray(companyData)
           ? companyData
           : (
-              companyData?.value ||
-              companyData?.data ||
-              []
-            );
+            companyData?.value ||
+            companyData?.data ||
+            []
+          );
 
         setCompanies(companiesList);
 
         const rawData = Array.isArray(response)
           ? response
           : (
-              response?.value ||
-              response?.data ||
-              []
-            );
+            response?.value ||
+            response?.data ||
+            []
+          );
 
         // Enriquece cada curso com informações
         // de cliques e pontos do ranking.
@@ -206,9 +206,8 @@ export function TelaInicial() {
                 course.companyId
               ),
 
-            workload: `${
-              course.workload || 0
-            } horas`,
+            workload: `${course.workload || 0
+              } horas`,
 
             urlImg: course.urlImg,
 
@@ -229,11 +228,11 @@ export function TelaInicial() {
             // Badge somente para os 3 primeiros.
             badge:
               rankPosition !== null &&
-              rankPosition <= 3
+                rankPosition <= 3
                 ? {
-                    type: 'popular',
-                    text: 'Mais procurado'
-                  }
+                  type: 'popular',
+                  text: 'Mais procurado'
+                }
                 : null
           };
         });
@@ -275,10 +274,10 @@ export function TelaInicial() {
           Array.isArray(data)
             ? data
             : (
-                data?.value ||
-                data?.data ||
-                []
-              )
+              data?.value ||
+              data?.data ||
+              []
+            )
         );
       })
       .catch((err) =>
@@ -365,29 +364,12 @@ export function TelaInicial() {
         onSearchSubmit={handleSearchSubmit}
       />
 
-      {/* Convite para empresas */}
-      <div className="new-company-invite-banner">
-        <div className="new-company-invite-left">
-          <div className="new-company-invite-icon">
-            <Building2 size={32} color="#ffffff" strokeWidth={1.5} />
-          </div>
-          <div className="new-company-invite-info">
-            <h3>Sua empresa no StudyGo</h3>
-            <p>Encontre alunos e divulgue seus cursos para milhares de estudantes.</p>
-            <button className="new-company-invite-btn" onClick={handleCompanyCardClick}>
-              Cadastrar minha empresa
-            </button>
-          </div>
-        </div>
-        <div className="new-company-invite-right">
-          <ul className="new-company-features">
-            <li><CheckCircle2 size={18} className="check-icon" /> Publique seus cursos</li>
-            <li><CheckCircle2 size={18} className="check-icon" /> Gerencie inscrições</li>
-            <li><CheckCircle2 size={18} className="check-icon" /> Acompanhe interessados</li>
-            <li><CheckCircle2 size={18} className="check-icon" /> Divulgue sua instituição</li>
-          </ul>
-        </div>
-      </div>
+      {/* Banner para empresas */}
+      <CompanyBanner
+        onRegisterClick={() =>
+          setIsPlansModalOpen(true)
+        }
+      />
 
       {/* 2. Estatísticas / Diferenciais */}
       <Features />
@@ -440,18 +422,11 @@ export function TelaInicial() {
         );
       })}
 
-      {/* 4. Banner para empresas */}
-      <CompanyBanner
-        onRegisterClick={() =>
-          setIsPlansModalOpen(true)
-        }
-      />
-
       {/* 5. Rodapé */}
       <Footer />
 
       {/* Modal de Planos */}
-      <PlansModal 
+      <PlansModal
         isOpen={isPlansModalOpen}
         onClose={() => setIsPlansModalOpen(false)}
         onPlanSelect={(plan) => {

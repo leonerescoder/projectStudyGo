@@ -77,19 +77,51 @@
   animation: teh-float 7s ease-in-out infinite;
 }
 
-.teh-icon--cap { top: 16%; left: 10%; }
-.teh-icon--book { bottom: 20%; right: 14%; animation-delay: 1.8s; }
-.teh-icon--code { top: 62%; left: 20%; animation-delay: 3.4s; }
-.teh-icon--bulb { top: 22%; right: 22%; animation-delay: 2.6s; }
-.teh-icon--chip { bottom: 14%; left: 32%; animation-delay: 0.9s; }
+.teh-icon--cap {
+  top: 16%;
+  left: 10%;
+}
+
+.teh-icon--book {
+  bottom: 20%;
+  right: 14%;
+  animation-delay: 1.8s;
+}
+
+.teh-icon--code {
+  top: 62%;
+  left: 20%;
+  animation-delay: 3.4s;
+}
+
+.teh-icon--bulb {
+  top: 22%;
+  right: 22%;
+  animation-delay: 2.6s;
+}
+
+.teh-icon--chip {
+  bottom: 14%;
+  left: 32%;
+  animation-delay: 0.9s;
+}
 
 @keyframes teh-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-14px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-14px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .teh-icon { animation: none; }
+  .teh-icon {
+    animation: none;
+  }
 }
 
 #tela-inicial .hero-title {
@@ -129,7 +161,7 @@
   justify-content: space-between;
   align-items: center;
   background: linear-gradient(135deg, #f2f5ff, #fdfdff);
-  border: 1px solid rgba(0,0,0,0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
   border-radius: 12px;
   color: #1e293b;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
@@ -1118,8 +1150,10 @@
   color: #38bdf8;
 }
 
-.contact-list span {
-  display: block;
+.contact-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .footer-bottom-bar {
@@ -1369,6 +1403,7 @@
     opacity: 0.35;
     transform: scale(1.035);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -1473,7 +1508,7 @@
   background: #67e8f9;
 }
 
-#tela-inicial .hero-section > .hero-container {
+#tela-inicial .hero-section>.hero-container {
   padding-top: 2.5rem;
 }
 
@@ -1535,6 +1570,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   #tela-inicial .hero-banner-slide,
   #tela-inicial .hero-banner-image {
     animation: none;

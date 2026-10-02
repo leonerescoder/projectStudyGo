@@ -5,19 +5,19 @@ const STATS_DATA = [
   {
     id: 1,
     category: 'INSTITUIÇÕES',
-    title: 'Mais de 100 escolas',
+    title: 'Escolas parceiras',
     icon: <Building2 size={22} />
   },
   {
     id: 2,
     category: 'VARIEDADE',
-    title: 'Milhares de cursos',
+    title: 'Cursos disponíveis',
     icon: <BookOpen size={22} />
   },
   {
     id: 3,
     category: 'QUALIDADE',
-    title: 'Ranking das melhores escolas',
+    title: 'Ranking por avaliações',
     icon: <Trophy size={22} />
   },
   {
