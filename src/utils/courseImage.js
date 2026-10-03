@@ -1,9 +1,15 @@
 // Helper for managing course images and local uploaded images cache
 
+import imgBancoDeDados from '../assets/imagem banco de dados.png';
+import imgCulinaria from '../assets/imagem culinária.png';
+import imgGestao from '../assets/imagem gestão.png';
+import imgProgramacao from '../assets/imagem programação.png';
+
 export const DEFAULT_CATEGORY_IMAGES = {
   'Tecnologia': 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1800&q=90',
   'Mecânica': 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1800&q=90',
-  'Gastronomia': 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1800&q=90',
+  'Gastronomia': imgCulinaria,
+  'Gestão': imgGestao,
   'Idiomas': 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&w=1800&q=90',
   'Design & Artes': 'https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=1800&q=90',
   'Saúde': 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1800&q=90',
@@ -17,7 +23,7 @@ export const DEFAULT_CATEGORY_IMAGES = {
 const COURSE_IMAGES = [
   {
     terms: ['banco de dados', 'database', 'sql', 'postgres', 'mysql', 'nosql'],
-    url: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=2000&q=90'
+    url: imgBancoDeDados
   },
   {
     terms: ['cloud', 'nuvem', 'aws', 'azure', 'devops', 'docker'],
@@ -29,7 +35,7 @@ const COURSE_IMAGES = [
   },
   {
     terms: ['java', 'programacao', 'programação', 'logica', 'lógica', 'python', 'algoritmo', 'codigo', 'código'],
-    url: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=2000&q=90'
+    url: imgProgramacao
   },
   {
     terms: ['design', 'ui', 'ux', 'figma', 'prototip'],
@@ -42,6 +48,14 @@ const COURSE_IMAGES = [
   {
     terms: ['dados', 'data', 'inteligencia artificial', 'inteligência artificial', 'machine learning'],
     url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=2000&q=90'
+  },
+  {
+    terms: ['gestão', 'gestao', 'administracao', 'administração', 'negocios', 'negócios'],
+    url: imgGestao
+  },
+  {
+    terms: ['gastronomia', 'culinaria', 'culinária', 'cozinha'],
+    url: imgCulinaria
   }
 ];
 

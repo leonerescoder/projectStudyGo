@@ -2,36 +2,42 @@ import React, { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import heroFallback from '../../assets/estudandes.jpg';
-import heroGastronomia from '../../assets/hero-gastronomia.png';
+import imgGestao from '../../assets/imagem gestão.png';
+import imgProgramacao from '../../assets/imagem programação.png';
+import imgBancoDeDados from '../../assets/imagem banco de dados.png';
+import imgCulinaria from '../../assets/imagem culinária.png';
 
 const FEATURED_SLIDES = [
   {
     id: 'administracao',
     eyebrow: 'CURSO EM DESTAQUE',
     title: 'Técnico em Administração',
-    image: 'https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?auto=format&fit=crop&w=1600&q=90',
+    image: imgGestao,
+    objectFit: 'contain',
+    objectPosition: 'right',
+    backgroundColor: '#0b1120',
     terms: ['administração', 'administracao', 'gestão', 'gestao']
   },
   {
-    id: 'ia',
+    id: 'programacao',
     eyebrow: 'CURSO EM DESTAQUE',
-    title: 'Introdução à Inteligência Artificial',
-    image: 'https://images.unsplash.com/photo-1697577418970-95d99b5a55cf?auto=format&fit=crop&w=1600&q=90',
-    terms: ['inteligência artificial', 'inteligencia artificial', 'machine learning', 'ia']
+    title: 'Lógica e Programação',
+    image: imgProgramacao,
+    terms: ['programação', 'programacao', 'java', 'python', 'lógica', 'logica']
   },
   {
     id: 'banco-de-dados',
     eyebrow: 'CURSO EM DESTAQUE',
     title: 'Banco de Dados PostgreSQL',
-    image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1600&q=90',
+    image: imgBancoDeDados,
     terms: ['banco de dados', 'postgresql', 'sql', 'database']
   },
   {
     id: 'gastronomia',
     eyebrow: 'CURSO EM DESTAQUE',
     title: 'Aprendendo a cozinhar como um adulto funcional',
-    image: heroGastronomia,
-    isCustomBanner: true,
+    image: imgCulinaria,
+    isCustomBanner: false,
     terms: ['gastronomia', 'culinária', 'culinaria', 'cozinha']
   }
 ];
@@ -96,7 +102,11 @@ export function Hero({ courses = [], searchTerm, onSearchChange, onSearchSubmit 
               src={activeSlide.image}
               alt={activeSlide.title}
               className="hero-banner-image"
-              style={activeSlide.isCustomBanner ? { objectFit: 'cover', background: 'transparent' } : {}}
+              style={{
+                objectFit: activeSlide.objectFit || 'cover',
+                background: activeSlide.backgroundColor || (activeSlide.isCustomBanner ? 'transparent' : 'initial'),
+                objectPosition: activeSlide.objectPosition || 'center'
+              }}
               onError={(event) => {
                 event.currentTarget.onerror = null;
                 event.currentTarget.src = heroFallback;
