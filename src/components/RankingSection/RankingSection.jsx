@@ -32,7 +32,7 @@ export function RankingSection({ courses }) {
           <div className="ranking-header">
             <div className="ranking-title-area">
               <div className="trophy-icon-wrapper">
-                <Trophy size={24} color="#38bdf8" />
+                <Trophy size={28} color="#4f46e5" />
               </div>
 
               <div>
@@ -89,26 +89,10 @@ export function RankingSection({ courses }) {
                     {course.title}
                   </p>
 
-                  <div
-                    className="ranking-card-footer"
-                    style={{
-                      marginTop: '0.4rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between'
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: '0.75rem',
-                        color: '#94a3b8',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}
-                    >
+                  <div className="ranking-card-footer">
+                    <span className="ranking-pts-label">
                       <Star
-                        size={12}
+                        size={14}
                         fill="#f59e0b"
                         color="#f59e0b"
                       />

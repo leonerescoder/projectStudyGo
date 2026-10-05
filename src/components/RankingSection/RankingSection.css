@@ -13,9 +13,10 @@
 /* Left Column: Ranking List */
 .ranking-main-content {
   background: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid #f1f5f9;
   border-radius: 16px;
   padding: 1.5rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
 }
 
 .ranking-header {
@@ -36,15 +37,15 @@
 }
 
 .ranking-title {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.4rem;
+  font-weight: 800;
   color: #0f172a;
   margin-bottom: 0.2rem;
 }
 
 .ranking-subtitle {
-  font-size: 0.85rem;
-  color: #94a3b8;
+  font-size: 0.9rem;
+  color: #6366f1;
 }
 
 .view-all-link {
@@ -87,10 +88,10 @@
 }
 
 .ranking-course-card {
-  min-width: 180px;
+  min-width: 190px;
   flex: 1;
   background: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
@@ -101,8 +102,8 @@
 
 .ranking-course-card:hover {
   transform: translateY(-4px);
-  border-color: #123b78;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  border-color: #6366f1;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .ranking-card-image-wrapper {
@@ -137,29 +138,29 @@
   position: absolute;
   top: 8px;
   left: 8px;
-  height: 36px;
-  min-width: 58px;
-  padding: 0 12px;
+  height: 32px;
+  min-width: 52px;
+  padding: 0 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   background: #ffffff;
-  border-radius: 18px;
-  color: #1d4ed8;
-  font-size: 0.95rem;
+  border-radius: 16px;
+  color: #3730a3;
+  font-size: 0.9rem;
   font-weight: 800;
   z-index: 2;
-  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .ranking-position-badge.top-three {
-  background: #1d73e8;
+  background: #2e3dc6;
   color: #ffffff;
 }
 
 .ranking-position-badge svg {
-  color: #fbbf24;
+  color: #f59e0b;
   stroke-width: 2.5;
 }
 
@@ -220,9 +221,9 @@
 }
 
 .ranking-card-title {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #0f172a;
   margin-bottom: 0.2rem;
   white-space: nowrap;
   overflow: hidden;
@@ -230,8 +231,8 @@
 }
 
 .ranking-card-category {
-  font-size: 0.75rem;
-  color: #94a3b8;
+  font-size: 0.8rem;
+  color: #6366f1;
   margin-bottom: 0.8rem;
   white-space: nowrap;
   overflow: hidden;
@@ -240,22 +241,18 @@
 
 .ranking-card-footer {
   margin-top: auto;
-}
-
-.rating-wrap {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.75rem;
+  justify-content: space-between;
 }
 
-.rating-score {
+.ranking-pts-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: #3730a3;
   font-weight: 700;
-  color: #ffffff;
-}
-
-.rating-count {
-  color: #64748b;
 }
 
 /* Right Column: Side Cards */
