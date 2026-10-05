@@ -2,20 +2,28 @@ import React, { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import heroFallback from '../../assets/estudandes.jpg';
-import imgGestao from '../../assets/imagem gestão.png';
-import imgProgramacao from '../../assets/imagem programação.png';
-import imgBancoDeDados from '../../assets/imagem banco de dados.png';
-import imgCulinaria from '../../assets/imagem culinária.png';
+import imgGestao from '../../assets/banner-gestao.png';
+import imgProgramacao from '../../assets/banner-programacao.png';
+import imgBancoDeDados from '../../assets/banner-banco-de-dados.png';
+import imgCulinaria from '../../assets/banner-culinaria.png';
 
 const FEATURED_SLIDES = [
+  {
+    id: 'banco-de-dados',
+    eyebrow: 'CURSO EM DESTAQUE',
+    title: 'Banco de Dados PostgreSQL',
+    image: imgBancoDeDados,
+    objectFit: 'cover',
+    objectPosition: 'center',
+    terms: ['banco de dados', 'postgresql', 'sql', 'database']
+  },
   {
     id: 'administracao',
     eyebrow: 'CURSO EM DESTAQUE',
     title: 'Técnico em Administração',
     image: imgGestao,
-    objectFit: 'contain',
-    objectPosition: 'right',
-    backgroundColor: '#0b1120',
+    objectFit: 'cover',
+    objectPosition: 'center',
     terms: ['administração', 'administracao', 'gestão', 'gestao']
   },
   {
@@ -23,21 +31,17 @@ const FEATURED_SLIDES = [
     eyebrow: 'CURSO EM DESTAQUE',
     title: 'Lógica e Programação',
     image: imgProgramacao,
+    objectFit: 'cover',
+    objectPosition: 'center',
     terms: ['programação', 'programacao', 'java', 'python', 'lógica', 'logica']
-  },
-  {
-    id: 'banco-de-dados',
-    eyebrow: 'CURSO EM DESTAQUE',
-    title: 'Banco de Dados PostgreSQL',
-    image: imgBancoDeDados,
-    terms: ['banco de dados', 'postgresql', 'sql', 'database']
   },
   {
     id: 'gastronomia',
     eyebrow: 'CURSO EM DESTAQUE',
-    title: 'Aprendendo a cozinhar como um adulto funcional',
+    title: 'Gastronomia Profissional',
     image: imgCulinaria,
-    isCustomBanner: false,
+    objectFit: 'cover',
+    objectPosition: 'center',
     terms: ['gastronomia', 'culinária', 'culinaria', 'cozinha']
   }
 ];
@@ -117,7 +121,7 @@ export function Hero({ courses = [], searchTerm, onSearchChange, onSearchSubmit 
                 <span className="hero-banner-overlay" />
                 <span className="hero-banner-content">
                   <small>{activeSlide.eyebrow}</small>
-                  <strong>{relatedCourse?.title || activeSlide.title}</strong>
+                  <strong>{activeSlide.title}</strong>
                   <span>Clique para conhecer o curso</span>
                 </span>
               </>
