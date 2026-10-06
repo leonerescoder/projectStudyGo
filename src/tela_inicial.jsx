@@ -20,15 +20,7 @@ import {
 
 import './tela_inicial.css';
 
-const mockSchools = {
-  1: 'Escola de Administração',
-  2: 'Escola de Tecnologia',
-  3: 'Escola de Negócios',
-  4: 'Escola de Design'
-};
 
-const getSchoolName = (id) =>
-  mockSchools[id] || `Escola (ID: ${id})`;
 
 const courseBelongsToCategory = (
   course,
@@ -202,9 +194,7 @@ export function TelaInicial() {
 
             school:
               company?.name ||
-              getSchoolName(
-                course.companyId
-              ),
+              'Escola não informada',
 
             workload: `${course.workload || 0
               } horas`,

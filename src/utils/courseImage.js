@@ -86,26 +86,30 @@ export function saveLocalCourseImage(courseIdOrName, dataUrl) {
 
 export function getCourseImageUrl(course) {
   if (!course) return DEFAULT_CATEGORY_IMAGES['DEFAULT'];
-  
+
+  // 1. Imagem enviada pelo admin (base64 salva no localStorage)
   try {
     if (course.id) {
       const localById = localStorage.getItem(`studygo_course_img_${course.id}`);
       if (localById) return localById;
     }
-    
+
     if (course.name || course.title) {
       const localByName = localStorage.getItem(`studygo_course_img_${course.name || course.title}`);
       if (localByName) return localByName;
     }
   } catch (e) {
-    // Local storage disabled or error
+    // LocalStorage indisponível
   }
 
-  const themedImage = getCourseThemeImage(course);
-  if (themedImage) return themedImage;
-
+  // 2. URL de imagem real vinda do banco de dados (prioridade sobre imagens temáticas)
   if (course.urlImg && course.urlImg.trim() !== '') return course.urlImg;
   if (course.url_img && course.url_img.trim() !== '') return course.url_img;
 
+  // 3. Imagem temática baseada em palavras-chave do nome do curso
+  const themedImage = getCourseThemeImage(course);
+  if (themedImage) return themedImage;
+
+  // 4. Fallback por categoria
   return getFallbackImageUrl(course.Field_of_study || course.fieldOfStudy || course.category);
 }
