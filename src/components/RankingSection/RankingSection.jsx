@@ -32,7 +32,7 @@ export function RankingSection({ courses }) {
           <div className="ranking-header">
             <div className="ranking-title-area">
               <div className="trophy-icon-wrapper">
-                <Trophy size={28} color="#4f46e5" />
+                <Trophy size={28} color="#2563eb" />
               </div>
 
               <div>
