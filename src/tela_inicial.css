@@ -31,8 +31,9 @@
   position: relative;
   padding: 10rem 0 9rem;
   text-align: center;
-  overflow: hidden;
+  overflow: visible;
   background: #0a0f1e;
+  z-index: 50;
 }
 
 .teh-root {

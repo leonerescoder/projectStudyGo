@@ -151,11 +151,102 @@
   font-weight: 500;
 }
 
-#course-page .course-description {
-  color: var(--color-text-muted);
-  line-height: 1.6;
-  margin-bottom: 2rem;
-  font-size: 1.05rem;
+#course-page .company-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+#course-page .company-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+#course-page .company-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+#course-page .company-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+#course-page .company-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+#course-page .course-description-container {
+  margin-bottom: 4rem;
+  background-color: #f8fafc;
+  padding: 2rem;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+#course-page .course-description-container h2 {
+  font-size: 1.5rem;
+  color: #0f172a;
+  margin-bottom: 1rem;
+}
+
+#course-page .course-description-text {
+  color: #475569;
+  line-height: 1.8;
+  font-size: 1.15rem;
+}
+
+#course-page .course-learning-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+#course-page .course-learning-title {
+  font-size: 1.25rem;
+  color: #0f172a;
+  margin-bottom: 1.5rem;
+}
+
+#course-page .course-learning-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+#course-page .course-learning-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  color: #475569;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+#course-page .course-learning-icon {
+  color: #10b981;
+  font-weight: bold;
+  font-size: 1.1rem;
 }
 
 #course-page .school-info-btn {
@@ -453,7 +544,7 @@
 
 /* Contraste para a versão clara das telas */
 #course-page .breadcrumb,
-#course-page .course-description,
+#course-page .course-description-text,
 #course-page .category-label,
 #course-page .stat-label,
 #course-page .ranking-label,

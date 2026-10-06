@@ -288,30 +288,7 @@ export function TelaInicial() {
           activeCategory
         );
 
-      // Filtro por busca.
-      const query = searchTerm
-        .trim()
-        .toLowerCase();
-
-      const matchesSearch =
-        !query ||
-        (course.title || '')
-          .toLowerCase()
-          .includes(query) ||
-        (course.category || '')
-          .toLowerCase()
-          .includes(query) ||
-        (course.school || '')
-          .toLowerCase()
-          .includes(query) ||
-        (course.description || '')
-          .toLowerCase()
-          .includes(query);
-
-      return (
-        matchesCategory &&
-        matchesSearch
-      );
+      return matchesCategory;
     });
   }, [
     searchTerm,

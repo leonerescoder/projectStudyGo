@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { buscaID, buscaTodos } from '../../ApiCourses/ApiCourse';
+import { buscaEmpresas } from '../../API/apiCompany';
 import { getCourseImageUrl } from '../../utils/courseImage';
 import courseImageFallback from '../../assets/estudandes.jpg';
 import {
@@ -17,6 +18,93 @@ import {
   enrichCourseWithRanking
 } from '../../utils/rankingService';
 import './Course.css';
+
+const mockLearningData = [
+  {
+    titulo: "Lógica de programação",
+    oQueVaiAprender: [
+      "Fundamentos da lógica de programação",
+      "Algoritmos e estruturas de decisão",
+      "Variáveis, operadores e tipos de dados",
+      "Estruturas de repetição",
+      "Funções e procedimentos",
+      "Resolução de problemas com programação",
+      "Introdução ao desenvolvimento de sistemas"
+    ]
+  },
+  {
+    titulo: "Banco de dados",
+    oQueVaiAprender: [
+      "Fundamentos de bancos de dados",
+      "Modelagem de dados",
+      "Criação de tabelas e relacionamentos",
+      "Consultas utilizando SQL",
+      "Inserção, atualização e exclusão de dados",
+      "Relacionamentos entre tabelas",
+      "Organização e segurança das informações"
+    ]
+  },
+  {
+    titulo: "Podologia",
+    oQueVaiAprender: [
+      "Fundamentos da podologia",
+      "Anatomia e fisiologia dos pés",
+      "Avaliação e cuidados podológicos",
+      "Higienização e procedimentos de atendimento",
+      "Prevenção de problemas nos pés",
+      "Técnicas e instrumentos de podologia",
+      "Biossegurança no atendimento"
+    ]
+  },
+  {
+    titulo: "Secretariado",
+    oQueVaiAprender: [
+      "Rotinas administrativas",
+      "Organização de documentos e arquivos",
+      "Atendimento ao público",
+      "Comunicação profissional",
+      "Organização de reuniões e agendas",
+      "Ferramentas de escritório",
+      "Gestão de informações e correspondências"
+    ]
+  },
+  {
+    titulo: "Gestão Empresarial",
+    oQueVaiAprender: [
+      "Fundamentos da administração",
+      "Planejamento estratégico",
+      "Gestão financeira",
+      "Gestão de pessoas",
+      "Marketing e relacionamento com clientes",
+      "Processos e operações empresariais",
+      "Tomada de decisões e liderança"
+    ]
+  },
+  {
+    titulo: "Python",
+    oQueVaiAprender: [
+      "Fundamentos da linguagem Python",
+      "Variáveis, tipos de dados e operadores",
+      "Estruturas condicionais e de repetição",
+      "Funções e módulos",
+      "Listas, tuplas e dicionários",
+      "Programação orientada a objetos",
+      "Criação de projetos práticos"
+    ]
+  },
+  {
+    titulo: "Culinária",
+    oQueVaiAprender: [
+      "Fundamentos da culinária",
+      "Técnicas básicas de preparo",
+      "Cortes e manipulação de alimentos",
+      "Métodos de cocção",
+      "Higiene e segurança alimentar",
+      "Preparo e apresentação de pratos",
+      "Organização e rotina de cozinha"
+    ]
+  }
+];
 
 function Course() {
   const { id } = useParams();
@@ -48,11 +136,12 @@ function Course() {
         // Adiciona as informações de ranking
         const courseData = enrichCourseWithRanking(courseResponse);
 
-        setCourse(courseData);
-
-        // Busca todos os cursos para calcular ranking e cursos relacionados
+        // Busca todos os dados em paralelo para evitar re-renders
         try {
-          const rawAllCourses = await buscaTodos();
+          const [rawAllCourses, rawAllCompanies] = await Promise.all([
+            buscaTodos(),
+            buscaEmpresas()
+          ]);
 
           const allCoursesData = Array.isArray(rawAllCourses)
             ? rawAllCourses
@@ -61,6 +150,23 @@ function Course() {
                 rawAllCourses?.data ||
                 []
               );
+              
+          const allCompaniesData = Array.isArray(rawAllCompanies)
+            ? rawAllCompanies
+            : (
+                rawAllCompanies?.value ||
+                rawAllCompanies?.data ||
+                []
+              );
+
+          // Vincula a empresa ao curso antes de setar o estado (evita re-render)
+          const matchedCompany = allCompaniesData.find(c => c.id === courseData.companyId);
+          if (matchedCompany) {
+            courseData.company = matchedCompany;
+          }
+
+          // Seta o curso UMA vez, já com a empresa vinculada
+          setCourse({...courseData});
 
           // Enriquece todos os cursos com as informações de ranking
           const allCourses = allCoursesData.map((courseItem) =>
@@ -263,7 +369,25 @@ function Course() {
             {course.name}
           </h1>
 
-          {/* Instituição responsável pelo curso */}
+          {/* Instituição abaixo do título */}
+          {course.company && (
+            <div className="company-info">
+              {course.company.logo && (
+                <img
+                  src={course.company.logo}
+                  alt={course.company.name}
+                  className="company-logo"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              )}
+              <div className="company-text">
+                <span className="company-label">Instituição</span>
+                <span className="company-value">{course.company.name}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Botão ir para a escola */}
           <button
             className="school-info-btn"
             onClick={() =>
@@ -272,37 +396,12 @@ function Course() {
             }
           >
             <Building size={20} />
-
-            {companyName}
-
+            Ir para a escola
             <ChevronRight
               size={20}
               className="chevron"
             />
           </button>
-
-          {/* Categoria */}
-          <div className="category-info">
-            <div className="category-icon">
-              <Code size={20} />
-            </div>
-
-            <div className="category-text">
-              <span className="category-label">
-                Categoria
-              </span>
-
-              <span className="category-value">
-                {categoryNames}
-              </span>
-            </div>
-          </div>
-
-          {/* Descrição */}
-          <p className="course-description">
-            {course.description ||
-              'Descrição não disponível.'}
-          </p>
 
         </div>
       </div>
@@ -343,6 +442,35 @@ function Course() {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Descrição do Curso */}
+      <div className="course-description-container">
+        <h2>Sobre o Curso</h2>
+        <p className="course-description-text">
+          {course.description ||
+            'Descrição não disponível.'}
+        </p>
+
+        {(() => {
+          const mockData = mockLearningData.find(m => m.titulo.toLowerCase() === (course.name || '').toLowerCase());
+          if (mockData && mockData.oQueVaiAprender) {
+            return (
+              <div className="course-learning-section">
+                <h3 className="course-learning-title">O que você vai aprender</h3>
+                <ul className="course-learning-list">
+                  {mockData.oQueVaiAprender.map((item, idx) => (
+                    <li key={idx} className="course-learning-item">
+                      <span className="course-learning-icon">✓</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          }
+          return null;
+        })()}
       </div>
 
       {/* Cursos relacionados */}

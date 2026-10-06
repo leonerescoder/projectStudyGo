@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Search, 
   GraduationCap, 
@@ -14,6 +14,9 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { recordCourseClick } from '../../utils/rankingService';
 import { getGlobalCategories, CATEGORIES_UPDATE_EVENT } from '../../utils/categoryService';
+import { buscaTodos } from '../../ApiCourses/ApiCourse';
+import { buscaEmpresas } from '../../API/apiCompany';
+import heroFallback from '../../assets/estudandes.jpg';
 import './Navbar.css';
 
 const defaultIcon = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>;
@@ -28,6 +31,8 @@ function Navbar() {
   const [categories, setCategories] = useState([]);
   const [hasScrolled, setHasScrolled] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [courses, setCourses] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const userMenuRef = useRef(null);
 
   const isHomePage = location.pathname === '/';
@@ -50,7 +55,24 @@ function Navbar() {
       const globalCats = await getGlobalCategories();
       setCategories(Array.isArray(globalCats) ? globalCats : []);
     }
+    async function loadData() {
+      try {
+        const [responseCourses, responseCompanies] = await Promise.all([
+          buscaTodos(),
+          buscaEmpresas()
+        ]);
+        
+        const coursesData = Array.isArray(responseCourses) ? responseCourses : (responseCourses?.value || responseCourses?.data || []);
+        setCourses(coursesData);
+        
+        const companiesData = Array.isArray(responseCompanies) ? responseCompanies : (responseCompanies?.value || responseCompanies?.data || []);
+        setCompanies(companiesData);
+      } catch (err) {
+        console.error('Erro ao buscar dados no Navbar:', err);
+      }
+    }
     loadCategories();
+    loadData();
 
     const handleUpdate = () => loadCategories();
     window.addEventListener(CATEGORIES_UPDATE_EVENT, handleUpdate);
@@ -90,7 +112,32 @@ function Navbar() {
     event.preventDefault();
     const query = searchTerm.trim();
     navigate(query ? `/cursos?search=${encodeURIComponent(query)}` : '/cursos');
+    setSearchTerm('');
   };
+
+  const searchResults = useMemo(() => {
+    if (!searchTerm || !searchTerm.trim()) return [];
+    const query = searchTerm.trim().toLowerCase();
+    
+    const matchedCourses = courses.filter(course => {
+      return (
+        (course.name || '').toLowerCase().includes(query) ||
+        (course.category || '').toLowerCase().includes(query) ||
+        (course.fieldOfStudy || '').toLowerCase().includes(query) ||
+        (course.description || '').toLowerCase().includes(query)
+      );
+    }).map(c => ({ ...c, searchType: 'course' }));
+
+    const matchedCompanies = companies.filter(company => {
+      return (
+        (company.name || '').toLowerCase().includes(query) ||
+        (company.description || '').toLowerCase().includes(query) ||
+        (company.category || '').toLowerCase().includes(query)
+      );
+    }).map(c => ({ ...c, searchType: 'company' }));
+
+    return [...matchedCompanies, ...matchedCourses].slice(0, 6);
+  }, [searchTerm, courses, companies]);
 
   return (
     <header className="navbar-wrapper">
@@ -103,7 +150,7 @@ function Navbar() {
         </div>
 
         <div className={`navbar-center ${showSearch ? 'search-visible' : 'search-hidden'}`}>
-          <form className="search-bar" onSubmit={handleSearchSubmit}>
+          <form className="search-bar" onSubmit={handleSearchSubmit} style={{ position: 'relative' }}>
             <Search size={20} className="search-icon" strokeWidth={2.5} />
             <input
               type="text"
@@ -113,6 +160,78 @@ function Navbar() {
               onChange={(event) => setSearchTerm(event.target.value)}
               tabIndex={showSearch ? 0 : -1}
             />
+            {searchTerm && searchTerm.trim() && (
+              <div className="navbar-search-dropdown" style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                marginTop: '0.5rem',
+                backgroundColor: '#ffffff',
+                borderRadius: '8px',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                overflow: 'hidden',
+                zIndex: 100,
+                textAlign: 'left'
+              }}>
+                {searchResults.length > 0 ? (
+                  <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                    {searchResults.map(result => (
+                      <li key={`${result.searchType}-${result.id}`} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (result.searchType === 'course') {
+                              navigate(`/course/${result.id}`);
+                            } else {
+                              navigate(`/escolas/${result.id}`);
+                            }
+                            setSearchTerm('');
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem 1rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '1rem',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'background-color 0.2s',
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: result.searchType === 'company' ? '50%' : '6px',
+                            backgroundColor: '#e2e8f0',
+                            backgroundImage: `url(${result.urlImg || result.logo || heroFallback})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            flexShrink: 0
+                          }} />
+                          <div style={{ overflow: 'hidden' }}>
+                            <strong style={{ display: 'block', color: '#0f172a', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {result.name || result.title}
+                            </strong>
+                            <span style={{ color: '#64748b', fontSize: '0.8rem', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {result.searchType === 'company' ? 'Escola' : (result.category || result.fieldOfStudy)}
+                            </span>
+                          </div>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div style={{ padding: '1.5rem 1rem', color: '#64748b', textAlign: 'center', fontSize: '0.95rem' }}>
+                    Nenhum curso encontrado.
+                  </div>
+                )}
+              </div>
+            )}
           </form>
         </div>
 
